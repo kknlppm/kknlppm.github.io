@@ -47,6 +47,12 @@
       </table>
     </div>
   </div>
+
+  <nav id="kakiHalaman" class="flex items-center justify-between gap-3 mt-4" aria-label="Halaman" hidden>
+    <button id="sebelumnya" type="button" class="tombol-halus" disabled>← Sebelumnya</button>
+    <span id="posisiHalaman" class="font-data text-xs text-tinta-redup"></span>
+    <button id="berikutnya" type="button" class="tombol-halus" disabled>Berikutnya →</button>
+  </nav>
 </main>
 
 <!-- Laci formulir. Muncul dari kanan supaya daftar di belakangnya tetap
@@ -112,7 +118,17 @@ if (requireLogin()) {
     const inpCari = document.getElementById("cari");
     const form = document.getElementById("formKelompok");
     const laci = buatLaci("laci", "tirai", "tombolBatal");
-    let tahun = "", sunting = null;
+    let tahun = "", sunting = null, halaman = 1, totalHalaman = 1;
+
+    const kakiHal = document.getElementById("kakiHalaman");
+    const posisi = document.getElementById("posisiHalaman");
+    const btnPrev = document.getElementById("sebelumnya");
+    const btnNext = document.getElementById("berikutnya");
+
+    // Tanpa tahun terpilih ada 202 kelompok — dua lebih banyak daripada
+    // plafon `limit` di server. Dulu halaman ini meminta 200 tanpa kontrol
+    // halaman, jadi dua kelompok terakhir tidak pernah muncul.
+    const SEHALAMAN = 200;
 
     function baris(g) {
         const tr = el("tr");
@@ -156,7 +172,7 @@ if (requireLogin()) {
     function muat() {
         sembunyikan(elPesan);
         kosongkan(isi);
-        const p = new URLSearchParams({ limit: "200" });
+        const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman) });
         if (tahun) p.set("tahun_ajaran", tahun);
         if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
         getJSON(backend.kkn.groups + "?" + p.toString(), jawabanMuat, ...tokenHeader());
@@ -176,7 +192,17 @@ if (requireLogin()) {
         } else {
             rows.forEach(function (g) { isi.appendChild(baris(g)); });
         }
-        ringkasan.textContent = ((amplop.meta || {}).total || 0) + " kelompok";
+        const meta = amplop.meta || {};
+        ringkasan.textContent = (meta.total || 0).toLocaleString("id-ID") + " kelompok";
+        totalHalaman = meta.total_pages || 1;
+        if (totalHalaman <= 1) {
+            kakiHal.hidden = true;
+        } else {
+            kakiHal.hidden = false;
+            posisi.textContent = "Halaman " + (meta.page || 1) + " dari " + totalHalaman;
+            btnPrev.disabled = (meta.page || 1) <= 1;
+            btnNext.disabled = (meta.page || 1) >= totalHalaman;
+        }
     }
 
     function muatDosen() {
@@ -236,6 +262,9 @@ if (requireLogin()) {
         }, ...tokenHeader());
     }
 
+    btnPrev.addEventListener("click", function () { if (halaman > 1) { halaman--; muat(); } });
+    btnNext.addEventListener("click", function () { if (halaman < totalHalaman) { halaman++; muat(); } });
+
     function tombolTahun(nilai, label) {
         const b = el("button", "", label);
         b.type = "button";
@@ -243,6 +272,7 @@ if (requireLogin()) {
         b.setAttribute("aria-pressed", String(tahun === nilai));
         b.addEventListener("click", function () {
             tahun = nilai;
+            halaman = 1;
             segmen.querySelectorAll("button").forEach(function (x) {
                 x.setAttribute("aria-pressed", String(x.dataset.nilai === nilai));
             });
@@ -264,7 +294,7 @@ if (requireLogin()) {
     let jeda;
     inpCari.addEventListener("input", function () {
         clearTimeout(jeda);
-        jeda = setTimeout(muat, 350);
+        jeda = setTimeout(function () { halaman = 1; muat(); }, 350);
     });
 
     muatTahun();

@@ -36,6 +36,12 @@
       </table>
     </div>
   </div>
+
+  <nav id="kakiHalaman" class="flex items-center justify-between gap-3 mt-4" aria-label="Halaman" hidden>
+    <button id="sebelumnya" type="button" class="tombol-halus" disabled>← Sebelumnya</button>
+    <span id="posisiHalaman" class="font-data text-xs text-tinta-redup"></span>
+    <button id="berikutnya" type="button" class="tombol-halus" disabled>Berikutnya →</button>
+  </nav>
 </main>
 
 <div id="tirai" class="tirai" hidden></div>
@@ -184,7 +190,7 @@ if (requireLogin()) {
     const urutan = Object.keys(ENTITAS).filter(function (k) {
         return !ENTITAS[k].hanyaAdmin || u.role === PERAN.ADMIN;
     });
-    let kini = urutan[0], sunting = null;
+    let kini = urutan[0], sunting = null, halaman = 1;
 
     const isi = document.getElementById("isiTabel");
     const kepala = document.getElementById("kepalaTabel");
@@ -192,6 +198,33 @@ if (requireLogin()) {
     const ringkasan = document.getElementById("ringkasan");
     const segmen = document.getElementById("segmenEntitas");
     const inpCari = document.getElementById("cari");
+    const kakiHal = document.getElementById("kakiHalaman");
+    const posisi = document.getElementById("posisiHalaman");
+    const btnPrev = document.getElementById("sebelumnya");
+    const btnNext = document.getElementById("berikutnya");
+
+    // Server memplafon `limit` di 200, jadi meminta lebih tidak menambah apa
+    // pun. Dulu halaman ini meminta 200 tanpa kontrol halaman: ringkasannya
+    // menulis "1706 mahasiswa" sementara tabelnya berhenti di baris ke-200,
+    // dan 1.506 sisanya tidak bisa dijangkau kecuali kebetulan tertebak lewat
+    // kotak cari.
+    const SEHALAMAN = 200;
+
+    let totalHalaman = 1;
+
+    function gambarKaki(meta) {
+        totalHalaman = meta.total_pages || 1;
+        // Disembunyikan kalau muat satu halaman. Prodi cuma sembilan baris;
+        // "Halaman 1 dari 1" di bawahnya hanya kebisingan.
+        if (totalHalaman <= 1) { kakiHal.hidden = true; return; }
+        kakiHal.hidden = false;
+        posisi.textContent = "Halaman " + (meta.page || 1) + " dari " + totalHalaman;
+        btnPrev.disabled = (meta.page || 1) <= 1;
+        btnNext.disabled = (meta.page || 1) >= totalHalaman;
+    }
+
+    btnPrev.addEventListener("click", function () { if (halaman > 1) { halaman--; muat(); } });
+    btnNext.addEventListener("click", function () { if (halaman < totalHalaman) { halaman++; muat(); } });
     const medanForm = document.getElementById("medanForm");
     const form = document.getElementById("formInduk");
     const laci = buatLaci("laci", "tirai", "tombolBatal");
@@ -224,7 +257,7 @@ if (requireLogin()) {
         sembunyikan(elPesan);
         gambarKepala();
         kosongkan(isi);
-        const p = new URLSearchParams({ limit: "200" });
+        const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman) });
         if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
         const jenis = kini;   // dikunci: pengguna bisa berpindah tab sebelum jawabannya tiba
         getJSON(ent().jalur + "?" + p.toString(), function (hasil) {
@@ -242,7 +275,9 @@ if (requireLogin()) {
             } else {
                 rows.forEach(function (r) { isi.appendChild(baris(r)); });
             }
-            ringkasan.textContent = ((amplop.meta || {}).total || 0) + " " + ent().tunggal;
+            const meta = amplop.meta || {};
+            ringkasan.textContent = (meta.total || 0).toLocaleString("id-ID") + " " + ent().tunggal;
+            gambarKaki(meta);
         }, ...tokenHeader());
     }
 
@@ -368,6 +403,7 @@ if (requireLogin()) {
         b.setAttribute("aria-pressed", String(k === kini));
         b.addEventListener("click", function () {
             kini = k;
+            halaman = 1;
             inpCari.value = "";
             inpCari.placeholder = "Cari " + ENTITAS[k].tunggal + "…";
             segmen.querySelectorAll("button").forEach(function (x) {
@@ -381,7 +417,7 @@ if (requireLogin()) {
     let jeda;
     inpCari.addEventListener("input", function () {
         clearTimeout(jeda);
-        jeda = setTimeout(muat, 350);
+        jeda = setTimeout(function () { halaman = 1; muat(); }, 350);
     });
 
     inpCari.placeholder = "Cari " + ent().tunggal + "…";

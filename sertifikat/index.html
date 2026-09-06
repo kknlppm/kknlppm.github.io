@@ -65,6 +65,12 @@
       </table>
     </div>
   </div>
+
+  <nav id="kakiHalaman" class="flex items-center justify-between gap-3 mt-4" aria-label="Halaman" hidden>
+    <button id="sebelumnya" type="button" class="tombol-halus" disabled>← Sebelumnya</button>
+    <span id="posisiHalaman" class="font-data text-xs text-tinta-redup"></span>
+    <button id="berikutnya" type="button" class="tombol-halus" disabled>Berikutnya →</button>
+  </nav>
 </main>
 
 <script type="module">
@@ -84,7 +90,18 @@ if (requireLogin()) {
     const segTahun = document.getElementById("segmenTahun");
     const segStatus = document.getElementById("segmenStatus");
     const inpCari = document.getElementById("cari");
-    let tahun = "", status = "siap";
+    let tahun = "", status = "siap", halaman = 1, totalHalaman = 1;
+
+    const kakiHal = document.getElementById("kakiHalaman");
+    const posisi = document.getElementById("posisiHalaman");
+    const btnPrev = document.getElementById("sebelumnya");
+    const btnNext = document.getElementById("berikutnya");
+
+    // Tanpa tahun terpilih ada 1.310 keikutsertaan yang siap terbit. Dulu
+    // halaman ini meminta 100 tanpa kontrol halaman: 1.210 di antaranya tidak
+    // bisa dijangkau sama sekali, dan petugas sertifikat tidak punya cara tahu
+    // selain membaca angka ringkasannya.
+    const SEHALAMAN = 100;
 
     // Yang dipilih disimpan sebagai Map id -> baris, bukan sebagai daftar id:
     // saat menerbitkan kita butuh namanya untuk pesan, dan rujukan barisnya
@@ -247,7 +264,7 @@ if (requireLogin()) {
         // Disaring di SERVER, bukan di sini. Hanya 139 dari 1.778
         // keikutsertaan punya sertifikat; menyaring satu halaman hasil di
         // peramban membuat "sudah terbit" hampir selalu kosong.
-        const p = new URLSearchParams({ limit: "100", cert: status });
+        const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman), cert: status });
         if (tahun) p.set("tahun_ajaran", tahun);
         if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
 
@@ -275,15 +292,28 @@ if (requireLogin()) {
             });
             segarkanPapan();
 
-            const total = (amplop.meta && amplop.meta.total) || rows.length;
-            ringkasan.textContent = total.toLocaleString("id-ID") + " peserta" +
-                (total > rows.length ? " · menampilkan " + rows.length : "");
+            const meta = amplop.meta || {};
+            const total = meta.total || rows.length;
+            ringkasan.textContent = total.toLocaleString("id-ID") + " peserta";
+            totalHalaman = meta.total_pages || 1;
+            if (totalHalaman <= 1) {
+                kakiHal.hidden = true;
+            } else {
+                kakiHal.hidden = false;
+                posisi.textContent = "Halaman " + (meta.page || 1) + " dari " + totalHalaman;
+                btnPrev.disabled = (meta.page || 1) <= 1;
+                btnNext.disabled = (meta.page || 1) >= totalHalaman;
+            }
         }, ...tokenHeader());
     }
+
+    btnPrev.addEventListener("click", function () { if (halaman > 1) { halaman--; muat(); } });
+    btnNext.addEventListener("click", function () { if (halaman < totalHalaman) { halaman++; muat(); } });
 
     segStatus.querySelectorAll("button").forEach(function (b) {
         b.addEventListener("click", function () {
             status = b.dataset.status;
+            halaman = 1;
             segStatus.querySelectorAll("button").forEach(function (x) {
                 x.setAttribute("aria-pressed", String(x.dataset.status === status));
             });
@@ -298,6 +328,7 @@ if (requireLogin()) {
         b.setAttribute("aria-pressed", String(tahun === nilai));
         b.addEventListener("click", function () {
             tahun = nilai;
+            halaman = 1;
             segTahun.querySelectorAll("button").forEach(function (x) {
                 x.setAttribute("aria-pressed", String(x.dataset.nilai === nilai));
             });
@@ -319,7 +350,7 @@ if (requireLogin()) {
     let jeda;
     inpCari.addEventListener("input", function () {
         clearTimeout(jeda);
-        jeda = setTimeout(muat, 350);
+        jeda = setTimeout(function () { halaman = 1; muat(); }, 350);
     });
 
     // ── penerbitan massal ──
