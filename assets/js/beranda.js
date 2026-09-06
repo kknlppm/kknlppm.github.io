@@ -237,7 +237,7 @@ function kartuBerita(b) {
     const isi = el("div");
     // Alamat foto datang dari server dan dipasang lewat style, bukan disisipkan
     // ke markup. encodeURI menjaga tanda kutip tidak bisa keluar dari url().
-    const foto = (b.foto_url || [])[0];
+    const foto = (b.foto || [])[0];
     if (foto) {
         isi.style.backgroundImage = 'url("' + encodeURI(foto) + '")';
     } else {

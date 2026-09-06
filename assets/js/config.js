@@ -72,7 +72,6 @@ export const backend = {
         satuPublik: (slug) => asal + "/news/" + slug,
         kelola: asal + "/api/news",
         satu: (idnya) => asal + "/api/news/" + idnya,
-        unggahFoto: asal + "/api/news/image",
     },
 
     // Sertifikat. `verify` sengaja tanpa autentikasi — siapa pun yang

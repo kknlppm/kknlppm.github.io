@@ -109,9 +109,15 @@
       <div>
         <span class="block text-sm font-medium mb-1.5">Foto</span>
         <div id="daftarFoto" class="grid grid-cols-3 gap-2 mb-2"></div>
-        <input id="fFoto" type="file" accept="image/jpeg,image/png,image/webp" class="text-sm">
+        <div class="flex gap-2">
+          <input id="fFotoURL" type="text" class="medan font-data text-xs"
+                 placeholder="/assets/berita/2026/09/foto.jpg">
+          <button type="button" id="tombolTambahFoto" class="tombol-halus shrink-0">Tambah</button>
+        </div>
         <p id="ketFoto" class="text-xs text-tinta-redup mt-1">
-          JPG, PNG, atau WebP. Maksimal 5 MB per foto.
+          Unggah berkasnya ke folder <span class="font-data">assets/berita/</span> di repo
+          frontend lewat GitHub, lalu tempel alamatnya di sini. Alamat https dari
+          inang lain juga boleh.
         </p>
       </div>
 
@@ -133,7 +139,7 @@
 </aside>
 
 <script type="module">
-import { getJSON, postJSON, deleteJSON, postFileWithHeader } from "/assets/js/jscroot/api.js";
+import { getJSON, postJSON, deleteJSON } from "/assets/js/jscroot/api.js";
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
@@ -150,8 +156,9 @@ if (requireLogin()) {
     const laci = buatLaci("laci", "tirai", "tombolBatal");
 
     let sunting = null;
-    let fotoTerpasang = [];   // id objek
-    let fotoURL = [];         // alamat baca, sejajar dengan fotoTerpasang
+    // Sejak 6 September 2026 isinya ALAMAT, bukan id objek — jadi tidak ada
+    // lagi larik kedua yang harus dijaga tetap sejajar.
+    let fotoTerpasang = [];
 
     function tanggalIndonesia(iso) {
         if (!iso) return "—";
@@ -219,7 +226,7 @@ if (requireLogin()) {
     function gambarFoto() {
         const wadah = document.getElementById("daftarFoto");
         kosongkan(wadah);
-        fotoURL.forEach(function (u, i) {
+        fotoTerpasang.forEach(function (u, i) {
             const bungkus = el("div", "relative");
             const img = document.createElement("img");
             img.src = u;
@@ -230,7 +237,6 @@ if (requireLogin()) {
             buang.setAttribute("aria-label", "Buang foto ini");
             buang.addEventListener("click", function () {
                 fotoTerpasang.splice(i, 1);
-                fotoURL.splice(i, 1);
                 gambarFoto();
             });
             bungkus.appendChild(img);
@@ -239,30 +245,58 @@ if (requireLogin()) {
         });
     }
 
-    document.getElementById("fFoto").addEventListener("change", function () {
-        if (!this.files || !this.files[0]) return;
-        const ket = document.getElementById("ketFoto");
-        ket.textContent = "Mengunggah…";
+    const KET_FOTO = document.getElementById("ketFoto").textContent;
 
-        // postFileWithHeader jscroot: ia mengirim multipart dengan nama medan
-        // yang kita tentukan, dan backend menunggu medan bernama "foto".
-        postFileWithHeader(backend.news.unggahFoto, ...tokenHeader(), "fFoto", "foto",
-            function (hasil) {
-                document.getElementById("fFoto").value = "";
-                // Berbeda dari getJSON/postJSON, callback ini menerima badan
-                // yang SUDAH di-parse tanpa kode status — jadi keberhasilan
-                // dikenali dari bentuk jawabannya, bukan dari status.
-                const d = (hasil || {}).data || {};
-                if (!d.foto) {
-                    ket.textContent = (hasil && hasil.message) ||
-                        "Foto gagal diunggah. Berita tetap bisa disimpan tanpa foto.";
-                    return;
-                }
-                fotoTerpasang.push(d.foto);
-                fotoURL.push(d.foto_url);
-                gambarFoto();
-                ket.textContent = "JPG, PNG, atau WebP. Maksimal 5 MB per foto.";
-            });
+    // Alamat diperiksa DI SINI, di peramban admin — bukan di server.
+    //
+    // Server tidak bisa melakukannya: alamat foto publik di Google Drive
+    // membalas 200 image/jpeg untuk permintaan biasa, tapi peramban
+    // menolaknya (net::ERR_BLOCKED_BY_ORB) karena Drive tidak menyatakan
+    // gambarnya boleh dibaca lintas-asal. Hanya memuatnya sebagai gambar
+    // sungguhan yang membuktikan ia bisa dipakai — dan itu cuma bisa
+    // dilakukan di tempat pengunjung nanti memuatnya juga.
+    function periksaGambar(alamat) {
+        return new Promise(function (selesai) {
+            const img = new Image();
+            const jam = setTimeout(function () { selesai(false); }, 12000);
+            img.onload = function () { clearTimeout(jam); selesai(img.naturalWidth > 0); };
+            img.onerror = function () { clearTimeout(jam); selesai(false); };
+            img.src = alamat;
+        });
+    }
+
+    document.getElementById("tombolTambahFoto").addEventListener("click", async function () {
+        const medan = document.getElementById("fFotoURL");
+        const ket = document.getElementById("ketFoto");
+        const alamat = medan.value.trim();
+        if (!alamat) return;
+
+        if (!(alamat.startsWith("/assets/berita/") || alamat.startsWith("https://"))) {
+            ket.textContent = "Alamat harus diawali /assets/berita/ atau https://";
+            return;
+        }
+        if (fotoTerpasang.includes(alamat)) {
+            ket.textContent = "Foto itu sudah ditambahkan.";
+            return;
+        }
+
+        this.disabled = true;
+        ket.textContent = "Memeriksa alamatnya…";
+        const bisa = await periksaGambar(alamat);
+        this.disabled = false;
+
+        if (!bisa) {
+            // Disebut apa adanya, termasuk sebab yang paling sering: tautan
+            // Google Drive terlihat benar tapi tidak bisa disematkan.
+            ket.textContent = "Alamat itu tidak bisa ditampilkan sebagai gambar. " +
+                "Tautan Google Drive memang tidak bisa dipakai — unggah berkasnya " +
+                "ke assets/berita/ di repo frontend.";
+            return;
+        }
+        fotoTerpasang.push(alamat);
+        medan.value = "";
+        gambarFoto();
+        ket.textContent = KET_FOTO;
     });
 
     function bukaForm(b) {
@@ -276,7 +310,6 @@ if (requireLogin()) {
         form.tautan_label.value = b ? (b.tautan_label || "") : "";
         form.terbit.checked = b ? !!b.terbit : false;
         fotoTerpasang = b ? (b.foto || []).slice() : [];
-        fotoURL = b ? (b.foto_url || []).slice() : [];
         gambarFoto();
         document.getElementById("ketFoto").textContent = "JPG, PNG, atau WebP. Maksimal 5 MB per foto.";
         sembunyikan(document.getElementById("pesanLaci"));

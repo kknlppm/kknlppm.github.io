@@ -111,7 +111,7 @@ function gambar(b) {
 
     if (b.ringkasan) { $("ringkasan").textContent = b.ringkasan; $("ringkasan").hidden = false; }
 
-    const foto = b.foto_url || [];
+    const foto = b.foto || [];
     if (foto.length) {
         const wadah = $("foto");
         foto.forEach((u) => {

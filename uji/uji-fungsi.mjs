@@ -224,6 +224,61 @@ async function buka(jalur) {
     }
 }
 
+// ---------- 5. Medan foto berita: alamat, bukan berkas ----------
+//
+// Sejak 6 September 2026 aplikasi tidak menginangkan foto. Yang dijaga di
+// sini adalah pemeriksa di peramban: ia HARUS benar-benar memuat alamatnya
+// sebagai gambar. Pemeriksaan di server tidak cukup — alamat foto publik di
+// Google Drive membalas 200 image/jpeg untuk permintaan biasa, tapi peramban
+// menolaknya (ERR_BLOCKED_BY_ORB). Uji ini sengaja TIDAK menyentuh Drive
+// supaya tidak bergantung jaringan; yang dibuktikan mekanismenya.
+{
+    const { ctx, page, galat, tulis } = await buka("/kelola-berita/");
+    const tulisBtn = (await page.$$("main button"))[0];
+    await tulisBtn.click();
+    await page.waitForTimeout(300);
+
+    const ket = () => page.textContent("#ketFoto");
+    const jumlahFoto = () => page.$$eval("#daftarFoto img", (e) => e.length);
+    async function coba(alamat) {
+        await page.fill("#fFotoURL", alamat);
+        await page.click("#tombolTambahFoto");
+        await page.waitForFunction(() => !document.getElementById("tombolTambahFoto").disabled,
+            { timeout: 20000 });
+        await page.waitForTimeout(200);
+        return { n: await jumlahFoto(), ket: (await ket()).trim() };
+    }
+
+    let r = await coba("bukan-alamat");
+    lapor(r.n === 0 && /diawali/.test(r.ket), `bentuk salah ditolak — "${r.ket.slice(0, 44)}"`);
+
+    r = await coba("http://inang.example/f.jpg");
+    lapor(r.n === 0, "http biasa ditolak (isi campuran di halaman https)");
+
+    // Alamat berbentuk benar tapi TIDAK bisa dimuat — inti pemeriksanya.
+    // Port 1 tidak pernah melayani apa pun, jadi ini tidak keluar jaringan.
+    r = await coba("https://localhost:1/tidak-ada.jpg");
+    lapor(r.n === 0 && /tidak bisa ditampilkan/.test(r.ket),
+        "alamat berbentuk benar tapi tak bisa dimuat DITOLAK — ini yang menangkap tautan Drive");
+
+    // Berkas sungguhan di repo diterima.
+    r = await coba("/assets/berita/README.md");
+    lapor(r.n === 0, "berkas bukan gambar di folder yang benar tetap ditolak");
+
+    r = await coba("/assets/img/logo-unfari.png");
+    lapor(r.n === 0 && /diawali/.test(r.ket),
+        "gambar sungguhan DI LUAR /assets/berita/ ditolak");
+
+    // Gagal memuat gambar SELALU menulis galat ke konsol — dan itu justru
+    // yang diuji di atas. Yang disaring hanya kegagalan sumber daya; galat
+    // skrip apa pun tetap membuat uji ini merah.
+    const galatNyata = galat.filter((g) => !/Failed to load resource|ERR_UNSAFE_PORT|ERR_CONNECTION/.test(g));
+    lapor(galatNyata.length === 0, "kelola berita: tanpa galat skrip" +
+        (galatNyata.length ? "\n    " + galatNyata[0] : ""));
+    void tulis;
+    await ctx.close();
+}
+
 await browser.close();
 console.log(gagal ? `\n${gagal} GAGAL` : "\nsemua lulus");
 process.exit(gagal ? 1 : 0);
