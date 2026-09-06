@@ -39,39 +39,46 @@ const kurangGerak = matchMedia("(prefers-reduced-motion: reduce)").matches;
  * tidak menyelang-nyeling baca-tulis tata letak.
  */
 const bab = $$(".bab");
-const folioBab = $("#folioNama");
-const tombolBab = $("#folioBab");
-const daftarBab = $("#daftarBab");
+const hero = $(".bab--malam");
+const bilah = $("#bilah");
+const burger = $("#burger");
+const menuPonsel = $("#menuPonsel");
 
-/* Daftar isi ------------------------------------------------------------
- *
- * Folio menggantikan bilah tetap, tapi bilah itu memikul navigasi bagian.
- * Ini mengembalikannya tanpa mengembalikan bilahnya: tertutup sampai
- * diminta, tertutup lagi begitu dipakai, Escape mengembalikan fokus.
- */
-if (tombolBab && daftarBab) {
+/* Menu ponsel ----------------------------------------------------------- */
+if (burger && menuPonsel) {
     const buka = (ya) => {
-        daftarBab.hidden = !ya;
-        tombolBab.setAttribute("aria-expanded", String(ya));
+        menuPonsel.hidden = !ya;
+        burger.setAttribute("aria-expanded", String(ya));
+        burger.setAttribute("aria-label", ya ? "Tutup menu" : "Buka menu");
     };
-
-    tombolBab.addEventListener("click", () => buka(daftarBab.hidden));
-
-    daftarBab.addEventListener("click", (e) => {
-        if (e.target.closest("a")) buka(false);
-    });
-
+    burger.addEventListener("click", () => buka(menuPonsel.hidden));
+    menuPonsel.addEventListener("click", (e) => { if (e.target.closest("a")) buka(false); });
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !daftarBab.hidden) { buka(false); tombolBab.focus(); }
-    });
-
-    document.addEventListener("pointerdown", (e) => {
-        if (daftarBab.hidden) return;
-        if (!e.target.closest(".folio__pusat")) buka(false);
+        if (e.key === "Escape" && !menuPonsel.hidden) { buka(false); burger.focus(); }
     });
 }
-const folio = $(".folio");
-const hero = $(".bab--malam");
+
+// Bilah melayang di atas lima ground, jadi ia harus tahu ground mana yang
+// sedang di bawahnya. Diukur di y=48px, yaitu tinggi bilahnya sendiri.
+function setelBilah(H) {
+    if (!bilah) return;
+    for (const b of bab) {
+        const r = b.getBoundingClientRect();
+        if (r.top <= 48 && r.bottom > 48) {
+            if (bilah.dataset.tanah !== b.dataset.tanah) {
+                bilah.dataset.tanah = b.dataset.tanah;
+            }
+            // Warna ground diambil apa adanya, bukan ditebak: kelima babnya
+            // lima warna, dan latar generik akan berpita di empat di antaranya.
+            const warna = getComputedStyle(b).backgroundColor;
+            if (bilah.dataset.warna !== warna) {
+                bilah.dataset.warna = warna;
+                bilah.style.setProperty("--folio-latar", warna);
+            }
+            return;
+        }
+    }
+}
 
 // `--gulir` 0..1 menjalankan seluruh adegan hero: tujuh bidang dengan laju
 // berbeda, dua di antaranya berlawanan arah. Satu nilai skalar, dan CSS yang
@@ -85,28 +92,6 @@ function ukurAdegan(H) {
     if (jarak < 80) { hero.style.setProperty("--gulir", "0"); return; }
     const p = -hero.getBoundingClientRect().top / jarak;
     hero.style.setProperty("--gulir", (p < 0 ? 0 : p > 1 ? 1 : p).toFixed(4));
-}
-
-// Folio melayang di atas kelima ground, jadi ia harus tahu ground mana yang
-// sedang di bawahnya. Diukur di y=48px, yaitu tinggi folionya sendiri.
-function setelFolio(H) {
-    if (!folio) return;
-    for (const b of bab) {
-        const r = b.getBoundingClientRect();
-        if (r.top <= 48 && r.bottom > 48) {
-            if (folio.dataset.tanah !== b.dataset.tanah) {
-                folio.dataset.tanah = b.dataset.tanah;
-            }
-            // Warna ground diambil apa adanya, bukan ditebak: kelima babnya
-            // lima warna, dan latar generik akan berpita di empat di antaranya.
-            const warna = getComputedStyle(b).backgroundColor;
-            if (folio.dataset.warna !== warna) {
-                folio.dataset.warna = warna;
-                folio.style.setProperty("--folio-latar", warna);
-            }
-            return;
-        }
-    }
 }
 
 if (bab.length && !kurangGerak) {
@@ -138,12 +123,8 @@ if (bab.length && !kurangGerak) {
             }
         }
 
-        if (folioBab && terdekat && terdekat.dataset.bab &&
-            folioBab.textContent !== terdekat.dataset.bab) {
-            folioBab.textContent = terdekat.dataset.bab;
-        }
 
-        setelFolio(H);
+        setelBilah(H);
         ukurAdegan(H);
     };
 
@@ -158,22 +139,10 @@ if (bab.length && !kurangGerak) {
     ukur();
 } else if (bab.length) {
     // Gerak dikurangi: groundnya tetap berganti tegas antar bab, lembarnya
-    // saja yang tidak dianimasikan. CSS sudah menyembunyikannya; folio tetap
-    // perlu tahu bab mana yang dibaca.
-    const io = new IntersectionObserver((masuk) => {
-        for (const m of masuk) {
-            if (m.isIntersecting && folioBab && m.target.dataset.bab) {
-                folioBab.textContent = m.target.dataset.bab;
-            }
-        }
-    }, { rootMargin: "-33% 0px -60% 0px" });
-    bab.forEach((b) => io.observe(b));
-
-    // Warna folio tetap harus mengikuti ground, gerak dikurangi atau tidak.
-    addEventListener("scroll", () => setelFolio(window.innerHeight), { passive: true });
-    setelFolio(window.innerHeight);
-    // Adegannya diam saat gerak dikurangi (CSS sudah mematikan transform-nya),
-    // tapi cahaya dan kabutnya tetap perlu nilai awal yang masuk akal.
+    // saja yang tidak dianimasikan. Bilah dan adegannya tetap perlu nilai
+    // awal yang masuk akal.
+    addEventListener("scroll", () => setelBilah(window.innerHeight), { passive: true });
+    setelBilah(window.innerHeight);
     ukurAdegan(window.innerHeight);
 }
 

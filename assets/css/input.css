@@ -100,8 +100,12 @@
     /* Berat 500 dan pelacakan -0.02em: itu yang dipakai halaman depan pada
        teks seukuran ini (.nav__brand 18px/500/-0.02em, .sertifikat__judul
        20px/-0.02em). Yang 400 di sana hanya berlaku pada 40-60px. */
+    /* Berat 600, sama dengan judul halaman depan. Aplikasi ini memakai 500
+       di seluruh judul dan lockup mereknya sementara halaman depan memakai
+       600, dan setelah warna dan bayangannya disamakan, berat itu satu-
+       satunya beda yang masih terbaca sebagai "dua produk". */
     .judul-halaman {
-        @apply font-judul font-medium tracking-[-0.02em];
+        @apply font-judul font-semibold tracking-[-0.02em];
     }
 
     .eyebrow {
@@ -120,10 +124,16 @@
                focus:border-bata focus:ring-0;
     }
 
-    /* Pil, tinggi 38px, berat 500 — .btn--sm halaman depan apa adanya. */
+    /* Pil, tinggi 38px. Beratnya 600, sama dengan tombol halaman depan:
+       aplikasi ini memakai 500 di seluruh lockup dan judulnya sementara
+       halaman depan memakai 600, dan itu satu-satunya beda yang tersisa. */
+    /* Tinggi dipatok 38px, jadi `py-*` di pemanggil TIDAK berbuat apa-apa.
+       Baris sertifikat jadi 54px untuk "siap" dan 37px untuk "terbit", dan
+       irama barisnya berubah mengikuti saringan. `h-7` di pemanggil yang
+       menang, karena `h-[38px]` di sini lebih dulu. */
     .tombol {
         @apply inline-flex items-center justify-center gap-2 rounded-full
-               h-[38px] px-5 text-sm font-medium whitespace-nowrap
+               h-[38px] px-5 text-sm font-semibold whitespace-nowrap
                transition-[background-color,border-color,color,transform] duration-100
                active:translate-y-px
                disabled:opacity-40 disabled:pointer-events-none;
@@ -185,12 +195,15 @@
        depan, supaya keduanya terbaca sebagai satu lembaga. Ia tidak diberi
        kotak berwarna di belakangnya: lambang itu justru ASAL-USUL palet
        bata di sini. */
+    /* Kunci merek DISAMAKAN dengan folio halaman depan: lambang 20x19,
+       jarak 8px, berat 600. Sebelumnya 26x25, jarak 10px, berat 500 —
+       tiga nilai berbeda untuk satu lockup yang sama. */
     .sisi__merek {
-        @apply flex items-center gap-2.5 px-5 h-16 shrink-0
-               font-medium tracking-[-0.02em] border-b border-garis-tipis;
+        @apply flex items-center gap-2 px-5 h-16 shrink-0
+               font-semibold tracking-[-0.02em] border-b border-garis-tipis;
     }
     .sisi__merek img {
-        @apply w-[26px] h-[25px] object-contain shrink-0;
+        @apply w-5 h-[19px] object-contain shrink-0;
     }
 
     .sisi__nav { @apply flex-1 overflow-y-auto p-3 space-y-0.5; }
@@ -273,9 +286,15 @@
        memakai `redup` (5,86) bukan `samar` (4,34). */
     .register thead th {
         @apply sticky top-0 z-10 bg-latar text-left font-data text-mikro uppercase
-               text-tinta-redup px-3 py-2.5 border-b border-garis whitespace-nowrap
-               shadow-naik;
+               text-tinta-redup px-3 py-2.5 border-b border-garis whitespace-nowrap;
+        transition: box-shadow 160ms ease-out;
     }
+    /* Bayangannya muncul hanya saat ada baris yang menyelinap di bawahnya.
+       Kelasnya dipasang ui.js untuk semua halaman sekaligus. */
+    .register.kepala-melayang thead th {
+        @apply shadow-naik;
+    }
+
     .register tbody td {
         @apply px-3 py-2 border-b border-garis-tipis align-middle;
     }

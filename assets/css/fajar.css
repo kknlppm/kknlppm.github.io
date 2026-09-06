@@ -73,185 +73,184 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ── Folio ──────────────────────────────────────────────────────────────
+/* ── Bilah navigasi ────────────────────────────────────────────────────
  *
- * Grammar ini melarang bilah tetap. Yang ada folio di margin: nama bab
- * berjalan, dan satu tautan masuk. Ia tetap terbaca di kedua keluarga
- * ground karena warnanya ikut bab yang sedang dibaca.
+ * Bilah, bukan folio. Grammar chaptered editorial memang meminta folio di
+ * margin, tapi halaman ini sudah punya bilah yang bekerja dan pemiliknya
+ * tidak pernah meminta ia diganti; folio itu juga membuang seluruh daftar
+ * menu, yang langsung terasa hilang.
+ *
+ * Ia melayang di atas lima ground yang berbeda, jadi warnanya mengikuti
+ * ground yang sedang berada di bawahnya, dan `color` dinyatakan ulang di
+ * tiap tempat tokennya diganti.
  */
-/* Latar folio memudar dari warna ground yang SEDANG di bawahnya, diambil
-   apa adanya lewat getComputedStyle di beranda.js. Warna generik akan
-   berpita, karena lima babnya lima ground berbeda. Bukan tirai gelap
-   sepenuh layar: hanya pita setinggi folionya sendiri, tempat teksnya duduk. */
-.folio::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(to bottom,
-        var(--folio-latar, transparent) 45%,
-        transparent 100%);
-    transition: opacity 220ms var(--sc-ease-out);
-}
-
-.folio {
+.bilah {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 40;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--sc-4);
-    padding: var(--sc-4) var(--sc-gutter);
-    font-size: 0.8125rem;
-    letter-spacing: 0.01em;
     color: var(--sc-ink-soft);
-    pointer-events: none;
-    mix-blend-mode: normal;
 }
 
-.folio a,
-.folio__bab,
-.folio__merek {
-    pointer-events: auto;
+.bilah::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom,
+        var(--folio-latar, transparent) 42%,
+        transparent 100%);
+    transition: opacity 220ms var(--sc-ease-out);
 }
 
-.folio__merek {
+.bilah__isi {
+    display: flex;
+    align-items: center;
+    gap: var(--sc-5);
+    width: 100%;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding: var(--sc-4) var(--sc-gutter);
+}
+
+.bilah__merek {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    margin-right: auto;
     color: var(--sc-ink);
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.9375rem;
 }
 
-.folio__merek img {
-    width: 20px;
-    height: 19px;
+.bilah__merek img { width: 20px; height: 19px; }
+
+.bilah__tautan {
+    display: none;
+    gap: var(--sc-5);
 }
 
-/* Nama bab yang sedang dibaca. Ini navigasi grammar ini, dan sengaja TANPA
-   nomor: "01 / 05" adalah dekorasi, bukan informasi yang dibutuhkan pembaca. */
-.folio__bab {
-    font-family: var(--sc-font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--sc-ink-soft);
-    transition: opacity 260ms var(--sc-ease-out);
-}
-
-/* Daftar isi yang tergantung pada folio. Bukan bilah: ia tertutup sampai
-   diminta, dan yang terlihat cuma nama bab yang sedang dibaca. Folio
-   menggantikan bilah tetap, tapi bilah itu memikul navigasi bagian, dan
-   membuangnya begitu saja menghilangkan satu-satunya cara melompat. */
-.folio__pusat { position: relative; }
-
-.folio__bab {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: none;
-    border: 0;
-    padding: 0.25rem 0.5rem;
-    margin: -0.25rem -0.5rem;
-    border-radius: var(--r-medan);
-    font: inherit;
-    cursor: pointer;
-    transition: color 160ms var(--sc-ease-out);
-}
-
-.folio__bab:hover { color: var(--sc-ink); }
-.folio__bab svg { transition: transform 180ms var(--sc-ease-out); }
-.folio__bab[aria-expanded="true"] svg { transform: rotate(180deg); }
-
-.daftar-bab {
-    position: absolute;
-    top: calc(100% + 0.6rem);
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    min-width: 12rem;
-    padding: 0.4rem;
-    border-radius: var(--r-kartu);
-    background: var(--folio-latar, #16100E);
-    border: 1px solid color-mix(in oklab, var(--sc-ink) 18%, transparent);
-    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .7);
-}
-
-.daftar-bab[hidden] { display: none; }
-
-.daftar-bab a {
-    padding: 0.55rem 0.75rem;
-    border-radius: var(--r-medan);
+.bilah__tautan a {
     font-size: 0.875rem;
     color: var(--sc-ink-soft);
     text-decoration: none;
-    white-space: nowrap;
-    transition: background-color 140ms var(--sc-ease-out), color 140ms var(--sc-ease-out);
+    padding: 0.35rem 0;
+    border-bottom: 1px solid transparent;
+    transition: color 160ms var(--sc-ease-out), border-color 160ms var(--sc-ease-out);
 }
 
-/* Di ground terang panelnya harus jadi kertas, bukan malam. */
-.folio[data-tanah="terang"] + * .daftar-bab,
-.halaman-terang .daftar-bab {
-    background: #FFFFFF;
-    border-color: #CFDAE4;
-    box-shadow: 0 1px 2px rgba(11, 27, 43, .06), 0 24px 60px -28px rgba(11, 27, 43, .38);
-}
-
-.daftar-bab a:hover,
-.daftar-bab a:focus-visible {
-    background: color-mix(in oklab, var(--sc-accent) 18%, transparent);
+.bilah__tautan a:hover {
     color: var(--sc-ink);
+    border-bottom-color: color-mix(in oklab, var(--sc-accent) 60%, transparent);
 }
 
+.bilah__aksi {
+    display: flex;
+    align-items: center;
+    gap: var(--sc-3);
+}
 
-.folio__masuk {
-    color: var(--sc-accent);
+.bilah__masuk {
+    display: none;
+    align-items: center;
+    height: 36px;
+    padding-inline: 1.1rem;
+    border-radius: 999px;
+    background: var(--sc-accent);
+    color: var(--sc-accent-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
     text-decoration: none;
-    text-underline-offset: 4px;
-    border-bottom: 1px solid color-mix(in oklab, var(--sc-accent) 40%, transparent);
-    transition: border-color 160ms var(--sc-ease-out), color 160ms var(--sc-ease-out);
+    white-space: nowrap;
+    transition: background-color 140ms var(--sc-ease-out), transform 140ms var(--sc-ease-out);
 }
 
-.folio__masuk:hover { border-bottom-color: var(--sc-accent); }
+.bilah__masuk:hover { background: color-mix(in oklab, var(--sc-accent) 86%, #fff); }
+.bilah__masuk:active { transform: translateY(1px); }
 
-/* Folio melayang di atas kelima ground. Tanpa ini ia memakai tinta ground
-   gelap di seluruh halaman, dan di dua bab terakhir "KKN LPPM" jadi tulisan
-   tulang di atas kertas: 1,2:1. Warnanya diikutkan ke bab yang sedang berada
-   di bawahnya, dan `color` dinyatakan ulang karena mengganti tokennya saja
-   tidak mengganti tinta yang sudah resolve. */
-.folio[data-tanah="terang"] {
-    --sc-ink: #1B2430;
-    --sc-ink-soft: #5A6675;
+.bilah__burger {
+    display: grid;
+    place-content: center;
+    gap: 4px;
+    width: 44px;
+    height: 44px;
+    margin-right: -0.5rem;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    border-radius: var(--r-medan);
+}
+
+.bilah__burger span {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: var(--sc-ink);
+    transition: transform 180ms var(--sc-ease-out), opacity 140ms var(--sc-ease-out);
+}
+
+.bilah__burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+.bilah__burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.bilah__burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+
+.bilah__ponsel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--sc-3) var(--sc-gutter) var(--sc-5);
+    background: var(--folio-latar, #16100E);
+    border-bottom: 1px solid color-mix(in oklab, var(--sc-ink) 14%, transparent);
+}
+
+.bilah__ponsel[hidden] { display: none; }
+
+.bilah__ponsel a {
+    padding: 0.7rem 0;
+    font-size: 0.9375rem;
+    color: var(--sc-ink-soft);
+    text-decoration: none;
+}
+
+.bilah__ponsel a:hover { color: var(--sc-ink); }
+
+.bilah__ponsel-masuk {
+    margin-top: var(--sc-3);
+    padding: 0.75rem 1.1rem !important;
+    border-radius: 999px;
+    background: var(--sc-accent);
+    color: var(--sc-accent-ink) !important;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (min-width: 900px) {
+    .bilah__tautan { display: flex; }
+    .bilah__masuk { display: inline-flex; }
+    .bilah__burger { display: none; }
+    .bilah__ponsel { display: none !important; }
+}
+
+/* Ground terang: tinta gelap, dan `color` dinyatakan ulang di tiap anak yang
+   mewarisinya, karena mengganti tokennya saja tidak mengganti warna yang
+   sudah terlanjur resolve. */
+.bilah[data-tanah="terang"] {
+    --sc-ink: #0B1B2B;
+    --sc-ink-soft: #4A5D70;
     --sc-accent: #9C5248;
+    --sc-accent-ink: #FFFFFF;
     color: var(--sc-ink-soft);
 }
 
-.folio[data-tanah="terang"] .folio__merek { color: var(--sc-ink); }
-.folio[data-tanah="terang"] .folio__bab { color: var(--sc-ink-soft); }
-.folio[data-tanah="terang"] .folio__masuk { color: var(--sc-accent); }
-
-.folio, .folio * { transition: color 220ms var(--sc-ease-out); }
-
-@media (max-width: 640px) {
-    /* Di ponsel nama babnya disembunyikan dan yang tersisa cuma merek plus
-       satu tautan: itu justru layar yang paling butuh daftar isinya. Yang
-       disembunyikan sekarang cuma NAMANYA, tombolnya tetap ada. */
-    #folioNama { display: none; }
-    .folio__bab { padding: 0.5rem; margin: -0.5rem; }
-    .folio__bab::before {
-        content: "Isi";
-        font-family: var(--sc-font-mono);
-        font-size: 0.6875rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-    }
-    .daftar-bab { left: auto; right: 0; transform: none; }
+.bilah[data-tanah="terang"] .bilah__merek { color: var(--sc-ink); }
+.bilah[data-tanah="terang"] .bilah__tautan a { color: var(--sc-ink-soft); }
+.bilah[data-tanah="terang"] .bilah__burger span { background: var(--sc-ink); }
+.bilah[data-tanah="terang"] .bilah__ponsel {
+    background: #FFFFFF;
+    border-bottom-color: #CFDAE4;
 }
+.bilah[data-tanah="terang"] .bilah__ponsel a { color: var(--sc-ink-soft); }
 
 /* ── Bab ────────────────────────────────────────────────────────────────
  *

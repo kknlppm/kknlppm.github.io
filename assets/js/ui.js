@@ -47,6 +47,15 @@ export function sel(teks, kelas) {
 // Inilah satu-satunya tempat halaman ini bersuara. Ia menjawab pertanyaan
 // yang benar-benar dihadapi dosen di akhir semester — siapa yang belum
 // lengkap dinilai — tanpa perlu membuka satu per satu.
+// Dinyalakan sekali setelah penggambaran pertama: sesudah itu deret nilai
+// muncul langsung, tanpa animasi.
+let ui_sudahTampil = false;
+if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(function () {
+        requestAnimationFrame(function () { ui_sudahTampil = true; });
+    });
+}
+
 export function deretNilai(r) {
     const komponen = [
         ["H", r.nilai_h], ["S", r.nilai_s], ["L", r.nilai_l],
@@ -73,7 +82,12 @@ export function deretNilai(r) {
             const b = Math.min(100, Math.max(45, nilai));
             i_.style.height = Math.round(5 + ((b - 45) / 55) * 15) + "px";
         }
-        i_.style.animationDelay = (i * 28) + "ms";
+        // Animasi HANYA saat baris ini pertama kali disisipkan. Sebelumnya
+        // tiap penggambaran ulang menjalankan sampai 250 animasi tinggi
+        // sekaligus, dan halaman ini menggambar ulang pada tiap ketikan di
+        // kotak cari (tunda 350ms) dan tiap baris yang disegarkan di tempat.
+        if (!ui_sudahTampil) i_.style.animationDelay = (i * 28) + "ms";
+        else i_.style.animation = "none";
         wadah.appendChild(i_);
     });
 
@@ -130,4 +144,32 @@ export function sehat(hasil, elPesan) {
         return false;
     }
     return true;
+}
+
+/* Kepala tabel melayang HANYA saat barisnya menyelinap di bawahnya.
+ *
+ * Sebelumnya `shadow-naik` menempel permanen: pita abu dengan bayangan jatuh
+ * di dalam kartu putih yang tidak sedang digulir terbaca sebagai chrome
+ * tetap, bukan sebagai lapisan. Bayangan menyatakan bahwa ada sesuatu di
+ * bawahnya; kalau tidak ada, ia berbohong.
+ *
+ * Dipasang sekali untuk semua halaman yang memuat ui.js, jadi tidak ada
+ * halaman yang perlu tahu soal ini.
+ */
+function pasangKepalaTabel() {
+    document.querySelectorAll("table.register").forEach(function (tabel) {
+        const kotak = tabel.closest(".overflow-auto, .overflow-y-auto");
+        if (!kotak) return;
+        const perbarui = function () {
+            tabel.classList.toggle("kepala-melayang", kotak.scrollTop > 2);
+        };
+        kotak.addEventListener("scroll", perbarui, { passive: true });
+        perbarui();
+    });
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", pasangKepalaTabel);
+} else {
+    pasangKepalaTabel();
 }

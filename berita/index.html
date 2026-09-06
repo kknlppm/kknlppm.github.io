@@ -15,34 +15,36 @@
 </head>
 <body class="halaman-terang">
 
-<!-- Folio yang sama dengan halaman depan, bukan bilah tetap desain lama.
-     Halaman ini dicapai dengan menekan kartu berita di halaman depan, dan
-     sebelumnya ia mendarat di produk yang sama sekali berbeda: hitam pekat,
-     bilah berlatar buram, kaki hitam. -->
-<div class="folio" data-tanah="terang">
-  <a class="folio__merek" href="/">
-    <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
-    <span>KKN&nbsp;LPPM</span>
-  </a>
-  <div class="folio__pusat">
-    <button class="folio__bab" id="folioBab" type="button"
-            aria-expanded="false" aria-controls="daftarBab">
-      <span id="folioNama">Berita</span>
-      <svg viewBox="0 0 12 12" aria-hidden="true" width="10" height="10">
-        <path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor"
-              stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <nav class="daftar-bab" id="daftarBab" aria-label="Daftar isi" hidden>
+<header class="bilah" id="bilah" data-tanah="terang">
+  <div class="bilah__isi">
+    <a class="bilah__merek" href="/">
+      <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
+      <span>KKN&nbsp;LPPM</span>
+    </a>
+    <nav class="bilah__tautan" aria-label="Bagian halaman">
       <a href="/#tentang">Tentang</a>
       <a href="/#tahapan">Tahapan</a>
       <a href="/#kerja">Yang dikerjakan</a>
       <a href="/#berita">Berita</a>
       <a href="/#tanya">Tanya jawab</a>
     </nav>
+    <div class="bilah__aksi">
+      <a class="bilah__masuk" href="/login/">Masuk</a>
+      <button class="bilah__burger" id="burger" type="button"
+              aria-label="Buka menu" aria-expanded="false" aria-controls="menuPonsel">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
-  <a class="folio__masuk" href="/login/">Masuk ke aplikasi</a>
-</div>
+  <nav class="bilah__ponsel" id="menuPonsel" aria-label="Bagian halaman" hidden>
+    <a href="/#tentang">Tentang</a>
+    <a href="/#tahapan">Tahapan</a>
+    <a href="/#kerja">Yang dikerjakan</a>
+    <a href="/#berita">Berita</a>
+    <a href="/#tanya">Tanya jawab</a>
+    <a class="bilah__ponsel-masuk" href="/login/">Masuk ke aplikasi</a>
+  </nav>
+</header>
 
 <main class="bab bab--terang artikel-halaman" data-tanah="terang">
   <div class="bungkus">

@@ -15,36 +15,44 @@
 </head>
 <body>
 
-<!-- Folio, bukan bilah tetap. Nama bab yang sedang dibaca diisi beranda.js. -->
-<div class="folio">
-  <a class="folio__merek" href="/">
-    <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
-    <span>KKN&nbsp;LPPM</span>
-  </a>
-  <!-- Nama bab yang sedang dibaca SEKALIGUS jalan masuk ke daftar isinya.
-       Folio menggantikan bilah tetap, tapi bilah itu memikul navigasi bagian
-       (Tentang, Tahapan, Berita, Tanya jawab) dan membuangnya begitu saja
-       menghilangkan satu-satunya cara melompat antar bagian. Di halaman
-       cetak, folio dan daftar isi memang dua hal yang berpasangan. -->
-  <div class="folio__pusat">
-    <button class="folio__bab" id="folioBab" type="button"
-            aria-expanded="false" aria-controls="daftarBab">
-      <span id="folioNama" aria-live="polite">Malam</span>
-      <svg viewBox="0 0 12 12" aria-hidden="true" width="10" height="10">
-        <path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor"
-              stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <nav class="daftar-bab" id="daftarBab" aria-label="Daftar isi" hidden>
-      <a href="#tentang" data-ke="tentang">Tentang</a>
-      <a href="#tahapan" data-ke="tahapan">Tahapan</a>
-      <a href="#kerja" data-ke="kerja">Yang dikerjakan</a>
-      <a href="#berita" data-ke="berita">Berita</a>
-      <a href="#tanya" data-ke="tanya">Tanya jawab</a>
+<!-- Bilah navigasi. Sempat saya ganti folio karena grammar scroll-craft
+     memintanya, dan itu keliru dua kali: pemiliknya tidak memintanya, dan
+     folio itu membuang seluruh daftar menu. Ini kembali ke pola yang memang
+     dipakai halaman ini sejak awal. Warnanya mengikuti ground bab yang
+     sedang berada di bawahnya. -->
+<header class="bilah" id="bilah">
+  <div class="bilah__isi">
+    <a class="bilah__merek" href="/">
+      <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
+      <span>KKN&nbsp;LPPM</span>
+    </a>
+
+    <nav class="bilah__tautan" aria-label="Bagian halaman">
+      <a href="#tentang">Tentang</a>
+      <a href="#tahapan">Tahapan</a>
+      <a href="#kerja">Yang dikerjakan</a>
+      <a href="#berita">Berita</a>
+      <a href="#tanya">Tanya jawab</a>
     </nav>
+
+    <div class="bilah__aksi">
+      <a class="bilah__masuk" href="/login/">Masuk</a>
+      <button class="bilah__burger" id="burger" type="button"
+              aria-label="Buka menu" aria-expanded="false" aria-controls="menuPonsel">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
-  <a class="folio__masuk" href="/login/">Masuk ke aplikasi</a>
-</div>
+
+  <nav class="bilah__ponsel" id="menuPonsel" aria-label="Bagian halaman" hidden>
+    <a href="#tentang">Tentang</a>
+    <a href="#tahapan">Tahapan</a>
+    <a href="#kerja">Yang dikerjakan</a>
+    <a href="#berita">Berita</a>
+    <a href="#tanya">Tanya jawab</a>
+    <a class="bilah__ponsel-masuk" href="/login/">Masuk ke aplikasi</a>
+  </nav>
+</header>
 
 <!-- Butiran melayang di atas SELURUH halaman: bab II dan III adalah lempeng
      warna rata tanpa ini, dan ground gelap yang rata berpita di layar

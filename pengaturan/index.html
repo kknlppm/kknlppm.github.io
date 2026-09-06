@@ -152,8 +152,11 @@ if (requireLogin()) {
     const hitung = document.getElementById("hitungJudul");
     const tombol = document.getElementById("tombolSimpan");
 
+    // Kotak putih bergaris netral untuk sebuah GALAT: bentuknya sama dengan
+    // kotak pemberitahuan biasa, jadi kegagalan simpan terbaca seperti
+    // keterangan. Dipakai bentuk yang sama dengan seluruh aplikasi.
     function galat(teks) {
-        pesan.className = "mb-4 rounded-xl border border-garis bg-kertas px-4 py-3 text-sm";
+        pesan.className = "mb-4 rounded-xl px-3 py-2 text-sm bg-galat-muda text-galat";
         pesan.textContent = teks;
         pesan.hidden = false;
     }
@@ -196,7 +199,12 @@ if (requireLogin()) {
 
         const n = Array.from(judul).length;
         hitung.textContent = n + " / " + MAKS_JUDUL;
-        hitung.classList.toggle("text-tinta", n > MAKS_JUDUL * 0.9);
+        // `text-tinta` kalah dari `text-tinta-redup` yang sudah menempel di
+        // elemennya: kekhususannya sama, dan `redup` terbit belakangan di
+        // app.css. Peringatan mendekati batas TIDAK pernah muncul. Kelasnya
+        // sendiri yang dilepas.
+        hitung.classList.toggle("text-tinta-redup", !(n > MAKS_JUDUL * 0.9));
+        hitung.classList.toggle("text-galat", n > MAKS_JUDUL);
     }
 
     function muat() {
