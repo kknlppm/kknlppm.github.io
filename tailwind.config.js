@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     // Halaman depan (`index.html` + `beranda.js`) SENGAJA di luar Tailwind —
-    // ia gelap dan memakai `assets/css/beranda.css` sendiri. Tanpa dikecualikan,
+    // ia gelap dan memakai `assets/css/fajar.css` sendiri. Tanpa dikecualikan,
     // kelas-kelasnya ikut menumpuk di app.css yang tidak pernah memakainya.
     // `node_modules` dan `uji` dikecualikan supaya pemindaian tidak menyapu
     // ribuan berkas yang bukan milik situs ini.
@@ -31,7 +31,7 @@ module.exports = {
             current: "currentColor",
 
             // Diambil dari PUNGGUNG BUKIT di kaki halaman depan
-            // (assets/img/beranda-punggung.webp), bukan dikarang — dan bukan
+            // di kaki halaman depan, bukan dikarang, dan bukan
             // dari logo kampus langsung. Logo itu merah pekat #E1000F; dipakai
             // apa adanya ia berteriak di layar yang dipandangi berjam-jam.
             // Gunung itu versi lembutnya, dan sudah ada di halaman depan.

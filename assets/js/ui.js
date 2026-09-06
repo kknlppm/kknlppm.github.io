@@ -156,6 +156,71 @@ export function sehat(hasil, elPesan) {
  * Dipasang sekali untuk semua halaman yang memuat ui.js, jadi tidak ada
  * halaman yang perlu tahu soal ini.
  */
+/* Tinggi daerah gulir tabel dihitung dari posisi SEBENARNYA.
+ *
+ * Tujuh halaman memakai konstanta tangan `calc(100vh - 14..17rem)`, dan
+ * semuanya mengandaikan toolbar satu baris. Di bawah ~900px toolbar itu
+ * membungkus jadi dua atau tiga baris (segmen tahun saja 516px), dan pada
+ * penunjuk kasar kendalinya tumbuh 38px jadi 44px. Begitu itu terjadi,
+ * halamannya ikut bergulir DI SAMPING tabelnya: dua bilah gulir, kepala
+ * tabel yang menempel hanya bekerja di yang dalam, dan kepala halaman
+ * tergulir hilang.
+ *
+ * Diukur, bukan ditebak: sisa layar setelah tepi atas kotaknya, dikurangi
+ * apa pun yang berdiri di bawahnya (kontrol halaman) plus satu jarak.
+ */
+function pasangTinggiTabel() {
+    const kotak = [...document.querySelectorAll(".overflow-auto")]
+        .filter((k) => k.querySelector("table.register"));
+    if (!kotak.length) return;
+
+    const hitung = () => {
+        for (const k of kotak) {
+            k.style.maxHeight = "";
+            const atas = k.getBoundingClientRect().top;
+            let bawah = 0;
+            let n = k.parentElement ? k.parentElement.nextElementSibling : null;
+            while (n) {
+                if (!n.hasAttribute("hidden")) {
+                    const r = n.getBoundingClientRect();
+                    if (r.height > 0) bawah += r.height + 16;
+                }
+                n = n.nextElementSibling;
+            }
+            const sisa = window.innerHeight - atas - bawah - 20;
+            k.style.maxHeight = Math.max(220, Math.round(sisa)) + "px";
+        }
+    };
+
+    let tunggu;
+    const jadwalkan = () => {
+        clearTimeout(tunggu);
+        tunggu = setTimeout(hitung, 60);
+    };
+    addEventListener("resize", jadwalkan, { passive: true });
+    if (typeof ResizeObserver === "function") {
+        const ro = new ResizeObserver(jadwalkan);
+        const utama = document.querySelector("main");
+        if (utama) ro.observe(utama);
+    }
+    hitung();
+}
+
+/* Kepala halaman selebar isinya.
+ *
+ * `.kepala__isi` dipatok 1400px sementara `main` berbeda-beda: 1400, 1200,
+ * 1060, dan 576. Di 1440px dengan sidebar terbuka, judul halaman Penilaian
+ * berdiri 70px di kiri toolbar-nya sendiri, dan kartu Akun 312px. Lebarnya
+ * dibaca dari `main`, bukan ditebak per halaman.
+ */
+function samakanLebarKepala() {
+    const kepala = document.querySelector(".kepala__isi");
+    const utama = document.querySelector("main");
+    if (!kepala || !utama) return;
+    const lebar = getComputedStyle(utama).maxWidth;
+    if (lebar && lebar !== "none") kepala.style.maxWidth = lebar;
+}
+
 function pasangKepalaTabel() {
     document.querySelectorAll("table.register").forEach(function (tabel) {
         const kotak = tabel.closest(".overflow-auto, .overflow-y-auto");
@@ -168,8 +233,14 @@ function pasangKepalaTabel() {
     });
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", pasangKepalaTabel);
-} else {
+function pasangTataLetak() {
+    samakanLebarKepala();
     pasangKepalaTabel();
+    pasangTinggiTabel();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", pasangTataLetak);
+} else {
+    pasangTataLetak();
 }

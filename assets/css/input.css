@@ -11,7 +11,7 @@
    Tidak memakai pustaka komponen. Yang dibutuhkan cuma sedikit, dan
    pustaka bawaan membuat setiap aplikasi tampak sama.
 
-   SATU SUARA DENGAN HALAMAN DEPAN. Berkasnya terpisah (beranda.css gelap,
+   SATU SUARA DENGAN HALAMAN DEPAN. Berkasnya terpisah (fajar.css untuk
    ini terang) tapi keduanya harus terbaca sebagai satu produk. Yang dibagi
    ternyata sudah ada sejak awal: hurufnya sama (Archivo + Azeret Mono), dan
    permukaan terang di halaman depan — mockup sertifikat di hero — dicat
@@ -20,9 +20,9 @@
 
    Yang berbeda dan disamakan di sini adalah watak dan bentuknya:
      · berat judul  — halaman depan memakai 400 pada 40-60px dan 500 pada
-                      ukuran kecil (.nav__brand, .btn); di sini dulu 700
+                      ukuran kecil (.bilah__merek, .aksi); di sini dulu 700
      · sumbu lebar  — halaman depan memakai lebar wajar; di sini dulu wdth 112
-     · pelacakan    — -0.02em, mengikuti .nav__brand dan .sertifikat__judul
+     · pelacakan    — -0.02em, mengikuti .bilah__merek di halaman depan
      · lengkung     — .tabs dan .btn di sana berbentuk pil (999px), kartunya
                       12-22px; di sini dulu 6-8px di semuanya
    ────────────────────────────────────────────────────────────── */
@@ -72,7 +72,7 @@
        `[hidden]` dan `.flex` sama-sama berkekuatan 0,1,0, jadi yang menang
        adalah yang belakangan — dan utilitas Tailwind selalu sesudah base.
        Akibatnya `<div hidden class="flex">` tetap tergambar. Persis cacat
-       yang pernah ditemukan uji di beranda.css (.artikel__tautan), dan
+       yang pernah ditemukan uji di halaman depan (.artikel__tautan), dan
        kambuh di sini pada papan tindakan massal halaman Sertifikat: ia
        tampil terus bertuliskan "0 peserta dipilih". */
     [hidden] { display: none !important; }
@@ -98,7 +98,7 @@
     }
 
     /* Berat 500 dan pelacakan -0.02em: itu yang dipakai halaman depan pada
-       teks seukuran ini (.nav__brand 18px/500/-0.02em, .sertifikat__judul
+       teks seukuran ini (.bilah__merek 15px/600/-0.02em, judul sertifikat
        20px/-0.02em). Yang 400 di sana hanya berlaku pada 40-60px. */
     /* Berat 600, sama dengan judul halaman depan. Aplikasi ini memakai 500
        di seluruh judul dan lockup mereknya sementara halaman depan memakai
@@ -345,9 +345,12 @@
        berbohong tentang apa yang sebenarnya sedang dikirim. */
     .register tbody tr.baris-tertunda  td { @apply bg-belum-muda/50; }
     .register tbody tr.baris-menyimpan td { @apply bg-bata-muda/60; }
-    .register tbody tr.baris-tersimpan td { @apply bg-sah-muda; }
+    .register tbody tr.baris-tersimpan td {
+        @apply bg-sah-muda;
+        transition: background-color .4s;
+    }
     .register tbody tr.baris-gagal     td { @apply bg-galat-muda; }
-    .register tbody tr.baris-tersimpan td { transition: background-color .4s; }
+
 
     /* ── laci formulir ── */
     .tirai {
@@ -428,8 +431,7 @@
         /* Yang berikut ini sebelumnya terlewat semuanya, dan semuanya
            ditekan tiap hari: navigasi ponselnya sendiri (36px), tombol menu
            (40px), tautan Ubah/Hapus (~20px), kotak nilai yang diisi dosen
-           (30px), dan tombol ciut sidebar (28px). `.tab-nav` yang dulu
-           tercantum di sini tidak cocok dengan apa pun di repo ini. */
+           (30px), dan tombol ciut sidebar (28px). */
         .sisi__tautan { @apply py-3; }
         .kepala__menu { @apply w-11 h-11; }
         .sisi__ciut { @apply w-11 h-11; }

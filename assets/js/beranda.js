@@ -91,7 +91,10 @@ function ukurAdegan(H) {
     const jarak = hero.offsetHeight - H;
     if (jarak < 80) { hero.style.setProperty("--gulir", "0"); return; }
     const p = -hero.getBoundingClientRect().top / jarak;
-    hero.style.setProperty("--gulir", (p < 0 ? 0 : p > 1 ? 1 : p).toFixed(4));
+    const g = p < 0 ? 0 : p > 1 ? 1 : p;
+    hero.style.setProperty("--gulir", g.toFixed(4));
+    const kamera = hero.querySelector(".kamera");
+    if (kamera) kamera.dataset.scVerifyState = g.toFixed(2);
 }
 
 if (bab.length && !kurangGerak) {
@@ -112,6 +115,11 @@ if (bab.length && !kurangGerak) {
             const maju = (H - r.top) / (H * 0.55);
             const kelupas = maju < 0 ? 0 : maju > 1 ? 1 : maju;
             b.style.setProperty("--kelupas", kelupas.toFixed(4));
+            // Nilai yang BERUBAH, bukan label tetap. Harness membaca atribut
+            // ini untuk tahu apakah ada yang bergerak di antara dua posisi
+            // gulir; label tetap membuatnya melaporkan gulir mati di tempat
+            // yang justru sedang berubah.
+            b.dataset.scVerifyState = kelupas.toFixed(2);
 
             // Bab yang sedang dibaca: yang MEMUAT garis sepertiga atas
             // layar. Dulu ini "yang tepinya paling dekat", dan itu bias ke bab
@@ -231,18 +239,21 @@ if (daftarTanya) {
         const isiId = "faq-" + i;
         isi.id = isiId;
         tombol.setAttribute("aria-controls", isiId);
-        jawab.forEach((paragraf) => isi.appendChild(el("p", null, paragraf)));
+        // Satu pembungkus di dalamnya: grid 0fr->1fr butuh anak yang bisa
+        // dipotong, dan itu jauh lebih tahan daripada menulis scrollHeight
+        // ke max-height, yang salah begitu teksnya membungkus berbeda.
+        const dalam = el("div");
+        jawab.forEach((paragraf) => dalam.appendChild(el("p", null, paragraf)));
+        isi.appendChild(dalam);
 
         tombol.addEventListener("click", () => {
             const terbuka = bungkus.classList.contains("is-open");
             $$(".acc.is-open", daftarTanya).forEach((lain) => {
                 lain.classList.remove("is-open");
-                $(".acc__a", lain).style.maxHeight = 0;
                 $(".acc__q", lain).setAttribute("aria-expanded", "false");
             });
             if (!terbuka) {
                 bungkus.classList.add("is-open");
-                isi.style.maxHeight = isi.scrollHeight + "px";
                 tombol.setAttribute("aria-expanded", "true");
             }
         });

@@ -1120,6 +1120,9 @@ body {
     cursor: pointer;
 }
 
+.acc__q:hover { color: var(--sc-accent); }
+.acc__q:active { transform: translateY(1px); }
+
 .acc__q i {
     font-style: normal;
     color: var(--sc-accent);
@@ -1128,11 +1131,19 @@ body {
 
 .acc.is-open .acc__q i { transform: rotate(180deg); }
 
+/* `grid-template-rows` 0fr -> 1fr, BUKAN max-height.
+   Menganimasikan max-height melanggar aturan "transform dan opacity saja",
+   dan ia juga menuntut skrip mengukur scrollHeight lalu menuliskannya
+   kembali: tingginya jadi salah begitu teksnya membungkus berbeda. */
 .acc__a {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 320ms var(--sc-ease-out);
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 320ms var(--sc-ease-out);
 }
+
+.acc.is-open .acc__a { grid-template-rows: 1fr; }
+
+.acc__a > div { overflow: hidden; min-height: 0; }
 
 .acc__a p {
     margin: 0 0 var(--sc-4);
