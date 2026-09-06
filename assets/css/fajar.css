@@ -325,7 +325,7 @@ body {
  */
 .judul-halaman {
     position: relative;
-    min-height: 100svh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -360,14 +360,9 @@ body {
 .judul-besar .redup { color: var(--sc-ink-soft); }
 
 @media (max-width: 700px) {
-    /* Clamp di atas sudah turun sendiri sampai 2,2rem di 390px, jadi
-       menimpanya dengan --sc-t-2xl justru MEMBESARKAN judul di ponsel.
-       Yang tersisa untuk dikerjakan di sini cuma ruang: 100svh yang
-       ditengahkan meninggalkan ~490px hitam di atas eyebrow. */
-    .judul-halaman {
-        min-height: auto;
-        padding-block: calc(var(--sc-section) * 0.5) var(--sc-section);
-    }
+    /* Clamp judulnya sudah turun sendiri sampai 2,2rem di 390px, jadi
+       menimpanya dengan --sc-t-2xl justru MEMBESARKANNYA di ponsel. */
+    .judul-halaman { padding-block: calc(var(--sc-section) * 0.4) var(--sc-section); }
 }
 
 .aksi {
@@ -398,6 +393,194 @@ body {
    di bawah teks: judulnya yang dibaca, gunungnya yang menemani. */
 .ufuk--judul { z-index: 0; opacity: .9; }
 .judul-halaman > *:not(.ufuk) { position: relative; z-index: 1; }
+
+/* ── Adegan hero: kedalaman sungguhan ─────────────────────────────────
+ *
+ * Build pertama halaman ini rata: satu punggung SVG diam plus teks memudar.
+ * `hero-depth.md` menyebut persis bentuk kegagalan itu, dan ia baseline,
+ * bukan poles akhir.
+ *
+ * Kedalamannya datang dari tujuh bidang dengan laju berbeda, DUA di antaranya
+ * bergerak berlawanan arah dengan yang lain, ditambah occlusion sungguhan:
+ * punggung terdekat duduk di lapisan DI ATAS teks. Itu dicapai dengan dua
+ * elemen `sticky` yang MENGAPIT blok judul, bukan satu elemen di belakangnya.
+ * Tanpa itu ia cuma beberapa div yang bergerak bersama, dan beberapa div yang
+ * bergerak bersama adalah satu bidang.
+ *
+ * Tanpa aset, tanpa WebGL, tanpa video: SVG, gradient, dan transform.
+ */
+/* Panggung memberi jarak tempuh; kamera yang menahan adegannya. Jarak
+   tempuhnya sengaja 70svh: cukup untuk punggung terdekat naik melewati dasar
+   blok judul, tidak sampai membuat pembaca menunggu. */
+.panggung-hero {
+    position: relative;
+    height: 170svh;
+}
+
+.kamera {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    display: grid;
+}
+
+/* Kamera berakhir di tepi bawahnya, dan di bawahnya ground bab yang polos.
+   Tanpa peredam ini, batasnya terbaca sebagai garis. */
+.kamera::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 14svh;
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, #0B0908);
+}
+
+/* Ketiganya menempati sel grid yang SAMA, jadi mereka bertumpuk, bukan
+   berbaris. Urutan lapisannya yang menentukan apa menutupi apa. */
+.kamera > * { grid-area: 1 / 1; }
+
+.adegan {
+    position: relative;
+    height: 100%;
+    pointer-events: none;
+}
+
+.adegan--belakang { z-index: 1; }
+.adegan--depan    { z-index: 3; }
+
+/* Blok judul duduk DI ANTARA keduanya. */
+.judul-halaman { z-index: 2; }
+
+.lapis {
+    position: absolute;
+    left: -6%;
+    width: 112%;              /* lebih lebar dari layar: geseran mendatar
+                                 tidak boleh memperlihatkan tepi */
+    bottom: 0;
+    will-change: transform;
+    /* 340px, bukan 100px. Dengan 100px rentang seluruh bidang cuma 41px
+       sepanjang 500px gulir: tujuh laju berbeda di atas kertas, satu bidang
+       di mata. Tandanya NEGATIF untuk yang dekat: punggungnya NAIK melintas
+       di depan teks, yang terbaca sebagai kamera turun ke lembah. */
+    transform: translate3d(
+        calc(var(--tikus, 0) * var(--laju-x, 0) * 34px),
+        calc(var(--gulir, 0) * var(--laju, 0) * 340px), 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Gerak dikurangi, bukan dihapus: komposisi berlapisnya tetap utuh, yang
+       hilang cuma perpindahannya. Kedalaman dari tumpang-tindih, kabut, dan
+       tepi cahaya semuanya tidak bergerak. */
+    .lapis, .adegan__kabut, .adegan__cahaya { transform: none; }
+}
+
+.lapis svg { display: block; width: 100%; height: auto; }
+
+/* Dasar yang menerus di bawah tiap punggung. Tanpa ini, menggeser punggung ke
+   atas 211px mengangkat dasarnya dari tepi bawah kamera dan memperlihatkan
+   celah: sebuah garis lurus mendatar di tempat yang seharusnya tanah. Warnanya
+   sama persis dengan isian SVG di atasnya, jadi sambungannya tidak ada. */
+.lapis::after {
+    content: "";
+    position: absolute;
+    top: calc(100% - 1px);
+    left: 0;
+    right: 0;
+    height: 420px;
+    background: var(--isi, transparent);
+}
+
+/* Cahaya fajar. Terpaku pada garis ufuk dan tidak pernah lepas darinya:
+   cahaya yang melayang lepas dari punggungnya terbaca sebagai noda, bukan
+   sebagai matahari. */
+.adegan__cahaya {
+    position: absolute;
+    left: 50%;
+    bottom: -12%;
+    width: 150%;
+    aspect-ratio: 2 / 1;
+    transform: translate(-50%, calc(var(--gulir, 0) * -78px));
+    background: radial-gradient(ellipse at 50% 100%,
+        rgba(232, 176, 160, .58) 0%,
+        rgba(190, 147, 146, .34) 26%,
+        rgba(122, 84, 82, .17) 48%,
+        transparent 72%);
+    opacity: calc(.62 + var(--gulir, 0) * .38);
+}
+
+/* Kabut. Dua sisi: satu di belakang subjek, satu di depan. Atmosfer di satu
+   sisi saja terbaca sebagai lapisan, bukan sebagai udara. */
+.adegan__kabut {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 42%;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+.adegan__kabut--belakang {
+    bottom: 20%;
+    background: linear-gradient(to top,
+        rgba(190, 147, 146, .13), rgba(190, 147, 146, .05) 45%, transparent);
+    transform: translate3d(0, calc(var(--gulir, 0) * 58px), 0);
+    opacity: calc(.5 + var(--gulir, 0) * .5);
+}
+
+/* Kabut depan memudar di KEDUA ujungnya. Dengan tepi bawah yang padat, ia
+   meninggalkan pita lurus melintang begitu digeser ke atas, dan pita lurus di
+   lapisan kabut terbaca sebagai galat render, bukan sebagai udara. */
+.adegan__kabut--depan {
+    bottom: -34%;
+    height: 76%;
+    background: linear-gradient(to top,
+        transparent 0%,
+        rgba(11, 9, 8, .82) 26%,
+        rgba(24, 16, 14, .34) 62%,
+        transparent 100%);
+    transform: translate3d(0, calc(var(--gulir, 0) * -238px), 0);
+}
+
+/* Tepi cahaya di punggung terdekat. Bibir sungguhan menangkap cahaya, dan
+   satu piksel di sana menjual kedalaman lebih baik daripada blur berapa pun. */
+.lapis--dekat .tepi { opacity: calc(.25 + var(--gulir, 0) * .55); }
+
+/* Butiran. Ground gelap yang rata BERPITA di layar sungguhan; ini yang
+   membedakan "halaman gelap" dari "ruangan yang diterangi". */
+.butiran {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Ponsel diarahkan terpisah, bukan dikecilkan: dua punggung saja, dan
+   tipografi di ATAS punggung dekat. Judul tidak boleh pernah tertutup di
+   layar kecil. */
+@media (max-width: 700px) {
+    /* Jarak tempuh dipendekkan, dan punggung terdekat dipindah ke BELAKANG
+       teks: di layar kecil judulnya tidak boleh pernah tertutup. */
+    .panggung-hero { height: 128svh; }
+    .adegan--depan { z-index: 1; }
+    .judul-halaman { z-index: 2; }
+    .lapis--tengah { display: none; }
+    .lapis {
+        /* Diangkat ke dalam bingkai: di ponsel punggungnya duduk di bawah
+           blok judul yang tinggi, dan di tepi bawah ia praktis tidak
+           terlihat. Ini arahan tersendiri, bukan desktop yang dikecilkan. */
+        bottom: 5svh;
+        transform: translate3d(0, calc(var(--gulir, 0) * var(--laju, 0) * 150px), 0);
+    }
+    /* Cahaya fajarnya dinaikkan: layar ponsel sering dipandang di terang
+       matahari, dan nilai yang pas di monitor hilang di sana. */
+    .adegan__cahaya { opacity: calc(.85 + var(--gulir, 0) * .15); }
+}
 
 /* ── Ufuk: punggung gunung ──────────────────────────────────────────────
  *

@@ -33,33 +33,76 @@
   <div class="bab__lembar" aria-hidden="true"></div>
 
 
-  <div class="bungkus judul-halaman" data-sc-in data-sc-stagger="70">
-  <!-- ufuk dipindah ke dalam .judul-halaman: di dasar <section> ia berada
-       1569px di bawah lipatan dan tidak pernah terlihat bersama judulnya. -->
-  <div class="ufuk ufuk--judul" aria-hidden="true">
-    <svg viewBox="0 0 1440 300" preserveAspectRatio="none" role="presentation">
-      <path d="M0,300 L0,214 C120,196 208,168 300,150 C392,132 452,152 540,138
-               C628,124 700,88 792,96 C884,104 940,146 1032,152
-               C1124,158 1200,132 1296,116 C1360,105 1404,112 1440,120 L1440,300 Z"
-            fill="#17100E"/>
-      <path d="M0,300 L0,252 C132,240 244,222 356,212 C468,202 540,214 656,206
-               C772,198 852,172 968,180 C1084,188 1160,214 1272,220
-               C1348,224 1400,222 1440,218 L1440,300 Z"
-            fill="#100B0A"/>
-    </svg>
-  </div>
-    <p class="judul-halaman__baris">Lembaga Penelitian dan Pengabdian kepada Masyarakat</p>
-    <h1 class="judul-besar">
-      Kuliah Kerja Nyata,<br>
-      <span class="redup">dari penempatan sampai sertifikat.</span>
-    </h1>
-    <p class="badan utama">
-      Register KKN Universitas Al-Ghifari. Satu tempat untuk penempatan kelompok,
-      penilaian lima aspek oleh dosen pembimbing, dan penerbitan sertifikat yang
-      bisa diperiksa siapa saja.
-    </p>
-    <div>
-      <a class="aksi" href="/login/">Masuk ke aplikasi</a>
+  <!-- Satu KAMERA sticky menahan seluruh adegan sementara halaman bergulir,
+       dan tipografinya duduk DI ANTARA lapisannya. Dua elemen sticky yang
+       saling menumpuk tidak bisa melakukan ini: yang kedua mendorong yang
+       pertama dan judulnya terlempar keluar layar. -->
+  <div class="panggung-hero">
+    <div class="kamera">
+  <!-- ADEGAN BELAKANG: cahaya fajar, punggung jauh, kabut belakang, punggung
+           tengah. Sticky, jadi ia tinggal sementara teks lewat. -->
+      <div class="adegan adegan--belakang" aria-hidden="true">
+        <div class="adegan__cahaya"></div>
+
+        <div class="lapis lapis--jauh" style="--laju:.07;--laju-x:-.22;--isi:#2E2320">
+          <svg viewBox="0 0 1440 260" preserveAspectRatio="none" role="presentation">
+            <path d="M0,260 L0,150 C96,132 168,96 264,88 C360,80 420,118 516,112
+                     C612,106 672,64 768,70 C864,76 924,120 1020,124
+                     C1116,128 1188,94 1284,84 C1356,76 1404,88 1440,96 L1440,260 Z"
+                  fill="#2E2320"/>
+          </svg>
+        </div>
+
+        <div class="adegan__kabut adegan__kabut--belakang"></div>
+
+        <div class="lapis lapis--tengah" style="--laju:-.13;--laju-x:.45;--isi:#1B1412">
+          <svg viewBox="0 0 1440 300" preserveAspectRatio="none" role="presentation">
+            <path d="M0,300 L0,196 C108,180 180,140 288,132 C396,124 456,170 564,164
+                     C672,158 744,104 852,116 C960,128 1032,178 1140,182
+                     C1248,186 1332,146 1440,138 L1440,300 Z"
+                  fill="#1B1412"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bungkus judul-halaman" data-sc-in data-sc-stagger="70">
+        <p class="judul-halaman__baris">Lembaga Penelitian dan Pengabdian kepada Masyarakat</p>
+        <h1 class="judul-besar">
+          Kuliah Kerja Nyata,<br>
+          <span class="redup">dari penempatan sampai sertifikat.</span>
+        </h1>
+        <p class="badan utama">
+          Register KKN Universitas Al-Ghifari. Satu tempat untuk penempatan kelompok,
+          penilaian lima aspek oleh dosen pembimbing, dan penerbitan sertifikat yang
+          bisa diperiksa siapa saja.
+        </p>
+        <div>
+          <a class="aksi" href="/login/">Masuk ke aplikasi</a>
+        </div>
+      </div>
+
+      <!-- ADEGAN DEPAN: punggung terdekat dan kabut depan, di lapisan DI ATAS
+           teks. Ini yang membuat occlusion-nya sungguhan, bukan tumpukan div yang
+           bergerak bersama di belakang. Punggungnya naik lebih cepat daripada
+           teks, jadi ia melintas di depan dasar blok judul SETELAH judulnya
+           terbaca, bukan sebelumnya. -->
+      <div class="adegan adegan--depan" aria-hidden="true">
+        <div class="lapis lapis--dekat" style="--laju:-.62;--laju-x:1;--isi:#090706">
+          <svg viewBox="0 0 1440 340" preserveAspectRatio="none" role="presentation">
+            <path d="M0,340 L0,244 C132,226 228,176 348,164 C468,152 552,206 672,198
+                     C792,190 876,134 996,146 C1116,158 1212,214 1332,220
+                     C1380,222 1416,218 1440,214 L1440,340 Z"
+                  fill="#090706"/>
+            <path class="tepi"
+                  d="M0,244 C132,226 228,176 348,164 C468,152 552,206 672,198
+                     C792,190 876,134 996,146 C1116,158 1212,214 1332,220
+                     C1380,222 1416,218 1440,214"
+                  fill="none" stroke="#8A5F5B" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="adegan__kabut adegan__kabut--depan"></div>
+        <div class="butiran"></div>
+      </div>
     </div>
   </div>
 

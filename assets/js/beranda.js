@@ -41,6 +41,21 @@ const kurangGerak = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const bab = $$(".bab");
 const folioBab = $("#folioBab");
 const folio = $(".folio");
+const hero = $(".bab--malam");
+
+// `--gulir` 0..1 menjalankan seluruh adegan hero: tujuh bidang dengan laju
+// berbeda, dua di antaranya berlawanan arah. Satu nilai skalar, dan CSS yang
+// memutuskan artinya untuk tiap bidang.
+//
+// Pembaginya dijaga: kalau tinggi hero dan tinggi layar kebetulan sama,
+// pembagian nol membuat adegannya melompat satu piksel di gulir pertama.
+function ukurAdegan(H) {
+    if (!hero) return;
+    const jarak = hero.offsetHeight - H;
+    if (jarak < 80) { hero.style.setProperty("--gulir", "0"); return; }
+    const p = -hero.getBoundingClientRect().top / jarak;
+    hero.style.setProperty("--gulir", (p < 0 ? 0 : p > 1 ? 1 : p).toFixed(4));
+}
 
 // Folio melayang di atas kelima ground, jadi ia harus tahu ground mana yang
 // sedang di bawahnya. Diukur di y=48px, yaitu tinggi folionya sendiri.
@@ -99,6 +114,7 @@ if (bab.length && !kurangGerak) {
         }
 
         setelFolio(H);
+        ukurAdegan(H);
     };
 
     const jadwalkan = () => {
@@ -126,6 +142,39 @@ if (bab.length && !kurangGerak) {
     // Warna folio tetap harus mengikuti ground, gerak dikurangi atau tidak.
     addEventListener("scroll", () => setelFolio(window.innerHeight), { passive: true });
     setelFolio(window.innerHeight);
+    // Adegannya diam saat gerak dikurangi (CSS sudah mematikan transform-nya),
+    // tapi cahaya dan kabutnya tetap perlu nilai awal yang masuk akal.
+    ukurAdegan(window.innerHeight);
+}
+
+/* Respons pointer di hero -----------------------------------------------
+ *
+ * TAMBAHAN, bukan satu-satunya cara merasakan adegannya: sentuh, papan
+ * ketik, dan gerak-dikurangi tetap mendapat komposisi yang lengkap. Tidak
+ * pernah mengunci kursor.
+ *
+ * Nilainya diredam, bukan dipakai mentah: pointer yang diikuti persis
+ * terasa seperti stiker yang menempel di kursor, bukan seperti kedalaman.
+ */
+if (hero && !kurangGerak && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let tujuan = 0, kini = 0, jalan = false;
+
+    hero.addEventListener("pointermove", (e) => {
+        tujuan = (e.clientX / window.innerWidth - 0.5) * 2;   // -1..1
+        if (!jalan) { jalan = true; requestAnimationFrame(redam); }
+    }, { passive: true });
+
+    hero.addEventListener("pointerleave", () => {
+        tujuan = 0;
+        if (!jalan) { jalan = true; requestAnimationFrame(redam); }
+    });
+
+    function redam() {
+        kini += (tujuan - kini) * 0.075;
+        hero.style.setProperty("--tikus", kini.toFixed(4));
+        if (Math.abs(tujuan - kini) > 0.001) { requestAnimationFrame(redam); }
+        else { jalan = false; }
+    }
 }
 
 /* Tanya jawab ----------------------------------------------------------- */
