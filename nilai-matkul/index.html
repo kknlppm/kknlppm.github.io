@@ -171,7 +171,7 @@ if (requireLogin()) {
         wadah.hidden = false;
         kosongkan(isi);
         const tr = el("tr");
-        const td = el("td", "text-center py-10 text-tinta-samar text-sm", "Memuat…");
+        const td = el("td", "text-center py-10 text-tinta-redup text-sm", "Memuat…");
         td.colSpan = 7; tr.appendChild(td); isi.appendChild(tr);
 
         getJSON(backend.kkn.gradesCourseList + "?limit=200&course_id=" + encodeURIComponent(id),

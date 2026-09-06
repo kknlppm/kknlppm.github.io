@@ -365,8 +365,13 @@
     }
     .laci.terbuka { @apply translate-x-0; }
 
+    /* Kosakata tautan yang sama dengan halaman depan: garis bawah yang
+       SELALU ada tapi redup, menguat saat disorot. Tautan yang tidak
+       bergaris sampai disorot memaksa mencari-cari dengan tetikus, dan
+       kolom ini dibaca berjam-jam. */
     .tautan-aksi {
-        @apply text-sm text-bata hover:underline underline-offset-2;
+        @apply text-sm text-bata underline decoration-bata/40 underline-offset-4
+               hover:decoration-bata;
     }
 
     /* ── penanda status ── */
