@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "semua": "node uji-frontend.mjs && node uji-verifikasi.mjs && node uji-halaman.mjs && node uji-mutu.mjs && node uji-jscroot.mjs",
-        "jscroot": "node uji-jscroot.mjs"
+        "semua": "node uji-frontend.mjs && node uji-verifikasi.mjs && node uji-halaman.mjs && node uji-mutu.mjs && node uji-jscroot.mjs && node uji-fungsi.mjs",
+        "jscroot": "node uji-jscroot.mjs",
+        "fungsi": "node uji-fungsi.mjs"
     },
     "devDependencies": {
         "playwright": "^1.62.1"

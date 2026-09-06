@@ -273,8 +273,14 @@ if (requireLogin()) {
                 s.className = "medan";
                 s.appendChild(opsi("", "—"));
 
-                function isiOpsi(opsi) {
-                    (opsi || []).forEach(function (o) {
+                // Parameternya BUKAN `opsi`: nama itu sudah dipakai helper
+                // yang diimpor di atas, dan menutupinya membuat
+                // `opsi(o.nilai, o.teks)` memanggil larik ini — TypeError.
+                // Untuk medan berpilihan tetap (peran Pengguna) lemparannya
+                // terjadi serentak, jadi laci.buka() tidak pernah dijalankan
+                // dan tombol Ubah tampak tidak berbuat apa-apa.
+                function isiOpsi(daftar) {
+                    (daftar || []).forEach(function (o) {
                         s.appendChild(opsi(o.nilai, o.teks));
                     });
                     if (data && data[m.nama] != null) s.value = String(data[m.nama]);
