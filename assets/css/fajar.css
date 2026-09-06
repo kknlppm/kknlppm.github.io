@@ -317,6 +317,12 @@ body {
     font-size: 1.1875rem;
 }
 
+/* Lead hero dipersempit ke 46ch. Pada 60ch ia melebar sampai 80% layar,
+   keluar dari tabir sudut, dan piksel bukit yang terang di ujungnya menekan
+   kontrasnya ke 3,74:1. Mempersempit kolomnya lebih baik daripada
+   menggelapkan lebih banyak fotonya. */
+.judul-halaman .badan.utama { max-width: 46ch; }
+
 /* ── Bab I: halaman judul ───────────────────────────────────────────────
  *
  * Grammar: hero adalah halaman judul. Tipografi di atas kertas, TANPA media
@@ -455,6 +461,24 @@ body {
 /* Blok judul duduk DI ANTARA keduanya. */
 .judul-halaman { z-index: 2; }
 
+/* Tabir sudut. Latarnya sekarang render 3D dengan bukit yang di beberapa
+   tempat terang: paragraf lead terukur 2,49:1 di atasnya, jauh di bawah 4,5.
+   Bentuknya SUDUT, bukan pita melintang dan bukan tirai sepenuh layar: yang
+   dilindungi cuma kolom teksnya, dan separuh kanan lanskapnya dibiarkan utuh. */
+.tabir-judul {
+    z-index: 2;
+    pointer-events: none;
+    background:
+        linear-gradient(100deg,
+            rgba(9, 7, 6, .93) 0%,
+            rgba(9, 7, 6, .86) 26%,
+            rgba(9, 7, 6, .62) 48%,
+            transparent 72%),
+        linear-gradient(to top,
+            rgba(9, 7, 6, .55) 0%,
+            transparent 34%);
+}
+
 .lapis {
     position: absolute;
     left: -6%;
@@ -478,7 +502,12 @@ body {
     .lapis, .adegan__kabut, .adegan__cahaya { transform: none; }
 }
 
-.lapis svg { display: block; width: 100%; height: auto; }
+.lapis picture,
+.lapis img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
 
 /* Dasar yang menerus di bawah tiap punggung. Tanpa ini, menggeser punggung ke
    atas 211px mengangkat dasarnya dari tepi bawah kamera dan memperlihatkan
