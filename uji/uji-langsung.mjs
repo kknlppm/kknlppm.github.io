@@ -122,6 +122,28 @@ await keHalaman(2).catch(() => {});
 const barisSisa = await page.locator("#isiTabel tr").count();
 cek("kelompok: dua sisa terjangkau di halaman 2", barisSisa === 2, barisSisa + " baris");
 
+// ── register: tabel harus MUAT, bukan mendorong kolom keluar layar ──
+//
+// Dulu "Judul KKN" mengambil 352px meski 98% barisnya kosong, dan itu
+// mendorong Nilai dan Sertifikat keluar layar di 1440px. Lebar kolom sekarang
+// dipatok; uji ini yang menjaga supaya tidak kembali.
+await page.setViewportSize({ width: 1440, height: 900 });
+await page.goto(ASAL + "/data-kkn/");
+await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 1, null, { timeout: 25000 });
+const tabel = await page.evaluate(() => {
+    const t = document.querySelector("table");
+    const tinggi = Array.from(document.querySelectorAll("#isiTabel tr"))
+        .map((r) => r.getBoundingClientRect().height).filter((h) => h > 0);
+    const judul = Array.from(document.querySelectorAll("thead th")).map((th) => th.textContent.trim());
+    return { lebar: Math.round(t.scrollWidth), ruang: Math.round(t.parentElement.clientWidth),
+             tertinggi: Math.round(Math.max(...tinggi)), judul };
+});
+cek("register muat tanpa mendorong kolom keluar", tabel.lebar <= tabel.ruang,
+    `tabel ${tabel.lebar}px di ruang ${tabel.ruang}px`);
+cek("kolom Nilai dan Sertifikat ikut tampil",
+    tabel.judul.includes("Nilai") && tabel.judul.includes("Sertifikat"), tabel.judul.join(" · "));
+cek("baris tidak membungkus jadi dua baris", tabel.tertinggi <= 48, `tertinggi ${tabel.tertinggi}px`);
+
 cek("tidak ada galat skrip di seluruh alur", galat.length === 0, galat.join(" | ").slice(0, 200));
 
 await brw.close();

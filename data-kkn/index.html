@@ -35,19 +35,23 @@
 
   <div class="bg-kertas rounded-2xl shadow-kartu overflow-hidden">
     <div class="overflow-auto max-h-[calc(100vh-14rem)]">
-      <table class="register">
+      <!-- `table-fixed`: tanpa itu lebar kolom ditentukan isi terpanjangnya,
+           dan "Judul KKN" — yang 98% baris kosong — mengambil 352px lalu
+           mendorong Nilai dan Sertifikat keluar layar di 1440px. Dengan lebar
+           dipatok, tabelnya muat dan judulnya tetap terlihat saat ada isinya. -->
+      <table class="register table-fixed min-w-[46rem] xl:min-w-[62rem]">
         <thead>
           <tr>
-            <th>NIM</th>
+            <th class="w-[6.5rem]">NIM</th>
             <th>Nama</th>
-            <th class="hidden lg:table-cell">Program studi</th>
-            <th>Kelompok</th>
-            <th class="hidden md:table-cell">TA</th>
-            <th class="hidden xl:table-cell">Judul KKN</th>
-            <th class="hidden sm:table-cell">Bayar</th>
-            <th><span class="text-tinta-redup">H·S·L·QP·QL</span></th>
-            <th class="text-right">Nilai</th>
-            <th>Sertifikat</th>
+            <th class="hidden lg:table-cell w-[8.5rem]">Program studi</th>
+            <th class="w-[5rem]">Kelompok</th>
+            <th class="hidden md:table-cell w-[6rem]">TA</th>
+            <th class="hidden xl:table-cell w-[9rem]">Judul KKN</th>
+            <th class="hidden sm:table-cell w-[6.5rem]">Bayar</th>
+            <th class="w-[6.5rem]"><span class="text-tinta-redup">H·S·L·QP·QL</span></th>
+            <th class="text-right w-[4.5rem]">Nilai</th>
+            <th class="w-[6rem]">Sertifikat</th>
           </tr>
         </thead>
         <tbody id="isiTabel"></tbody>
@@ -150,21 +154,30 @@ if (requireLogin()) {
         r.__tr = tr;
         tr.appendChild(sel(r.nim, "kode whitespace-nowrap"));
 
-        const tdNama = sel(r.name, "font-medium");
+        // Nama TIDAK dibungkus: satu nama tiga baris menaikkan tinggi seluruh
+        // barisnya, dan dulu itu memangkas isi layar dari ~20 baris jadi 11.
+        // Yang terpotong tetap terbaca lewat `title`, dan kotak cari ada di
+        // atas untuk yang mencari orang tertentu.
+        const tdNama = el("td", "font-medium");
+        tdNama.title = r.name || "";
+        const bungkusNama = el("div", "flex items-center gap-1.5 min-w-0");
+        bungkusNama.appendChild(el("span", "truncate", r.name || "—"));
         if (r.ketua) {
-            const k = el("span", "tanda is-belum ml-1.5", "ketua");
-            tdNama.appendChild(k);
+            bungkusNama.appendChild(el("span", "tanda is-belum shrink-0", "ketua"));
         }
+        tdNama.appendChild(bungkusNama);
         tr.appendChild(tdNama);
 
-        tr.appendChild(sel(r.prodi, "text-xs text-tinta-redup hidden lg:table-cell"));
+        const tdProdi = sel(r.prodi, "text-xs text-tinta-redup hidden lg:table-cell truncate");
+        tdProdi.title = r.prodi || "";
+        tr.appendChild(tdProdi);
         // Sebagian data menuliskan "Kelompok 22", sebagian hanya "33".
         // Kolomnya sudah berjudul Kelompok; awalannya dibuang supaya
         // katanya tidak terbaca dua kali.
         tr.appendChild(sel(String(r.kelompok || "").replace(/^kelompok\s+/i, ""), "kode"));
         tr.appendChild(sel(r.tahun_ajaran, "kode whitespace-nowrap hidden md:table-cell"));
 
-        const tdJudul = sel(r.judul_kkn, "text-xs text-tinta-redup hidden xl:table-cell max-w-[22rem] truncate");
+        const tdJudul = sel(r.judul_kkn, "text-xs text-tinta-redup hidden xl:table-cell truncate");
         tdJudul.title = r.judul_kkn || "";
         tr.appendChild(tdJudul);
 
