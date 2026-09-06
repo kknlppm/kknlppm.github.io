@@ -4,3 +4,6 @@ assets/css/app.css
 .DS_Store
 uji/node_modules/
 uji/package-lock.json
+
+# Ruang kerja scroll-craft: brief, potret, dan lab uji. Bukan bagian situs.
+scrollcraft/

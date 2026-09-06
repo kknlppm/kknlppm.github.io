@@ -1,17 +1,16 @@
 // Perilaku halaman depan publik.
 //
-// Diturunkan dari `js/main.js` milik Fora: kepala halaman yang berubah saat
-// digulir, reveal-on-scroll, parallax hero, tab, dan accordion. Yang tidak
-// ikut: cookie banner (aplikasi ini tidak memakai cookie pelacak sama sekali,
-// jadi meminta persetujuan untuk sesuatu yang tidak ada itu teater) dan
-// formulir kontak (tidak ada yang menerimanya).
+// Yang digerakkan mesin (scrollcraft.js): reveal-on-entry, stagger, parallax.
+// Yang tinggal di sini cuma tiga hal yang memang milik halaman ini:
 //
-// SATU PERBEDAAN YANG DISENGAJA DAN TIDAK BOLEH DIBALIK: Fora menggambar
-// accordion dan kartu lewat `innerHTML` dengan templat string. Di sini
-// semuanya lewat createElement + textContent. Halaman ini satu origin dengan
-// aplikasi yang memegang token di localStorage — begitu isinya datang dari
-// luar (Tahap B: berita yang ditulis admin), jalur innerHTML jadi jalan masuk
-// pencurian sesi. Lebih mudah tidak pernah membukanya daripada menutupnya
+//   1. Lembar malam  — ciri khas halaman ini, dikode di halaman, bukan di mesin
+//   2. Tanya jawab   — datanya di berkas ini
+//   3. Berita        — satu-satunya panggilan API, dan ia harus boleh gagal
+//
+// SATU ATURAN YANG TIDAK BOLEH DIBALIK: kartu dan accordion digambar lewat
+// createElement + textContent, tidak pernah innerHTML. Halaman ini satu origin
+// dengan aplikasi yang memegang token di localStorage, dan judul berita datang
+// dari luar. Lebih mudah tidak pernah membuka jalur itu daripada menutupnya
 // nanti setengah-setengah.
 
 import { getJSON } from "/assets/js/jscroot/api.js";
@@ -29,109 +28,108 @@ const el = (tag, kelas, teks) => {
 
 const kurangGerak = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* Kepala halaman ------------------------------------------------------- */
-const nav = $("#nav");
-const saatGulir = () => nav && nav.classList.toggle("is-scrolled", window.scrollY > 20);
-window.addEventListener("scroll", saatGulir, { passive: true });
-saatGulir();
+/* Lembar malam ----------------------------------------------------------
+ *
+ * Tiap bab masuk masih tertutup lembar berwarna ground bab SEBELUMNYA. Saat
+ * batasnya lewat, lembar itu surut ke atas dan tidak pernah kembali, jadi
+ * cahayanya datang dari bawah seperti fajar sungguhan.
+ *
+ * Nilainya ditulis ke `--kelupas`; CSS yang memutuskan artinya. Dibaca dalam
+ * satu gelung rAF supaya semua getBoundingClientRect terjadi berurutan dan
+ * tidak menyelang-nyeling baca-tulis tata letak.
+ */
+const bab = $$(".bab");
+const folioBab = $("#folioBab");
+const folio = $(".folio");
 
-$("#burger")?.addEventListener("click", function () {
-    const buka = document.body.classList.toggle("nav-open");
-    this.setAttribute("aria-expanded", String(buka));
-});
-$$(".nav__mobile a").forEach((a) => a.addEventListener("click", () => {
-    document.body.classList.remove("nav-open");
-    $("#burger")?.setAttribute("aria-expanded", "false");
-}));
-
-/* Reveal saat digulir --------------------------------------------------- */
-const pengamat = new IntersectionObserver((masuk) => {
-    masuk.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add("is-in"); pengamat.unobserve(e.target); }
-    });
-}, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
-$$("[data-reveal]").forEach((e) => pengamat.observe(e));
-
-/* Parallax sertifikat di hero ------------------------------------------ */
-const mock = $(".hero__mock");
-if (mock && !kurangGerak) {
-    const geser = () => {
-        const y = Math.min(window.scrollY, 600);
-        mock.style.transform = `translateY(${-y * 0.1}px) scale(${1 + y * 0.00006})`;
-    };
-    window.addEventListener("scroll", geser, { passive: true });
-    geser();
-}
-
-/* Paragraf intro: katanya menyala satu per satu saat digulir ------------ */
-//
-// Fora melakukan ini dengan p.innerHTML = teks.split(...).map(...). Di sini
-// tiap kata jadi simpul teks tersendiri — hasil tampilannya sama, tapi tidak
-// ada teks yang pernah ditafsirkan sebagai markup.
-$$(".intro p").forEach((p) => {
-    const kata = p.textContent.split(/(\s+)/);
-    p.textContent = "";
-    kata.forEach((k) => {
-        if (/\S/.test(k)) {
-            p.appendChild(el("span", "w", k));
-        } else {
-            p.appendChild(document.createTextNode(k));
+// Folio melayang di atas kelima ground, jadi ia harus tahu ground mana yang
+// sedang di bawahnya. Diukur di y=48px, yaitu tinggi folionya sendiri.
+function setelFolio(H) {
+    if (!folio) return;
+    for (const b of bab) {
+        const r = b.getBoundingClientRect();
+        if (r.top <= 48 && r.bottom > 48) {
+            if (folio.dataset.tanah !== b.dataset.tanah) {
+                folio.dataset.tanah = b.dataset.tanah;
+            }
+            // Warna ground diambil apa adanya, bukan ditebak: kelima babnya
+            // lima warna, dan latar generik akan berpita di empat di antaranya.
+            const warna = getComputedStyle(b).backgroundColor;
+            if (folio.dataset.warna !== warna) {
+                folio.dataset.warna = warna;
+                folio.style.setProperty("--folio-latar", warna);
+            }
+            return;
         }
-    });
-});
-const kataIntro = $$(".intro .w");
-if (kataIntro.length) {
-    const nyala = () => {
-        const tinggi = window.innerHeight;
-        kataIntro.forEach((w) => w.classList.toggle("lit", w.getBoundingClientRect().top < tinggi * 0.62));
-    };
-    window.addEventListener("scroll", nyala, { passive: true });
-    nyala();
+    }
 }
 
-/* Tahapan KKN ----------------------------------------------------------- */
-const tabs = $("#tabTahap");
-if (tabs) {
-    const tombol = $$("button", tabs);
-    const pil = $(".tabs__pill", tabs);
-    const slide = $$(".panggung__slide");
-    const ket = $("#ketTahap");
-    let kini = 0;
+if (bab.length && !kurangGerak) {
+    let menunggu = false;
 
-    const ke = (n) => {
-        kini = (n + tombol.length) % tombol.length;
-        tombol.forEach((b, k) => {
-            b.classList.toggle("is-active", k === kini);
-            b.setAttribute("aria-selected", String(k === kini));
-        });
-        slide.forEach((s, k) => {
-            s.classList.toggle("is-active", k === kini);
-            s.hidden = k !== kini;
-        });
-        if (pil) pil.style.transform = `translateX(${kini * 100}%)`;
-        if (ket) ket.textContent = slide[kini].dataset.ket || "";
+    const ukur = () => {
+        menunggu = false;
+        const H = window.innerHeight;
+        let terdekat = null;
+
+        for (const b of bab) {
+            const r = b.getBoundingClientRect();
+
+            // 0 saat puncak bab masih di bawah lipatan, 1 setelah ia naik
+            // 55% layar. Fajarnya selesai lebih awal daripada babnya supaya
+            // pembaca membaca di ground yang sudah tenang, bukan yang sedang
+            // berubah di bawah matanya.
+            const maju = (H - r.top) / (H * 0.55);
+            const kelupas = maju < 0 ? 0 : maju > 1 ? 1 : maju;
+            b.style.setProperty("--kelupas", kelupas.toFixed(4));
+
+            // Bab yang sedang dibaca: yang MEMUAT garis sepertiga atas
+            // layar. Dulu ini "yang tepinya paling dekat", dan itu bias ke bab
+            // BERIKUTNYA begitu tepinya mendekat dari bawah: folio menulis
+            // "Siang" sementara pembacanya masih di Pagi.
+            const garis = H * 0.33;
+            if (r.top <= garis && r.bottom > garis) {
+                terdekat = b;
+            }
+        }
+
+        if (folioBab && terdekat && terdekat.dataset.bab &&
+            folioBab.textContent !== terdekat.dataset.bab) {
+            folioBab.textContent = terdekat.dataset.bab;
+        }
+
+        setelFolio(H);
     };
 
-    tombol.forEach((b, k) => b.addEventListener("click", () => ke(k)));
-    $("#tahapSebelum")?.addEventListener("click", () => ke(kini - 1));
-    $("#tahapSesudah")?.addEventListener("click", () => ke(kini + 1));
+    const jadwalkan = () => {
+        if (menunggu) return;
+        menunggu = true;
+        requestAnimationFrame(ukur);
+    };
 
-    // Panah kiri/kanan saat fokus ada di deretan tab — perilaku baku tablist.
-    tabs.addEventListener("keydown", (e) => {
-        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-        e.preventDefault();
-        ke(kini + (e.key === "ArrowRight" ? 1 : -1));
-        tombol[kini].focus();
-    });
+    addEventListener("scroll", jadwalkan, { passive: true });
+    addEventListener("resize", jadwalkan);
+    ukur();
+} else if (bab.length) {
+    // Gerak dikurangi: groundnya tetap berganti tegas antar bab, lembarnya
+    // saja yang tidak dianimasikan. CSS sudah menyembunyikannya; folio tetap
+    // perlu tahu bab mana yang dibaca.
+    const io = new IntersectionObserver((masuk) => {
+        for (const m of masuk) {
+            if (m.isIntersecting && folioBab && m.target.dataset.bab) {
+                folioBab.textContent = m.target.dataset.bab;
+            }
+        }
+    }, { rootMargin: "-33% 0px -60% 0px" });
+    bab.forEach((b) => io.observe(b));
 
-    ke(0);
+    // Warna folio tetap harus mengikuti ground, gerak dikurangi atau tidak.
+    addEventListener("scroll", () => setelFolio(window.innerHeight), { passive: true });
+    setelFolio(window.innerHeight);
 }
 
-/* FAQ ------------------------------------------------------------------- */
-//
-// Pertanyaannya nyata, jawabannya diambil dari perilaku sistem yang sudah
-// berjalan — bukan karangan. Kalau salah satunya berubah di aplikasi,
-// jawabannya di sini harus ikut berubah.
+/* Tanya jawab ----------------------------------------------------------- */
+
 const TANYA = [
     ["Apa itu KKN dan siapa yang wajib mengikutinya?",
      ["Kuliah Kerja Nyata adalah kegiatan pengabdian kepada masyarakat yang " +
@@ -145,27 +143,27 @@ const TANYA = [
       "0 sampai 100: Kehadiran (H), Sikap (S), Kepemimpinan (L), Kualitas " +
       "Perencanaan (QP), dan Kualitas Luaran (QL).",
       "Nilai akhir adalah rata-rata kelimanya, dibulatkan. Huruf mutunya: " +
-      "A untuk 80 ke atas, B untuk 68–79, C untuk 56–67, dan D untuk 45–55. " +
-      "Di bawah 45 dinyatakan tidak lulus."]],
+      "A untuk 80 ke atas, B untuk 68 sampai 79, C untuk 56 sampai 67, dan " +
+      "D untuk 45 sampai 55. Di bawah 45 dinyatakan tidak lulus."]],
 
     ["Bagaimana cara masuk ke aplikasi?",
      ["Mahasiswa masuk memakai NIM sebagai nama pengguna. Dosen dan staf " +
       "memakai nama pengguna yang diberikan LPPM.",
-      "Kalau sandi terlupa atau akun belum aktif, hubungi LPPM — pengaturan " +
+      "Kalau sandi terlupa atau akun belum aktif, hubungi LPPM. Pengaturan " +
       "akun tidak bisa dilakukan sendiri dari halaman masuk."]],
 
     ["Bagaimana memeriksa keaslian sertifikat KKN?",
      ["Pindai kode QR yang tercetak di sertifikat. Ia langsung membuka halaman " +
       "verifikasi dan menampilkan nama, NIM, program studi, nomor sertifikat, " +
       "dan tanggal terbitnya.",
-      "Verifikasi terbuka untuk umum dan tidak memerlukan akun \u2014 pemindai " +
+      "Verifikasi terbuka untuk umum dan tidak memerlukan akun. Pemindainya " +
       "tidak perlu punya hubungan apa pun dengan kampus.",
       "Kalau kode QR-nya rusak, sobek, atau tercetak terlalu buram untuk " +
       "dipindai, hubungi LPPM."]],
 
     ["Apakah nilai saya terlihat oleh mahasiswa lain?",
      ["Tidak. Halaman verifikasi sertifikat yang terbuka untuk umum hanya " +
-      "menampilkan identitas dan keabsahan sertifikatnya — nilai tidak pernah " +
+      "menampilkan identitas dan keabsahan sertifikatnya. Nilai tidak pernah " +
       "ikut ditampilkan di sana.",
       "Di dalam aplikasi, apa yang bisa dilihat seseorang ditentukan perannya."]],
 ];
@@ -174,8 +172,6 @@ const daftarTanya = $("#daftarFaq");
 if (daftarTanya) {
     TANYA.forEach(([tanya, jawab], i) => {
         const bungkus = el("div", "acc");
-        bungkus.dataset.reveal = "";
-        bungkus.style.setProperty("--d", i * 60 + "ms");
 
         const tombol = el("button", "acc__q");
         tombol.type = "button";
@@ -206,16 +202,15 @@ if (daftarTanya) {
         bungkus.appendChild(tombol);
         bungkus.appendChild(isi);
         daftarTanya.appendChild(bungkus);
-        pengamat.observe(bungkus);
     });
 }
 
-/* Berita ---------------------------------------------------------------- */
-//
-// Satu-satunya panggilan API di halaman ini, dan ia harus boleh gagal tanpa
-// merusak apa pun: sisa halaman depan tetap utuh, dan yang tampil hanya
-// keadaan kosong. Karena itu TIDAK memakai ui.js:sehat() — halaman publik
-// tidak boleh melempar pengunjung ke /login/ hanya karena servernya diam.
+/* Berita ----------------------------------------------------------------
+ *
+ * Satu-satunya panggilan API di halaman ini, dan ia harus boleh gagal tanpa
+ * merusak apa pun. Karena itu TIDAK memakai ui.js:sehat(): halaman publik
+ * tidak boleh melempar pengunjung ke /login/ hanya karena servernya diam.
+ */
 
 const wadahBerita = $("#daftarBerita");
 const beritaKosong = $("#beritaKosong");
@@ -241,16 +236,14 @@ function kartuBerita(b) {
     if (foto) {
         isi.style.backgroundImage = 'url("' + encodeURI(foto) + '")';
     } else {
-        // Tanpa foto, blok 4:3 ini hanya ruang mati. Ringkasannya ditaruh di
-        // sini supaya kartunya tetap memberi tahu sesuatu — dan sebagian
-        // berita memang tidak akan pernah punya foto.
+        // Tanpa foto, blok ini hanya ruang mati. Ringkasannya ditaruh di sini
+        // supaya kartunya tetap memberi tahu sesuatu.
         isi.className = "pos__tanpa-foto";
         if (b.ringkasan) isi.appendChild(el("p", null, b.ringkasan));
     }
     gbr.appendChild(isi);
 
     const badan = el("div", "pos__isi");
-    // textContent, selalu. Judul dan ringkasan diketik admin.
     badan.appendChild(el("div", "pos__judul", b.judul || ""));
 
     const meta = el("div", "pos__meta");
@@ -264,21 +257,13 @@ function kartuBerita(b) {
     return a;
 }
 
-function gambarBerita(daftar) {
-    if (!daftar.length) return;                 // keadaan kosong sudah tampil
-    daftar.slice(0, 3).forEach((b) => wadahBerita.appendChild(kartuBerita(b)));
-    wadahBerita.hidden = false;
-    beritaKosong.hidden = true;
-    $$("[data-reveal]", wadahBerita).forEach((e) => pengamat.observe(e));
-}
-
 if (wadahBerita && beritaKosong) {
     let dijawab = false;
 
     // jscroot `api.js` menelan galat jaringan ke console TANPA memanggil
-    // callback-nya. Tanpa penjaga ini, bagian berita akan menggantung dalam
-    // keadaan kosong tanpa pernah menyerah — tampak sama saja, tapi tidak ada
-    // yang tahu bedanya "belum ada berita" dari "server tidak terjangkau".
+    // callback-nya. Tanpa penjaga ini, bagian berita menggantung dalam keadaan
+    // kosong tanpa pernah menyerah, dan tidak ada yang tahu bedanya "belum ada
+    // berita" dari "server tidak terjangkau".
     const penjaga = setTimeout(() => {
         if (dijawab) return;
         dijawab = true;
@@ -293,10 +278,14 @@ if (wadahBerita && beritaKosong) {
         dijawab = true;
         clearTimeout(penjaga);
         if (!hasil || hasil.status !== 200) return;   // keadaan kosong bertahan
-        gambarBerita(((hasil.data || {}).data) || []);
+        const daftar = ((hasil.data || {}).data) || [];
+        if (!daftar.length) return;
+        daftar.slice(0, 3).forEach((b) => wadahBerita.appendChild(kartuBerita(b)));
+        wadahBerita.hidden = false;
+        beritaKosong.hidden = true;
     });
 }
 
-/* Tahun berjalan di kaki halaman ---------------------------------------- */
+/* Tahun berjalan di kolofon --------------------------------------------- */
 const tahun = $("#tahunKini");
 if (tahun) tahun.textContent = String(new Date().getFullYear());

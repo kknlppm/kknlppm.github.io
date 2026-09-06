@@ -1,0 +1,835 @@
+/* Halaman depan KKN LPPM — "Fajar".
+ *
+ * Grammar: chaptered editorial. Lima bab, lima ground, potongan tegas di
+ * antaranya. Permintaan pemilik "gelap ke terang sepanjang gulir" dipenuhi
+ * lewat lima langkah diskret, BUKAN satu gradien: grammar ini melarang
+ * interpolasi menerus antar bab.
+ *
+ * Berkas ini hanya dipakai halaman depan. `beranda.css` sengaja dibiarkan
+ * utuh karena /berita/ masih memakainya.
+ */
+
+@import url("/assets/css/scrollcraft.css");
+
+/* ── Lantai token ───────────────────────────────────────────────────────
+ *
+ * Aksen dua-tingkat, SATU rona. taste.md mengizinkan ini persis untuk
+ * halaman yang berpotongan tegas antara ground gelap dan terang: satu stop
+ * tidak mungkin lolos 4,5:1 di keduanya. Ronanya tetap bata, yang diambil
+ * dari piksel gunung di halaman ini sendiri.
+ */
+:root {
+    --sc-font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    --sc-font-text: "Archivo", ui-sans-serif, system-ui, sans-serif;
+    --sc-font-mono: "Azeret Mono", ui-monospace, monospace;
+
+    --sc-canvas: #0B0908;
+    --sc-surface: #16100E;
+    --sc-ink: #F3EAE4;
+    --sc-ink-soft: #BCA9A2;
+    --sc-accent: #E0A79C;
+    --sc-accent-ink: #24120E;
+    --sc-shadow-color: 18 60% 4%;
+
+    --maxw: 1120px;
+    --ukur: 60ch;
+}
+
+/* Latar kanvas, yaitu yang terlihat saat halaman dipantulkan (overscroll).
+   Halaman ini mulai di malam dan berakhir di kertas, jadi satu warna pasti
+   salah di salah satu ujungnya: di ponsel, menarik ke bawah dari kolofon yang
+   terang memantulkan hitam. Perhentiannya keras dan kira-kira mengikuti batas
+   bab. Ia TIDAK pernah terlihat sebagai gradasi di halaman: semua babnya
+   legap dan menutupinya. */
+html {
+    background: linear-gradient(to bottom,
+        #0B0908 0 20%, #1A1310 20% 42%, #33231F 42% 59%,
+        #EFE0DC 59% 82%, #F7F4F1 82% 100%);
+}
+
+body {
+    background: var(--sc-canvas);
+    color: var(--sc-ink);
+    font-family: var(--sc-font-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Folio ──────────────────────────────────────────────────────────────
+ *
+ * Grammar ini melarang bilah tetap. Yang ada folio di margin: nama bab
+ * berjalan, dan satu tautan masuk. Ia tetap terbaca di kedua keluarga
+ * ground karena warnanya ikut bab yang sedang dibaca.
+ */
+/* Latar folio memudar dari warna ground yang SEDANG di bawahnya, diambil
+   apa adanya lewat getComputedStyle di beranda.js. Warna generik akan
+   berpita, karena lima babnya lima ground berbeda. Bukan tirai gelap
+   sepenuh layar: hanya pita setinggi folionya sendiri, tempat teksnya duduk. */
+.folio::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom,
+        var(--folio-latar, transparent) 45%,
+        transparent 100%);
+    transition: background-color 220ms var(--sc-ease-out);
+}
+
+.folio {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sc-4);
+    padding: var(--sc-4) var(--sc-gutter);
+    font-size: 0.8125rem;
+    letter-spacing: 0.01em;
+    color: var(--sc-ink-soft);
+    pointer-events: none;
+    mix-blend-mode: normal;
+}
+
+.folio a,
+.folio__bab,
+.folio__merek {
+    pointer-events: auto;
+}
+
+.folio__merek {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--sc-ink);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.folio__merek img {
+    width: 20px;
+    height: 19px;
+}
+
+/* Nama bab yang sedang dibaca. Ini navigasi grammar ini, dan sengaja TANPA
+   nomor: "01 / 05" adalah dekorasi, bukan informasi yang dibutuhkan pembaca. */
+.folio__bab {
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sc-ink-soft);
+    transition: opacity 260ms var(--sc-ease-out);
+}
+
+.folio__masuk {
+    color: var(--sc-accent);
+    text-decoration: none;
+    text-underline-offset: 4px;
+    border-bottom: 1px solid color-mix(in oklab, var(--sc-accent) 40%, transparent);
+    transition: border-color 160ms var(--sc-ease-out), color 160ms var(--sc-ease-out);
+}
+
+.folio__masuk:hover { border-bottom-color: var(--sc-accent); }
+
+/* Folio melayang di atas kelima ground. Tanpa ini ia memakai tinta ground
+   gelap di seluruh halaman, dan di dua bab terakhir "KKN LPPM" jadi tulisan
+   tulang di atas kertas: 1,2:1. Warnanya diikutkan ke bab yang sedang berada
+   di bawahnya, dan `color` dinyatakan ulang karena mengganti tokennya saja
+   tidak mengganti tinta yang sudah resolve. */
+.folio[data-tanah="terang"] {
+    --sc-ink: #1B2430;
+    --sc-ink-soft: #5A6675;
+    --sc-accent: #9C5248;
+    color: var(--sc-ink-soft);
+}
+
+.folio[data-tanah="terang"] .folio__merek { color: var(--sc-ink); }
+.folio[data-tanah="terang"] .folio__bab { color: var(--sc-ink-soft); }
+.folio[data-tanah="terang"] .folio__masuk { color: var(--sc-accent); }
+
+.folio, .folio * { transition: color 220ms var(--sc-ease-out); }
+
+@media (max-width: 640px) {
+    .folio__bab { display: none; }
+}
+
+/* ── Bab ────────────────────────────────────────────────────────────────
+ *
+ * Tiap bab mendarat di ground-nya sendiri dan tinggal di sana. `color`
+ * DINYATAKAN ULANG di tiap subtree yang mengganti --sc-ink: `color` diwarisi
+ * sebagai nilai terhitung, jadi mengganti tokennya saja tidak mengganti tinta
+ * teks yang sudah terlanjur resolve di <body>. Itu gagal diam-diam.
+ */
+.bab {
+    position: relative;
+    isolation: isolate;
+    background: var(--ground);
+    color: var(--sc-ink);
+    padding-block: var(--sc-section);
+}
+
+/* Halaman judul sudah punya 100svh dan padding sendiri; padding bab di
+   atasnya menambah ruang mati yang tidak dipakai apa pun. */
+.bab--malam { padding-top: 0; }
+
+.bab > * { position: relative; z-index: 2; }
+
+.bab--malam {
+    --ground: #0B0908;
+    --lembar: #0B0908;
+}
+
+.bab--subuh {
+    --ground: #1A1310;
+    --lembar: #0B0908;
+}
+
+.bab--pagi {
+    --ground: #33231F;
+    --lembar: #1A1310;
+}
+
+/* Fajar terbesar terjadi tepat di sini, di batas menuju puncak. */
+.bab--siang {
+    --ground: #EFE0DC;
+    --lembar: #33231F;
+    --sc-ink: #231A17;
+    --sc-ink-soft: #6A5A55;
+    --sc-accent: #8E4438;
+    --sc-accent-ink: #FFFFFF;
+    color: var(--sc-ink);
+}
+
+/* Ground terakhir adalah kertas aplikasinya, persis. Menekan "Masuk" tidak
+   memindahkan orang ke tempat baru. */
+.bab--terang {
+    --ground: #F7F4F1;
+    --lembar: #EFE0DC;
+    --sc-ink: #1B2430;
+    --sc-ink-soft: #5A6675;
+    --sc-accent: #9C5248;
+    --sc-accent-ink: #FFFFFF;
+    color: var(--sc-ink);
+}
+
+/* ── Lembar malam (signature move) ──────────────────────────────────────
+ *
+ * Tiap bab masuk masih tertutup lembar berwarna ground bab SEBELUMNYA.
+ * Saat batasnya lewat, lembar itu surut ke atas dan tidak pernah kembali —
+ * jadi cahayanya datang dari ufuk, dari bawah, seperti fajar sungguhan.
+ *
+ * Maskernya dipakai, bukan clip-path, supaya tepinya punya pita lembut
+ * setinggi 12vh. Tepi keras terbaca sebagai galat render, bukan cahaya.
+ */
+.bab__lembar {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--lembar);
+    pointer-events: none;
+    --tepi: calc(100% - var(--kelupas, 0) * 100%);
+    -webkit-mask-image: linear-gradient(to bottom,
+        #000 0,
+        #000 max(0px, calc(var(--tepi) - 12vh)),
+        transparent var(--tepi));
+    mask-image: linear-gradient(to bottom,
+        #000 0,
+        #000 max(0px, calc(var(--tepi) - 12vh)),
+        transparent var(--tepi));
+}
+
+/* Bab pertama tidak punya lembar: tidak ada yang lebih gelap dari malam. */
+.bab--malam .bab__lembar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    /* Gerak dikurangi, bukan dihapus: groundnya tetap berganti tegas antar
+       bab, yang surut hanya animasinya. */
+    .bab__lembar { display: none; }
+}
+
+/* ── Tata letak ─────────────────────────────────────────────────────────*/
+.bungkus {
+    width: 100%;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding-inline: var(--sc-gutter);
+}
+
+.tumpukan > * + * { margin-top: var(--sc-5); }
+
+/* Ruang di ATAS judul lebih besar daripada di bawahnya: jaraknya milik batas
+   antar bagian, bukan milik pasangan judul-dan-badan. */
+.judul-bab {
+    font-family: var(--sc-font-display);
+    font-size: var(--sc-t-3xl);
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0 0 var(--sc-4);
+    max-width: 22ch;
+}
+
+.judul-bab .redup { color: var(--sc-ink-soft); }
+
+.badan {
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    color: var(--sc-ink-soft);
+    max-width: var(--ukur);
+    text-wrap: pretty;
+    margin: 0;
+}
+
+.badan + .badan { margin-top: var(--sc-4); }
+
+.utama {
+    color: var(--sc-ink);
+    font-size: 1.1875rem;
+}
+
+/* ── Bab I: halaman judul ───────────────────────────────────────────────
+ *
+ * Grammar: hero adalah halaman judul. Tipografi di atas kertas, TANPA media
+ * di atas lipatan. Dasbor palsu buatan div yang dulu di sini dibuang: ia ada
+ * di daftar tolak taste.md, dan isinya nama serta nilai karangan.
+ */
+.judul-halaman {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: calc(var(--sc-section) * 0.7) var(--sc-section);
+}
+
+.judul-halaman__baris {
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sc-ink-soft);
+    margin: 0 0 var(--sc-6);
+}
+
+.judul-besar {
+    font-family: var(--sc-font-display);
+    /* BUKAN --sc-t-4xl. Pada 1440px ia 7,5rem, dan baris kedua judul ini
+       (34 karakter) pecah jadi dua — hero jadi tiga baris, satu lebih banyak
+       dari batas taste.md. Halaman judul cetak memang tidak berteriak. */
+    font-size: clamp(2.2rem, 1.45rem + 2.8vw, 3.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0 0 var(--sc-6);
+    /* 34ch, bukan 24ch: baris kedua judul ini 34 karakter, dan batas yang
+       lebih sempit memecahnya jadi baris ketiga. */
+    max-width: 34ch;
+}
+
+.judul-besar .redup { color: var(--sc-ink-soft); }
+
+@media (max-width: 700px) {
+    /* Clamp di atas sudah turun sendiri sampai 2,2rem di 390px, jadi
+       menimpanya dengan --sc-t-2xl justru MEMBESARKAN judul di ponsel.
+       Yang tersisa untuk dikerjakan di sini cuma ruang: 100svh yang
+       ditengahkan meninggalkan ~490px hitam di atas eyebrow. */
+    .judul-halaman {
+        min-height: auto;
+        padding-block: calc(var(--sc-section) * 0.5) var(--sc-section);
+    }
+}
+
+.aksi {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-top: var(--sc-7);
+    padding: 0.8rem 1.5rem;
+    border-radius: 999px;
+    background: var(--sc-accent);
+    color: var(--sc-accent-ink);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 140ms var(--sc-ease-out), background-color 140ms var(--sc-ease-out);
+}
+
+.aksi:hover { background: color-mix(in oklab, var(--sc-accent) 88%, #fff); }
+.aksi:active { transform: translateY(1px); }
+
+.prosa-lanjut { margin-top: var(--sc-section); }
+.judul-bab--kecil { font-size: var(--sc-t-xl); }
+/* Gunung di puncak: cukup untuk terlihat warnanya, tidak sampai bersaing
+   dengan kartu berita yang duduk di atasnya. */
+.ufuk--siang { opacity: .55; }
+/* Di dalam .judul-halaman (100svh) ufuk duduk tepat di lipatan, dan ia harus
+   di bawah teks: judulnya yang dibaca, gunungnya yang menemani. */
+.ufuk--judul { z-index: 0; opacity: .9; }
+.judul-halaman > *:not(.ufuk) { position: relative; z-index: 1; }
+
+/* ── Ufuk: punggung gunung ──────────────────────────────────────────────
+ *
+ * Muncul dua kali saja, bukan menerus: siluet di halaman judul, lalu
+ * berwarna di puncak. Palet halaman ini memang diambil dari piksel gunung
+ * yang sama, jadi bab IV adalah saat sumbernya akhirnya terlihat.
+ */
+.ufuk {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 1;
+    height: clamp(140px, 26vh, 300px);
+    pointer-events: none;
+}
+
+.ufuk svg { width: 100%; height: 100%; display: block; }
+
+/* ── Tahapan (bab II) ───────────────────────────────────────────────────
+ *
+ * Daftar bernomor cetak, bukan tab dan panggung. Tab menyembunyikan empat
+ * dari lima tahap di halaman yang tugasnya menjelaskan urutan.
+ */
+.tahap {
+    list-style: none;
+    margin: var(--sc-8) 0 0;
+    padding: 0;
+    counter-reset: tahap;
+}
+
+.tahap > li {
+    counter-increment: tahap;
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: var(--sc-4) var(--sc-5);
+    padding-block: var(--sc-5);
+    border-top: 1px solid color-mix(in oklab, var(--sc-ink) 12%, transparent);
+}
+
+.tahap > li::before {
+    content: counter(tahap, decimal-leading-zero);
+    font-family: var(--sc-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--sc-accent);
+    padding-top: 0.45rem;
+}
+
+.tahap h3 {
+    font-family: var(--sc-font-display);
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+    font-weight: 600;
+    margin: 0 0 var(--sc-3);
+    color: var(--sc-ink);
+}
+
+.tahap p { margin: 0; }
+
+.medan-dicatat {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    margin: var(--sc-4) 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--sc-ink-soft) 82%, transparent);
+}
+
+@media (max-width: 640px) {
+    .tahap > li { grid-template-columns: 1fr; gap: var(--sc-3); }
+    .tahap > li::before { padding-top: 0; }
+}
+
+/* ── Yang dikerjakan (bab III) ──────────────────────────────────────────
+ *
+ * Dua kolom berselang-seling, maksimal dua berturut-turut, lalu satu blok
+ * tipografi. Tanpa kartu identik berjajar tiga: itu tanda paling kentara
+ * bahwa halaman dirakit, bukan dibuat.
+ */
+.kerja {
+    display: grid;
+    gap: var(--sc-8);
+    margin-top: var(--sc-8);
+}
+
+.kerja__blok {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+    gap: var(--sc-6);
+    align-items: start;
+    padding-top: var(--sc-6);
+    border-top: 1px solid color-mix(in oklab, var(--sc-ink) 12%, transparent);
+}
+
+.kerja__blok--balik > *:first-child { order: 2; }
+
+.kerja h3 {
+    font-family: var(--sc-font-display);
+    font-size: 1.5rem;
+    line-height: 1.16;
+    letter-spacing: -0.014em;
+    font-weight: 600;
+    margin: 0 0 var(--sc-3);
+    color: var(--sc-ink);
+}
+
+/* Rajah, bukan tangkapan layar palsu. Ia tidak berpura-pura jadi antarmuka:
+   tidak ada bilah judul, tidak ada sidebar, tidak ada nama karangan. */
+.rajah {
+    border: 1px solid color-mix(in oklab, var(--sc-ink) 16%, transparent);
+    border-radius: 14px;
+    padding: var(--sc-5);
+    background: color-mix(in oklab, var(--sc-ink) 4%, transparent);
+}
+
+.rajah__ket {
+    font-family: var(--sc-font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sc-ink-soft);
+    margin: var(--sc-4) 0 0;
+}
+
+.aspek {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.aspek b {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--sc-font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--sc-accent);
+}
+
+/* Kelima batang SAMA TINGGI. Tinggi yang berbeda-beda menggambarkan sebaran
+   nilai yang tidak pernah ada, dan itu statistik karangan dengan bentuk lain.
+   Yang ingin dikatakan rajah ini cuma: lima aspek, satu rata-rata. */
+.aspek b i {
+    display: block;
+    width: 100%;
+    height: 52px;
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--sc-accent) 34%, transparent);
+    font-style: normal;
+}
+
+.rantai {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    font-family: var(--sc-font-mono);
+    font-size: 0.75rem;
+    color: var(--sc-ink-soft);
+}
+
+.rantai span {
+    padding: 0.35rem 0.7rem;
+    border: 1px solid color-mix(in oklab, var(--sc-ink) 18%, transparent);
+    border-radius: 999px;
+}
+
+.rantai em { font-style: normal; color: var(--sc-accent); }
+
+@media (max-width: 800px) {
+    .kerja__blok { grid-template-columns: 1fr; }
+    .kerja__blok--balik > *:first-child { order: 0; }
+}
+
+/* ── Puncak (bab IV) ────────────────────────────────────────────────────
+ *
+ * Ruang paling lapang di seluruh halaman, dan perangkat paling sedikit.
+ * Puncak yang ramai bukan puncak.
+ */
+/* Puncak dapat ruang gulir terbesar di halaman, dan bab sebelumnya lebih
+   tenang. Kalau bab lain lebih panjang, yang jadi puncak bukan yang ini. */
+.puncak {
+    padding-block: calc(var(--sc-section) * 2.9);
+}
+
+.puncak__kalimat {
+    font-family: var(--sc-font-display);
+    font-size: clamp(2rem, 1.1rem + 3.9vw, 4.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.026em;
+    font-weight: 600;
+    text-wrap: balance;
+    max-width: 18ch;
+    margin: 0;
+    color: var(--sc-ink);
+}
+
+.puncak__kalimat b {
+    font-weight: 600;
+    color: var(--sc-accent);
+}
+
+.puncak__sumber {
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sc-ink-soft);
+    margin: var(--sc-6) 0 0;
+}
+
+/* Media duduk di kolomnya sendiri dengan keterangan. Grammar ini melarang
+   media membanjiri di bawah teks. */
+.kolom-media {
+    margin-top: calc(var(--sc-section) * 0.8);
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: var(--sc-7) var(--sc-8);
+    align-items: start;
+}
+
+.kolom-media figure { margin: 0; }
+
+.kolom-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+    box-shadow: var(--sc-e2);
+}
+
+.kolom-media figcaption {
+    margin-top: var(--sc-3);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--sc-ink-soft);
+}
+
+@media (max-width: 860px) {
+    .kolom-media { grid-template-columns: 1fr; }
+}
+
+/* Kartu berita digambar beranda.js dengan kelas `.pos*`. Kelasnya
+   dipertahankan supaya skripnya tidak perlu tahu halaman ini berganti baju. */
+.berita-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: var(--sc-5);
+    margin-top: var(--sc-6);
+}
+
+.pos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sc-3);
+    text-decoration: none;
+    color: inherit;
+}
+
+.pos__gbr {
+    border-radius: 10px;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--sc-ink) 8%, transparent);
+}
+
+.pos__gbr > div {
+    /* 16:9, rasio asli fotonya. Dengan 4:3 object-fit memotong sisinya dan
+       memenggal teks yang dipanggang di dalam gambar di tengah kata, yang
+       terbaca seperti galat render. */
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    transition: transform 260ms var(--sc-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .pos:hover .pos__gbr > div { transform: scale(1.03); }
+}
+
+.pos__tanpa-foto {
+    display: flex;
+    align-items: flex-end;
+    padding: var(--sc-4);
+}
+
+.pos__tanpa-foto p {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--sc-ink-soft);
+}
+
+.pos__judul {
+    font-size: 0.9375rem;
+    line-height: 1.34;
+    font-weight: 600;
+    color: var(--sc-ink);
+}
+
+.pos__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+    margin-top: 0.35rem;
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: var(--sc-ink-soft);
+}
+
+.berita-kosong {
+    margin-top: var(--sc-6);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--sc-ink-soft);
+    max-width: 42ch;
+}
+
+.berita-kosong b { display: block; color: var(--sc-ink); margin-bottom: 0.35rem; }
+
+/* ── Tanya jawab dan kolofon (bab V) ────────────────────────────────────*/
+.acc {
+    border-top: 1px solid color-mix(in oklab, var(--sc-ink) 14%, transparent);
+}
+
+.acc__q {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sc-4);
+    padding: var(--sc-5) 0;
+    background: none;
+    border: 0;
+    text-align: left;
+    font: inherit;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    color: var(--sc-ink);
+    cursor: pointer;
+}
+
+.acc__q i {
+    font-style: normal;
+    color: var(--sc-accent);
+    transition: transform 200ms var(--sc-ease-out);
+}
+
+.acc.is-open .acc__q i { transform: rotate(180deg); }
+
+.acc__a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 320ms var(--sc-ease-out);
+}
+
+.acc__a p {
+    margin: 0 0 var(--sc-4);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--sc-ink-soft);
+    max-width: var(--ukur);
+}
+
+/* Ajakan sebagai baris teks berjalan, bukan pulau tombol. Itu yang diminta
+   grammar ini untuk penutup, dan ia juga lebih jujur: pembaca yang sampai di
+   sini tidak perlu diteriaki. */
+.kolofon {
+    margin-top: calc(var(--sc-section) * 0.9);
+    padding-top: var(--sc-7);
+    border-top: 1px solid color-mix(in oklab, var(--sc-ink) 16%, transparent);
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--sc-7);
+}
+
+.kolofon__ajakan {
+    font-size: 1.125rem;
+    line-height: 1.55;
+    color: var(--sc-ink);
+    max-width: 34ch;
+    margin: 0;
+}
+
+.kolofon__ajakan a {
+    color: var(--sc-accent);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in oklab, var(--sc-accent) 35%, transparent);
+    text-underline-offset: 4px;
+    transition: border-color 160ms var(--sc-ease-out);
+}
+
+.kolofon__ajakan a:hover { border-bottom-color: var(--sc-accent); }
+
+.kolofon__data {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--sc-5);
+    font-size: 0.875rem;
+    color: var(--sc-ink-soft);
+}
+
+.kolofon__data h4 {
+    font-family: var(--sc-font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sc-ink-soft);
+    margin: 0 0 var(--sc-3);
+    font-weight: 500;
+}
+
+.kolofon__data ul { list-style: none; margin: 0; padding: 0; }
+.kolofon__data li + li { margin-top: 0.4rem; }
+
+.kolofon__data a {
+    color: var(--sc-ink);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.kolofon__data a:hover { border-bottom-color: var(--sc-accent); }
+
+.kolofon__bawah {
+    grid-column: 1 / -1;
+    margin-top: var(--sc-6);
+    padding-top: var(--sc-4);
+    border-top: 1px solid color-mix(in oklab, var(--sc-ink) 10%, transparent);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--sc-3);
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: var(--sc-ink-soft);
+}
+
+@media (max-width: 800px) {
+    .kolofon { grid-template-columns: 1fr; }
+}
+
+/* ── Permukaan peramban ─────────────────────────────────────────────────*/
+::selection { background: color-mix(in oklab, var(--sc-accent) 32%, transparent); }
+
+:where(a, button):focus-visible {
+    outline: 2px solid var(--sc-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
