@@ -312,6 +312,43 @@ async function buka(jalur) {
     lapor(Array.isArray(kirimTerakhir.foto) && kirimTerakhir.foto[0] === "/assets/berita/2026/09/abc.png",
         `yang DISIMPAN jalur situs, bukan alamat pratinjau (${JSON.stringify(kirimTerakhir.foto)})`);
 
+    // ── pemisahan paragraf ──
+    //
+    // Laci sudah tertutup oleh Simpan di bagian sebelumnya — dibuka lagi.
+    if (!(await page.locator("#laci").isVisible().catch(() => false))) {
+        await (await page.$$("main button"))[0].click();
+        await page.waitForTimeout(300);
+    }
+    //
+    // Dulu hanya BARIS KOSONG yang memisahkan paragraf, jadi orang yang
+    // menulis dengan satu Enter per paragraf — kebiasaan dari Word —
+    // menghasilkan satu paragraf raksasa yang ditolak server dengan
+    // "maksimal 4000 karakter". Pesannya benar dan sama sekali tidak menolong.
+    await page.fill("#fIsi", "Paragraf satu.\nParagraf dua.\nParagraf tiga.");
+    await page.waitForTimeout(200);
+    let hit = await page.textContent("#hitungIsi");
+    lapor(/^3 paragraf/.test(hit), `satu Enter memisahkan paragraf (${hit})`);
+
+    await page.fill("#fIsi", "Satu.\n\nDua.\n\nTiga.");
+    await page.waitForTimeout(200);
+    hit = await page.textContent("#hitungIsi");
+    lapor(/^3 paragraf/.test(hit), `baris kosong memberi hasil sama (${hit})`);
+
+    // Batas diberitahukan SAMBIL mengetik, bukan sesudah menekan Simpan.
+    await page.fill("#fIsi", "A".repeat(4100));
+    await page.waitForTimeout(250);
+    const merah = await page.$eval("#hitungIsi", (e) => e.className.includes("text-galat"));
+    lapor(merah, "paragraf kelewat panjang ditandai SEBELUM disimpan");
+
+    await page.fill("#fIsi", "Paragraf satu.\nParagraf dua.");
+    await page.fill("#fJudul", "Berita Uji Paragraf");
+    badan.length = 0;
+    await page.click("#tombolSimpan");
+    await page.waitForTimeout(400);
+    const kirimP = (badan[badan.length - 1] || {}).paragraf;
+    lapor(Array.isArray(kirimP) && kirimP.length === 2,
+        `yang dikirim sudah terpisah (${JSON.stringify(kirimP)})`);
+
     lapor(galatNyata.length === 0, "kelola berita: tanpa galat skrip" +
         (galatNyata.length ? "\n    " + galatNyata[0] : ""));
     await ctx.close();

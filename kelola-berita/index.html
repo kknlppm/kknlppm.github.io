@@ -73,14 +73,19 @@
       </div>
 
       <div>
-        <label for="fIsi" class="block text-sm font-medium mb-1.5">Isi berita</label>
+        <div class="flex items-baseline justify-between gap-3 mb-1.5">
+          <label for="fIsi" class="text-sm font-medium">Isi berita</label>
+          <output id="hitungIsi" for="fIsi"
+                  class="font-data text-xs text-tinta-redup tabular-nums">0 paragraf</output>
+        </div>
         <textarea id="fIsi" name="isi" class="medan" rows="12" required
-                  placeholder="Tulis biasa. Kosongkan satu baris untuk memisahkan paragraf."></textarea>
+                  placeholder="Tulis biasa. Tekan Enter untuk memulai paragraf baru."></textarea>
         <p class="text-xs text-tinta-redup mt-1">
           <strong>Teks polos.</strong> Tidak ada tebal, miring, atau daftar — dan
           itu disengaja: halaman depan satu alamat dengan aplikasi ini, jadi
           apa pun yang bisa jadi HTML di sana bisa mencuri sesi pembacanya.
-          Baris kosong memisahkan paragraf.
+          Setiap ganti baris memulai paragraf baru. Maksimal 40 paragraf,
+          4.000 karakter per paragraf.
         </p>
       </div>
 
@@ -354,12 +359,46 @@ if (requireLogin()) {
         ket.textContent = KET_FOTO;
     });
 
+    // SETIAP ganti baris memisahkan paragraf — bukan hanya baris kosong.
+    //
+    // Sebelumnya hanya `\n\n` yang memisahkan, dan orang yang menulis dengan
+    // satu Enter per paragraf — kebiasaan dari Word — menghasilkan SATU
+    // paragraf raksasa yang ditolak server dengan "maksimal 4000 karakter".
+    // Ia benar, dan sama sekali tidak menolong.
+    function pecahParagraf(teks) {
+        return String(teks || "").split(/\n+/)
+            .map(function (p) { return p.trim(); })
+            .filter(function (p) { return p !== ""; });
+    }
+
+    // Batas diberitahukan SAMBIL mengetik, bukan sesudah menekan Simpan.
+    // Angkanya disamakan dengan model/news.go di backend; server tetap yang
+    // menegakkan, ini hanya supaya orang tidak menulis dua ribu kata lalu
+    // baru diberi tahu.
+    const MAKS_PARAGRAF = 40, MAKS_PANJANG = 4000;
+    const medanIsi = document.getElementById("fIsi");
+    const hitungIsi = document.getElementById("hitungIsi");
+
+    function segarkanHitung() {
+        const ps = pecahParagraf(medanIsi.value);
+        const panjang = ps.map(function (p) { return Array.from(p).length; });
+        const terpanjang = panjang.length ? Math.max.apply(null, panjang) : 0;
+        const lewat = terpanjang > MAKS_PANJANG || ps.length > MAKS_PARAGRAF;
+        hitungIsi.textContent = ps.length + " paragraf · terpanjang " +
+            terpanjang.toLocaleString("id-ID") + " karakter" +
+            (lewat ? " — lewat batas" : "");
+        hitungIsi.classList.toggle("text-galat", lewat);
+        hitungIsi.classList.toggle("text-tinta-redup", !lewat);
+    }
+    medanIsi.addEventListener("input", segarkanHitung);
+
     function bukaForm(b) {
         sunting = b || null;
         document.getElementById("judulLaci").textContent = b ? "Ubah berita" : "Tulis berita";
         form.judul.value = b ? (b.judul || "") : "";
         form.ringkasan.value = b ? (b.ringkasan || "") : "";
         form.isi.value = b ? (b.paragraf || []).join("\n\n") : "";
+        segarkanHitung();
         form.penulis.value = b ? (b.penulis || "") : "";
         form.tautan_url.value = b ? (b.tautan_url || "") : "";
         form.tautan_label.value = b ? (b.tautan_label || "") : "";
@@ -381,11 +420,7 @@ if (requireLogin()) {
         const tombol = document.getElementById("tombolSimpan");
         tombol.disabled = true;
 
-        // Satu baris kosong memisahkan paragraf. Yang kosong dibuang di sini
-        // dan sekali lagi di server.
-        const paragraf = form.isi.value.split(/\n\s*\n/)
-            .map(function (p) { return p.trim(); })
-            .filter(function (p) { return p !== ""; });
+        const paragraf = pecahParagraf(form.isi.value);
 
         const jalur = backend.news.kelola +
             (sunting ? "?id=" + encodeURIComponent(sunting.id) : "");
