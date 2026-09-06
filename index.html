@@ -6,474 +6,456 @@
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/img/favicon-32.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <title>KKN LPPM, Universitas Al-Ghifari</title>
+  <title>KKN LPPM — Universitas Al-Ghifari</title>
   <meta name="description" content="Kuliah Kerja Nyata LPPM Universitas Al-Ghifari: penempatan kelompok, penilaian lima aspek, dan penerbitan sertifikat yang bisa diverifikasi siapa saja.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/fajar.css">
+  <link rel="stylesheet" href="/assets/css/beranda.css">
 </head>
 <body>
 
-<!-- Bilah navigasi. Sempat saya ganti folio karena grammar scroll-craft
-     memintanya, dan itu keliru dua kali: pemiliknya tidak memintanya, dan
-     folio itu membuang seluruh daftar menu. Ini kembali ke pola yang memang
-     dipakai halaman ini sejak awal. Warnanya mengikuti ground bab yang
-     sedang berada di bawahnya. -->
-<header class="bilah" id="bilah">
-  <div class="bilah__isi">
-    <a class="bilah__merek" href="/">
-      <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
+<!-- ================= KEPALA ================= -->
+<header class="nav" id="nav">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="/">
+      <img class="nav__logo" src="/assets/img/logo-unfari.png" alt="" width="28" height="27">
       <span>KKN&nbsp;LPPM</span>
     </a>
-
-    <nav class="bilah__tautan" aria-label="Bagian halaman">
+    <nav class="nav__links" aria-label="Bagian halaman">
       <a href="#tentang">Tentang</a>
       <a href="#tahapan">Tahapan</a>
-      <a href="#kerja">Yang dikerjakan</a>
       <a href="#berita">Berita</a>
       <a href="#tanya">Tanya jawab</a>
     </nav>
-
-    <div class="bilah__aksi">
-      <a class="bilah__masuk" href="/login/">Masuk</a>
-      <button class="bilah__burger" id="burger" type="button"
-              aria-label="Buka menu" aria-expanded="false" aria-controls="menuPonsel">
+    <div class="nav__actions">
+      <a class="btn btn--sm" href="/login/">Masuk</a>
+      <button class="nav__burger" id="burger" type="button" aria-label="Buka menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
   </div>
-
-  <nav class="bilah__ponsel" id="menuPonsel" aria-label="Bagian halaman" hidden>
-    <a href="#tentang">Tentang</a>
-    <a href="#tahapan">Tahapan</a>
-    <a href="#kerja">Yang dikerjakan</a>
-    <a href="#berita">Berita</a>
-    <a href="#tanya">Tanya jawab</a>
-    <a class="bilah__ponsel-masuk" href="/login/">Masuk ke aplikasi</a>
-  </nav>
 </header>
+<div class="nav__mobile">
+  <a href="#tentang">Tentang</a>
+  <a href="#tahapan">Tahapan</a>
+  <a href="#berita">Berita</a>
+  <a href="#tanya">Tanya jawab</a>
+  <a class="btn btn--block" href="/login/">Masuk</a>
+</div>
 
-<!-- Butiran melayang di atas SELURUH halaman: bab II dan III adalah lempeng
-     warna rata tanpa ini, dan ground gelap yang rata berpita di layar
-     sungguhan. -->
-<div class="butiran" aria-hidden="true"></div>
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero__sky" aria-hidden="true"></div>
+  <div class="hero__hills" aria-hidden="true"></div>
+  <div class="hero__fade" aria-hidden="true"></div>
 
-<main>
-
-<!-- ══════════ BAB I · MALAM ══════════
-     Halaman judul. Tipografi di atas kertas, tanpa media di atas lipatan. -->
-<section class="bab bab--malam" data-tanah="gelap" data-sc-act="flow" data-bab="Malam" id="tentang">
-  <div class="bab__lembar" aria-hidden="true"></div>
-
-
-  <!-- Satu KAMERA sticky menahan seluruh adegan sementara halaman bergulir,
-       dan tipografinya duduk DI ANTARA lapisannya. Dua elemen sticky yang
-       saling menumpuk tidak bisa melakukan ini: yang kedua mendorong yang
-       pertama dan judulnya terlempar keluar layar. -->
-  <div class="panggung-hero">
-    <div class="kamera">
-  <!-- ADEGAN BELAKANG: cahaya fajar, punggung jauh, kabut belakang, punggung
-           tengah. Sticky, jadi ia tinggal sementara teks lewat. -->
-      <div class="adegan adegan--belakang" aria-hidden="true">
-        <div class="adegan__cahaya"></div>
-
-  <div class="lapis lapis--jauh" style="--laju:.07;--laju-x:-.22;--isi:#0B0503">
-      <picture>
-        <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-jauh-hp.avif">
-        <img src="/assets/img/adegan/punggung-jauh.avif" alt="" width="1600" height="349"
-             decoding="async" fetchpriority="high">
-      </picture>
-    </div>
-
-        <div class="adegan__kabut adegan__kabut--belakang"></div>
-
-  <div class="lapis lapis--tengah" style="--laju:-.13;--laju-x:.45;--isi:#020201">
-      <picture>
-        <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-tengah-hp.avif">
-        <img src="/assets/img/adegan/punggung-tengah.avif" alt="" width="1800" height="619"
-             decoding="async" fetchpriority="high">
-      </picture>
-    </div>
-      </div>
-
-      <!-- Tabir sudut, SEUKURAN blok salinannya, bukan tirai sepenuh layar:
-       yang gelap cuma tempat teksnya duduk, dan lanskapnya di sisi kanan
-       tetap punya kontras penuhnya. Ia SAUDARA blok judul, bukan anaknya,
-       supaya pemeriksa bisa memotret bingkai di bawahnya. -->
-  <div class="tabir-judul" aria-hidden="true"></div>
-
-  <div class="bungkus judul-halaman" data-sc-in data-sc-stagger="70">
-        <p class="judul-halaman__baris">Lembaga Penelitian dan Pengabdian kepada Masyarakat</p>
-        <h1 class="judul-besar">
-          Kuliah Kerja Nyata,<br>
-          <span class="redup">dari penempatan sampai sertifikat.</span>
-        </h1>
-        <p class="badan utama">
-          Register KKN Universitas Al-Ghifari. Satu tempat untuk penempatan kelompok,
-          penilaian lima aspek oleh dosen pembimbing, dan penerbitan sertifikat yang
-          bisa diperiksa siapa saja.
-        </p>
-        <div>
-          <a class="aksi" href="/login/">Masuk ke aplikasi</a>
-        </div>
-      </div>
-
-      <!-- ADEGAN DEPAN: punggung terdekat dan kabut depan, di lapisan DI ATAS
-           teks. Ini yang membuat occlusion-nya sungguhan, bukan tumpukan div yang
-           bergerak bersama di belakang. Punggungnya naik lebih cepat daripada
-           teks, jadi ia melintas di depan dasar blok judul SETELAH judulnya
-           terbaca, bukan sebelumnya. -->
-      <div class="adegan adegan--depan" aria-hidden="true">
-  <div class="lapis lapis--dekat" style="--laju:-.62;--laju-x:1;--isi:#020201">
-      <picture>
-        <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-dekat-hp.avif">
-        <img src="/assets/img/adegan/punggung-dekat.avif" alt="" width="1800" height="357"
-             decoding="async" fetchpriority="high">
-      </picture>
-    </div>
-        <div class="adegan__kabut adegan__kabut--depan"></div>
-      </div>
+  <div class="container hero__content">
+    <span class="tag tag--plain" data-reveal="fade">Lembaga Penelitian dan Pengabdian kepada Masyarakat</span>
+    <h1 class="h1" data-reveal style="--d:100ms">
+      Kuliah Kerja Nyata,<br><span class="dim">dari penempatan sampai sertifikat.</span>
+    </h1>
+    <p class="lead" data-reveal style="--d:200ms">
+      Register KKN Universitas Al-Ghifari. Satu tempat untuk penempatan kelompok,
+      penilaian lima aspek oleh dosen pembimbing, dan penerbitan sertifikat yang
+      bisa diperiksa siapa saja.
+    </p>
+    <div class="hero__aksi" data-reveal style="--d:300ms">
+      <a class="btn btn--lg" href="/login/">Masuk ke aplikasi</a>
     </div>
   </div>
 
-  <div class="bungkus tumpukan prosa-lanjut" data-sc-in data-sc-stagger="70">
-    <p class="badan">
-      Kuliah Kerja Nyata menempatkan mahasiswa dalam kelompok di lokasi tertentu,
-      didampingi seorang Dosen Pembimbing Lapangan, untuk mengerjakan program yang
-      berguna bagi masyarakat di sana.
-    </p>
-    <p class="badan">
-      Register ini mencatat seluruh perjalanannya: siapa ikut di kelompok mana,
-      siapa yang membimbing, nilai lima aspek yang diberikan pembimbingnya, sampai
-      sertifikat yang terbit di akhir.
-    </p>
-    <p class="badan">
-      Setiap sertifikat membawa kode QR. Siapa pun yang memegangnya, entah pemberi
-      kerja atau kampus lain, bisa memeriksa keasliannya sendiri, tanpa akun dan
-      tanpa bertanya kepada kami.
-    </p>
+  <!-- Visual hero: sertifikatnya sendiri.
+       Sengaja terang di halaman gelap — ia benda yang sungguh-sungguh
+       dihasilkan aplikasi ini, dan warnanya diambil dari cetakan aslinya.
+       Nama dan NIM di bawah ini CONTOH, bukan data siapa pun. -->
+  <div class="hero__mock" data-reveal="scale" style="--d:400ms">
+    <div class="hero__cahaya" aria-hidden="true"></div>
+    <div class="jendela" aria-hidden="true">
+      <aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li class="on">Register</li><li>Kelompok</li><li>Penilaian</li><li>Sertifikat</li><li>Data induk</li></ul></aside>
+      <div class="jendela__utama">
+        <div class="aurora"></div>
+        <div class="jendela__isi">
+          <div class="kaca">
+            <div class="kaca__judul">Register KKN · 2025-2026</div>
+            <div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i style="height:19px"></i><i style="height:24px"></i><i style="height:15px"></i><i style="height:21px"></i><i style="height:13px"></i></span></div>
+            <div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i style="height:22px"></i><i style="height:17px"></i><i style="height:25px"></i><i style="height:14px"></i><i style="height:20px"></i></span></div>
+            <div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i style="height:16px"></i><i style="height:20px"></i><i style="height:18px"></i><i style="height:23px"></i><i style="height:17px"></i></span></div>
+            <div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- ================= TENTANG ================= -->
+<section class="intro" id="tentang">
+  <div class="container">
+    <span class="tag" data-reveal>Tentang</span>
+    <p>Kuliah Kerja Nyata menempatkan mahasiswa dalam kelompok di lokasi tertentu, didampingi seorang Dosen Pembimbing Lapangan, untuk mengerjakan program yang berguna bagi masyarakat di sana.</p>
+    <p>Register ini mencatat seluruh perjalanannya: siapa ikut di kelompok mana, siapa yang membimbing, nilai lima aspek yang diberikan pembimbingnya, sampai sertifikat yang terbit di akhir.</p>
+    <p>Setiap sertifikat membawa kode QR. Siapa pun yang memegangnya — pemberi kerja, kampus lain, siapa saja — bisa memeriksa keasliannya sendiri, tanpa akun dan tanpa bertanya kepada kami.</p>
+  </div>
+</section>
 
-<!-- ══════════ BAB II · SUBUH ══════════
-     Lima tahap sebagai daftar cetak. Dulu ini tab dan panggung, yang
-     menyembunyikan empat dari lima tahap di halaman yang tugasnya persis
-     menjelaskan urutan itu. -->
-<section class="bab bab--subuh" data-tanah="gelap" data-sc-act="flow" data-bab="Subuh" id="tahapan">
-  <div class="bab__lembar" aria-hidden="true"></div>
-
-  <div class="bungkus">
-    <div class="kepala-kanan" data-sc-in data-sc-stagger="70">
-      <h2 class="judul-bab">
-        Lima tahap, dari mendaftar<br>
-        <span class="redup">sampai sertifikat terbit.</span>
-      </h2>
-      <p class="badan">
+<!-- ================= TAHAPAN ================= -->
+<section class="section" id="tahapan">
+  <div class="container">
+    <div class="sec-head sec-head--split">
+      <div>
+        <span class="tag" data-reveal>Tahapan</span>
+        <h2 class="h2" data-reveal style="--d:80ms">Lima tahap, dari mendaftar<br><span class="dim">sampai sertifikat terbit.</span></h2>
+      </div>
+      <p class="lead" data-reveal style="--d:160ms">
         Urutannya sama untuk semua peserta. Yang berbeda hanya lokasi, kelompok,
         dan siapa yang membimbing.
       </p>
     </div>
 
-    <ol class="tahap" data-sc-in data-sc-stagger="60">
-      <li>
-        <div>
-          <h3>Pendaftaran</h3>
-          <p class="badan">
+    <div class="tabs" id="tabTahap" role="tablist" aria-label="Tahapan KKN" data-reveal>
+      <span class="tabs__pill" aria-hidden="true"></span>
+      <button type="button" role="tab" aria-selected="true">Pendaftaran</button>
+      <button type="button" role="tab" aria-selected="false">Kelompok</button>
+      <button type="button" role="tab" aria-selected="false">Pelaksanaan</button>
+      <button type="button" role="tab" aria-selected="false">Penilaian</button>
+      <button type="button" role="tab" aria-selected="false">Sertifikat</button>
+    </div>
+
+    <div class="panggung" data-reveal="scale" style="--d:120ms">
+      <div class="panggung__latar" aria-hidden="true"></div>
+      <div class="panggung__slide" role="tabpanel" data-ket="Mahasiswa terdaftar sebagai peserta pada tahun ajaran berjalan.">
+        <div class="panggung__kartu">
+          <div class="panggung__no">Tahap 01</div>
+          <div class="panggung__judul">Pendaftaran</div>
+          <p class="panggung__teks">
             Mahasiswa didaftarkan sebagai peserta KKN pada tahun ajaran berjalan.
             Data dirinya diambil dari data induk kampus, jadi NIM dan program
             studinya tidak perlu diketik ulang.
           </p>
-          <ul class="medan-dicatat">
-            <li>NIM</li><li>Program studi</li><li>Tahun ajaran</li><li>Status pembayaran</li>
-          </ul>
+          <div class="panggung__rinci"><span>NIM</span><span>Program studi</span><span>Tahun ajaran</span><span>Status pembayaran</span></div>
         </div>
-      </li>
-      <li>
-        <div>
-          <h3>Penempatan kelompok</h3>
-          <p class="badan">
+        <div class="jendela jendela--kartu" aria-hidden="true"><aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li class="on">Register</li><li>Kelompok</li><li>Penilaian</li><li>Sertifikat</li><li>Data induk</li></ul></aside><div class="jendela__utama"><div class="aurora"></div><div class="jendela__isi"><div class="kaca"><div class="kaca__judul">Peserta baru</div><div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i></span></div><div class="kaca__baris"><span class="kaca__nim">2011…</span><span class="kaca__nama">Nama Mahasiswa</span><span class="deret deret--gelap"><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i></span></div></div></div></div></div>
+      </div>
+
+      <div class="panggung__slide" role="tabpanel" data-ket="Peserta ditempatkan ke kelompok, dengan lokasi dan dosen pembimbing lapangan." hidden>
+        <div class="panggung__kartu">
+          <div class="panggung__no">Tahap 02</div>
+          <div class="panggung__judul">Penempatan kelompok</div>
+          <p class="panggung__teks">
             Setiap peserta ditempatkan ke sebuah kelompok yang punya lokasi dan
             seorang Dosen Pembimbing Lapangan. Salah satu anggotanya ditunjuk
             sebagai ketua kelompok.
           </p>
-          <ul class="medan-dicatat">
-            <li>Nomor kelompok</li><li>Lokasi</li><li>Dosen pembimbing</li><li>Ketua kelompok</li>
-          </ul>
+          <div class="panggung__rinci"><span>Nomor kelompok</span><span>Lokasi</span><span>Dosen pembimbing</span><span>Ketua kelompok</span></div>
         </div>
-      </li>
-      <li>
-        <div>
-          <h3>Pelaksanaan</h3>
-          <p class="badan">
+        <div class="jendela jendela--kartu" aria-hidden="true"><aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li>Register</li><li class="on">Kelompok</li><li>Penilaian</li><li>Sertifikat</li><li>Data induk</li></ul></aside><div class="jendela__utama"><div class="aurora"></div><div class="jendela__isi"><div class="kaca"><div class="kaca__judul">Kelompok 23 · Desa Cikahuripan</div><div class="kaca__baris"><span class="kaca__nim">DPL</span><span class="kaca__nama">Nama Dosen</span><span class="kaca__nilai">NIDN</span></div><div class="kaca__baris"><span class="kaca__nim">Ketua</span><span class="kaca__nama">Nama Mahasiswa</span><span></span></div><div class="kaca__baris"><span class="kaca__nim">Anggota</span><span class="kaca__nama">11 orang</span><span></span></div></div></div></div></div>
+      </div>
+
+      <div class="panggung__slide" role="tabpanel" data-ket="Kelompok menjalankan program kerjanya di lokasi, didampingi pembimbing." hidden>
+        <div class="panggung__kartu">
+          <div class="panggung__no">Tahap 03</div>
+          <div class="panggung__judul">Pelaksanaan</div>
+          <p class="panggung__teks">
             Kelompok menjalankan program kerjanya di lokasi penempatan, didampingi
             Dosen Pembimbing Lapangan. Judul atau tema kegiatan dicatat dan nanti
             ikut tercetak pada sertifikat.
           </p>
-          <ul class="medan-dicatat">
-            <li>Program kerja</li><li>Pendampingan</li><li>Judul kegiatan</li>
-          </ul>
+          <div class="panggung__rinci"><span>Program kerja</span><span>Pendampingan</span><span>Judul kegiatan</span></div>
         </div>
-      </li>
-      <li>
-        <div>
-          <h3>Penilaian lima aspek</h3>
-          <p class="badan">
+        <div class="jendela jendela--kartu" aria-hidden="true"><aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li>Register</li><li class="on">Kelompok</li><li>Penilaian</li><li>Sertifikat</li><li>Data induk</li></ul></aside><div class="jendela__utama"><div class="aurora"></div><div class="jendela__isi"><div class="kaca"><div class="kaca__judul">Program kerja</div><div class="kaca__baris"><span class="kaca__nim">Judul</span><span class="kaca__nama">Membangun Desa Mandiri</span><span></span></div><div class="kaca__baris"><span class="kaca__nim">Periode</span><span class="kaca__nama">Agustus 2026</span><span></span></div></div></div></div></div>
+      </div>
+
+      <div class="panggung__slide" role="tabpanel" data-ket="Pembimbing menilai lima aspek, masing-masing 0 sampai 100." hidden>
+        <div class="panggung__kartu">
+          <div class="panggung__no">Tahap 04</div>
+          <div class="panggung__judul">Penilaian lima aspek</div>
+          <p class="panggung__teks">
             Dosen Pembimbing Lapangan menilai lima aspek, masing-masing dari 0
             sampai 100. Nilai akhirnya rata-rata kelimanya, dibulatkan, lalu
             diterjemahkan ke huruf mutu.
           </p>
-          <ul class="medan-dicatat">
-            <li>H · Kehadiran</li><li>S · Sikap</li><li>L · Kepemimpinan</li>
-            <li>QP · Kualitas Perencanaan</li><li>QL · Kualitas Luaran</li>
-          </ul>
+          <div class="panggung__rinci">
+            <span>H · Kehadiran</span><span>S · Sikap</span><span>L · Kepemimpinan</span>
+            <span>QP · Kualitas Perencanaan</span><span>QL · Kualitas Luaran</span>
+          </div>
         </div>
-      </li>
-      <li>
-        <div>
-          <h3>Penerbitan sertifikat</h3>
-          <p class="badan">
+        <div class="jendela jendela--kartu" aria-hidden="true"><aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li>Register</li><li>Kelompok</li><li class="on">Penilaian</li><li>Sertifikat</li><li>Data induk</li></ul></aside><div class="jendela__utama"><div class="aurora"></div><div class="jendela__isi"><div class="kaca"><div class="kaca__judul">Penilaian · Kelompok 23</div><div class="cuplik__kotak"><i class="on">88</i><i class="on">91</i><i class="on">85</i><i class="on">79</i><i>—</i></div><div class="kaca__baris" style="margin-top:12px"><span class="kaca__nim">Akhir</span><span class="kaca__nama">belum lengkap</span><span class="kaca__nilai">—</span></div></div></div></div></div>
+      </div>
+
+      <div class="panggung__slide" role="tabpanel" data-ket="Sertifikat terbit dengan nomor dan kode QR yang bisa diperiksa siapa saja." hidden>
+        <div class="panggung__kartu">
+          <div class="panggung__no">Tahap 05</div>
+          <div class="panggung__judul">Penerbitan sertifikat</div>
+          <p class="panggung__teks">
             Peserta yang sudah lengkap nilainya bisa diterbitkan sertifikatnya.
-            Nomor dan kode QR-nya melekat permanen: sekali terbit, keduanya tidak
+            Nomor dan kode QR-nya melekat permanen — sekali terbit, keduanya tidak
             pernah berubah, supaya sertifikat yang sudah tercetak tetap bisa
             diperiksa bertahun-tahun kemudian.
           </p>
-          <ul class="medan-dicatat">
-            <li>Nomor sertifikat</li><li>Kode QR</li><li>Verifikasi publik</li>
-          </ul>
+          <div class="panggung__rinci"><span>Nomor sertifikat</span><span>Kode QR</span><span>Verifikasi publik</span></div>
         </div>
-      </li>
-    </ol>
-  </div>
+        <div class="jendela jendela--kartu" aria-hidden="true"><aside class="jendela__sisi"><div class="jendela__merek"><b>AG</b>KKN LPPM</div><ul class="jendela__nav"><li>Register</li><li>Kelompok</li><li>Penilaian</li><li class="on">Sertifikat</li><li>Data induk</li></ul></aside><div class="jendela__utama"><div class="aurora"></div><div class="jendela__isi"><div class="kaca kaca--tengah"><div class="kaca__bulat"></div><b>Sertifikat sah</b><small>…/LPPM/KKN/2026</small><div class="kaca__tombol">Lihat PDF</div></div></div></div></div>
+      </div>
+    </div>
 
-  <!-- Pita lanskap di kaki bab. Dunianya sama dengan hero dan puncak, jadi
-       tingkat realismenya satu: hero render, tengah render, puncak render.
-       Bab yang isinya lempeng warna rata di antara dua bab bergambar
-       terbaca sebagai dua situs yang ditempel. -->
-  <div class="pita-lanskap pita-lanskap--subuh" aria-hidden="true">
-    <picture>
-      <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-tengah-hp.avif">
-      <img src="/assets/img/adegan/punggung-tengah.avif" alt="" width="1800" height="619"
-           loading="lazy" decoding="async">
-    </picture>
+    <div class="panggung-nav" data-reveal>
+      <button id="tahapSebelum" type="button" aria-label="Tahap sebelumnya">‹</button>
+      <p id="ketTahap"></p>
+      <button id="tahapSesudah" type="button" aria-label="Tahap berikutnya">›</button>
+    </div>
   </div>
 </section>
 
 
-<!-- ══════════ BAB III · PAGI ══════════
-     Rajah, bukan tangkapan layar palsu. Yang dulu ada di sini adalah jendela
-     aplikasi buatan div berisi nama dan nilai karangan; keduanya di daftar
-     tolak, dan pemilik juga melarang angka operasional. -->
-<section class="bab bab--pagi" data-tanah="gelap" data-sc-act="flow" data-bab="Pagi" id="kerja">
-  <div class="bab__lembar" aria-hidden="true"></div>
-
-  <div class="bungkus">
-    <div data-sc-in data-sc-stagger="70">
-      <h2 class="judul-bab">
-        Satu tempat untuk<br>
-        <span class="redup">seluruh perjalanannya.</span>
-      </h2>
-      <p class="badan">
+<!-- ================= YANG DIKERJAKAN ================= -->
+<!-- Kartunya sticky dengan top bertingkat: saat digulir ia menumpuk satu di
+     atas yang lain. Pola `bento` Fora, dengan cuplikan antarmuka KKN sungguhan
+     sebagai visualnya — bukan mockup komunitas. -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head sec-head--split">
+      <div>
+        <span class="tag" data-reveal>Yang dikerjakan</span>
+        <h2 class="h2" data-reveal style="--d:80ms">Satu tempat untuk<br><span class="dim">seluruh perjalanannya.</span></h2>
+      </div>
+      <p class="lead" data-reveal style="--d:160ms">
         Dari daftar peserta sampai sertifikat yang bisa diperiksa siapa saja,
         tanpa berpindah aplikasi.
       </p>
     </div>
 
-    <div class="kerja">
-      <article class="kerja__blok" data-sc-in data-sc-stagger="70">
-        <div>
-          <h3>Register yang terbaca sekilas</h3>
-          <p class="badan">
-            Siapa ikut di kelompok mana, tahun ajaran berapa, dan sudah dinilai
-            atau belum. Satu pertanyaan yang benar-benar dihadapi dosen di akhir
-            semester, yaitu siapa yang belum lengkap, terjawab tanpa membuka
-            berkas satu per satu.
-          </p>
+    <div class="tumpuk">
+      <article class="tumpuk__kartu" data-reveal>
+        <div class="tumpuk__teks">
+          <h3 class="h3">Register yang terbaca sekilas</h3>
+          <p>Siapa ikut di kelompok mana, tahun ajaran berapa, dan sudah dinilai
+             atau belum. Lima batang di tiap baris menjawab pertanyaan yang
+             benar-benar dihadapi dosen di akhir semester — siapa yang belum
+             lengkap — tanpa membuka satu per satu.</p>
+          <div class="tumpuk__kaki"><span>Paginasi</span><span>Saringan tahun</span><span>Pencarian</span></div>
         </div>
-        <div class="rajah" data-sc-parallax="-0.25">
-          <div class="rantai">
-            <span>Peserta</span><em>&rarr;</em><span>Kelompok</span><em>&rarr;</em><span>Tahun ajaran</span>
+        <div class="tumpuk__visual">
+          <div class="cuplik" aria-hidden="true">
+            <div class="cuplik__judul">Register KKN</div>
+            <div class="cuplik__baris">
+              <span class="cuplik__nim">2011…</span><span class="cuplik__nama">Nama Mahasiswa</span>
+              <span class="deret deret--gelap"><i style="height:19px"></i><i style="height:24px"></i><i style="height:15px"></i><i style="height:21px"></i><i style="height:13px"></i></span>
+            </div>
+            <div class="cuplik__baris">
+              <span class="cuplik__nim">2011…</span><span class="cuplik__nama">Nama Mahasiswa</span>
+              <span class="deret deret--gelap"><i style="height:22px"></i><i style="height:17px"></i><i style="height:25px"></i><i style="height:14px"></i><i style="height:20px"></i></span>
+            </div>
+            <div class="cuplik__baris">
+              <span class="cuplik__nim">2011…</span><span class="cuplik__nama">Nama Mahasiswa</span>
+              <span class="deret deret--gelap"><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i><i data-kosong="1"></i></span>
+            </div>
           </div>
-          <p class="rajah__ket">Satu baris, satu keikutsertaan</p>
         </div>
       </article>
 
-      <article class="kerja__blok kerja__blok--balik" data-sc-in data-sc-stagger="70">
-        <div>
-          <h3>Penilaian lima aspek</h3>
-          <p class="badan">
-            Dosen Pembimbing Lapangan mengisi Kehadiran, Sikap, Kepemimpinan,
-            Kualitas Perencanaan, dan Kualitas Luaran, masing-masing 0 sampai 100.
-            Nilai akhirnya rata-rata kelimanya, dihitung di server, bukan di layar.
-          </p>
+      <article class="tumpuk__kartu tumpuk__kartu--balik" data-reveal>
+        <div class="tumpuk__teks">
+          <h3 class="h3">Penilaian lima aspek</h3>
+          <p>Dosen Pembimbing Lapangan mengisi Kehadiran, Sikap, Kepemimpinan,
+             Kualitas Perencanaan, dan Kualitas Luaran — masing-masing 0 sampai
+             100. Nilai akhirnya rata-rata kelimanya, dihitung di server, bukan
+             di layar.</p>
+          <div class="tumpuk__kaki"><span>H</span><span>S</span><span>L</span><span>QP</span><span>QL</span></div>
         </div>
-        <div class="rajah" data-sc-parallax="-0.25">
-          <!-- Lima batang abu identik terbaca sebagai antarmuka placeholder,
-               dan itu ada di daftar tolak. Yang dikatakan bagian ini cuma
-               nama kelima aspeknya, jadi nama itu yang ditulis. -->
-          <dl class="aspek">
-            <div><dt>H</dt><dd>Kehadiran</dd></div>
-            <div><dt>S</dt><dd>Sikap</dd></div>
-            <div><dt>L</dt><dd>Kepemimpinan</dd></div>
-            <div><dt>QP</dt><dd>Kualitas Perencanaan</dd></div>
-            <div><dt>QL</dt><dd>Kualitas Luaran</dd></div>
-          </dl>
-          <p class="rajah__ket">Rata-rata kelimanya jadi nilai akhir.</p>
+        <div class="tumpuk__visual">
+          <div class="cuplik" aria-hidden="true">
+            <div class="cuplik__judul">Penilaian · Kelompok 23</div>
+            <div class="cuplik__kotak">
+              <i class="on">88</i><i class="on">91</i><i class="on">85</i><i class="on">79</i><i>—</i>
+            </div>
+            <div class="cuplik__baris" style="margin-top:12px">
+              <span class="cuplik__nim">Akhir</span><span class="cuplik__nama">belum lengkap</span>
+              <span class="cuplik__nilai">—</span>
+            </div>
+          </div>
         </div>
       </article>
 
-      <article class="kerja__blok kerja__blok--pernyataan" data-sc-in data-sc-stagger="70">
-        <div>
-          <h3>Sertifikat yang bisa diperiksa siapa saja.</h3>
-          <p class="badan">
-            Setiap sertifikat membawa nomor dan kode QR yang melekat permanen.
-            Pemberi kerja atau kampus lain memindainya dan langsung melihat
-            keabsahannya, tanpa akun, tanpa bertanya kepada kami. Sekali terbit,
-            nomor dan kodenya tidak pernah berubah, supaya lembar yang sudah
-            tercetak tetap bisa diperiksa bertahun-tahun kemudian.
-          </p>
+      <article class="tumpuk__kartu" data-reveal>
+        <div class="tumpuk__teks">
+          <h3 class="h3">Sertifikat yang bisa diperiksa siapa saja</h3>
+          <p>Setiap sertifikat membawa nomor dan kode QR yang melekat permanen.
+             Pemberi kerja atau kampus lain memindainya dan langsung melihat
+             keabsahannya — tanpa akun, tanpa bertanya kepada kami.</p>
+          <div class="tumpuk__kaki"><span>Nomor permanen</span><span>QR</span><span>Verifikasi publik</span></div>
+        </div>
+        <div class="tumpuk__visual">
+          <div class="cuplik" aria-hidden="true">
+            <div class="cuplik__judul">Verifikasi sertifikat</div>
+            <div class="cuplik__baris"><span class="cuplik__nim">Status</span><span class="cuplik__nama">Sertifikat sah</span><span class="cuplik__nilai">✓</span></div>
+            <div class="cuplik__baris"><span class="cuplik__nim">Nomor</span><span class="cuplik__nama">…/LPPM/KKN/2026</span><span></span></div>
+            <div class="cuplik__baris"><span class="cuplik__nim">Terbit</span><span class="cuplik__nama">30 Agustus 2026</span><span></span></div>
+          </div>
         </div>
       </article>
     </div>
   </div>
+</section>
 
-  <!-- Pita lanskap di kaki bab. Dunianya sama dengan hero dan puncak, jadi
-       tingkat realismenya satu: hero render, tengah render, puncak render.
-       Bab yang isinya lempeng warna rata di antara dua bab bergambar
-       terbaca sebagai dua situs yang ditempel. -->
-  <div class="pita-lanskap pita-lanskap--pagi" aria-hidden="true">
-    <picture>
-      <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-dekat-hp.avif">
-      <img src="/assets/img/adegan/punggung-dekat.avif" alt="" width="1800" height="357"
-           loading="lazy" decoding="async">
-    </picture>
+<!-- ================= PENGUMUMAN ================= -->
+<!-- CATATAN: teksnya masih ditulis tangan. Sengaja TIDAK memuat tanggal
+     tenggat — halaman ini tidak memanggil API sama sekali di tahap ini, jadi
+     tanggal yang tertulis di sini akan basi tanpa ada yang tahu. Pengumuman
+     bertanggal menyusul lewat fitur berita (Tahap B). -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="pengumuman" data-reveal>
+      <div>
+        <div class="pengumuman__periode">PENDAFTARAN</div>
+        <div class="pengumuman__judul">Mengikuti kalender akademik</div>
+        <p class="pengumuman__teks">
+          Pendaftaran KKN dibuka tiap semester mengikuti kalender akademik
+          program studi masing-masing. Mahasiswa yang sudah terdaftar bisa
+          melihat penempatan kelompok dan nilainya dengan masuk memakai NIM.
+        </p>
+      </div>
+      <div class="pengumuman__angka">
+        <b class="data">1.706</b>
+        <small>mahasiswa · 202 kelompok<br>terhimpun dari lima tahun ajaran</small>
+      </div>
+    </div>
   </div>
 </section>
 
-
-<!-- ══════════ BAB IV · SIANG · PUNCAK ══════════
-     Fajar terbesar terjadi di batas ini. Ruang paling lapang, perangkat
-     paling sedikit, dan gunung yang sejak bab I hanya siluet akhirnya
-     terlihat warnanya: palet halaman ini memang diambil dari sana. -->
-<section class="bab bab--siang" data-tanah="terang" data-sc-act="flow" data-bab="Siang" id="dampak">
-  <div class="bab__lembar" aria-hidden="true"></div>
-
-
-  <div class="bungkus puncak" data-sc-in data-sc-stagger="80">
-    <p class="puncak__kalimat">
-      Dengan KKN bersama LPPM, akademisi memberikan
-      <b>dampak untuk masyarakat.</b>
-    </p>
-    <p class="puncak__sumber">Universitas Al-Ghifari &middot; Bandung</p>
-  </div>
-
-  <!-- Anggaran aset milik puncak, bukan bab dua. Punggung yang sejak bab I
-       cuma bentuk gelap di kejauhan akhirnya terlihat cahayanya di sini, dan
-       itu bayaran yang dijanjikan struktur halaman ini. Media duduk di
-       kolomnya sendiri dengan keterangan, sesuai grammar. -->
-  <figure class="bungkus puncak__pandang" data-sc-reveal="up" data-sc-reveal-at="0.05 0.45">
-    <picture>
-      <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-jauh-hp.avif">
-      <img src="/assets/img/adegan/punggung-jauh.avif" alt=""
-           width="1600" height="349" loading="lazy" decoding="async">
-    </picture>
-    <figcaption>
-      Punggung bukit yang sama yang berdiri gelap di awal halaman ini.
-      Palet seluruh sistem KKN diambil dari pikselnya.
-    </figcaption>
-  </figure>
-
-  <div class="bungkus kolom-media" id="berita" data-sc-in data-sc-stagger="70">
-    <div>
-      <h2 class="judul-bab judul-bab--kecil">
-        Kegiatan yang<br><span class="redup">sudah berjalan.</span>
-      </h2>
-      <p class="badan">
+<!-- ================= BERITA ================= -->
+<section class="section" id="berita">
+  <div class="container">
+    <div class="sec-head sec-head--split">
+      <div>
+        <span class="tag" data-reveal>Berita</span>
+        <h2 class="h2" data-reveal style="--d:80ms">Kegiatan dan dokumentasi<br><span class="dim">yang sudah berjalan.</span></h2>
+      </div>
+      <p class="lead" data-reveal style="--d:160ms">
         Catatan kegiatan KKN dari periode-periode sebelumnya, ditulis dan
         dipasang langsung oleh LPPM.
       </p>
     </div>
 
-    <!-- Media duduk di kolomnya sendiri, tidak membanjiri di bawah teks.
-         Diisi beranda.js dari GET /news lewat createElement + textContent. -->
-    <div>
-      <div class="berita-grid" id="daftarBerita" hidden></div>
-      <div class="berita-kosong" id="beritaKosong">
-        <b>Belum ada berita yang dipasang</b>
-        Dokumentasi kegiatan akan muncul di sini begitu LPPM memasangnya.
-      </div>
+    <!-- Diisi beranda.js dari GET /news. Kartunya digambar lewat
+         createElement + textContent, bukan innerHTML: judul dan ringkasannya
+         diketik admin, dan halaman ini satu origin dengan aplikasi yang
+         menyimpan token. Kalau API diam, keadaan kosong di bawahnya yang
+         tampil dan sisa halaman tetap utuh. -->
+    <div class="berita-grid" id="daftarBerita" hidden></div>
+    <div class="berita-kosong" id="beritaKosong" data-reveal>
+      <b>Belum ada berita yang dipasang</b>
+      Dokumentasi kegiatan akan muncul di sini begitu LPPM memasangnya.
     </div>
   </div>
-
 </section>
 
-
-<!-- ══════════ BAB V · TERANG ══════════
-     Ground di sini persis kertas aplikasinya. Penutupnya kolofon, dengan
-     ajakan sebagai baris teks berjalan, bukan pulau tombol. -->
-<section class="bab bab--terang" data-tanah="terang" data-sc-act="flow"
-         data-sc-verify-hold="true" data-bab="Terang" id="tanya">
-  <div class="bab__lembar" aria-hidden="true"></div>
-
-  <div class="bungkus">
-    <div data-sc-in data-sc-stagger="70">
-      <h2 class="judul-bab">
-        Pertanyaan yang paling<br>
-        <span class="redup">sering datang.</span>
-      </h2>
-      <p class="badan">
+<!-- ================= TANYA JAWAB ================= -->
+<section class="section" id="tanya">
+  <div class="container">
+    <div class="sec-head sec-head--split">
+      <div>
+        <span class="tag" data-reveal>Tanya jawab</span>
+        <h2 class="h2" data-reveal style="--d:80ms">Pertanyaan yang paling<br><span class="dim">sering datang.</span></h2>
+      </div>
+      <p class="lead" data-reveal style="--d:160ms">
         Tentang cara masuk, cara nilai dihitung, dan cara memeriksa keaslian
         sertifikat.
       </p>
     </div>
 
-    <!-- TANPA data-sc-stagger: butirnya digambar beranda.js setelah mesin
-         menyala, dan `[data-sc-stagger] > *` diberi opacity 0 yang hanya
-         dipulihkan untuk anak yang sudah ada saat observernya menyala. -->
-    <div class="faq" id="daftarFaq"></div>
-
-    <!-- Kolofon memang BERHENTI dan bertahan: penutup yang masih bergerak
-         tidak pernah terasa selesai. Ditandai supaya harness membedakannya
-         dari gulir mati yang tidak disengaja. -->
-    <div class="kolofon">
-      <p class="kolofon__ajakan">
-        Mahasiswa masuk memakai NIM. Dosen dan staf memakai nama pengguna yang
-        diberikan LPPM. <a href="/login/">Masuk ke aplikasi</a>.
-      </p>
-
-      <div class="kolofon__data">
-        <div>
-          <h4>Halaman</h4>
-          <ul>
-            <li><a href="#tentang">Tentang</a></li>
-            <li><a href="#tahapan">Tahapan</a></li>
-            <li><a href="#berita">Berita</a></li>
-            <li><a href="#tanya">Tanya jawab</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Lembaga</h4>
-          <ul>
-            <li><a href="https://unfari.ac.id" target="_blank" rel="noopener">unfari.ac.id</a></li>
-            <li>LPPM Universitas Al-Ghifari</li>
-            <li>Bandung, Jawa Barat</li>
-          </ul>
-        </div>
+    <div class="faq">
+      <div class="faq__bantu" data-reveal>
+        <h4>Belum terjawab?</h4>
+        <p>Pertanyaan yang menyangkut akun, penempatan kelompok, atau nilai
+           ditangani langsung oleh LPPM Universitas Al-Ghifari.</p>
+        <a class="link-arrow" href="https://unfari.ac.id" target="_blank" rel="noopener">Hubungi LPPM →</a>
       </div>
+      <div class="faq__list" id="daftarFaq"></div>
+    </div>
+  </div>
+</section>
 
-      <div class="kolofon__bawah">
-        <span>&copy; <span id="tahunKini">2026</span> Universitas Al-Ghifari</span>
-        <span>Register KKN &middot; LPPM</span>
+<!-- ================= AJAKAN PENUTUP ================= -->
+<section class="cta">
+  <div class="cta__bg" aria-hidden="true"></div>
+  <div class="cta__dunes" aria-hidden="true"></div>
+  <div class="container">
+    <div class="cta__teks">
+      <h2 class="h1" data-reveal>Sudah punya akun?</h2>
+      <p data-reveal style="--d:100ms">
+        Mahasiswa masuk memakai NIM. Dosen dan staf memakai nama pengguna yang
+        diberikan LPPM.
+      </p>
+      <div data-reveal style="--d:200ms">
+        <a class="btn btn--lg" href="/login/">Masuk</a>
+      </div>
+    </div>
+    <div class="cta__mock" data-reveal="scale" style="--d:260ms" aria-hidden="true">
+      <div class="jendela">
+        <aside class="jendela__sisi">
+          <div class="jendela__merek"><b>AG</b>KKN LPPM</div>
+          <ul class="jendela__nav">
+            <li class="on">Register</li><li>Kelompok</li><li>Penilaian</li>
+            <li>Sertifikat</li><li>Data induk</li>
+          </ul>
+        </aside>
+        <div class="jendela__utama">
+          <div class="jendela__isi">
+            <div class="ringkas__bulat">AG</div>
+            <div class="ringkas__judul">Register KKN</div>
+            <div class="ringkas__meta">
+              <span class="ringkas__titik"><i></i><i></i><i></i></span>1.706 peserta
+            </div>
+            <div class="ringkas__tombol">Masuk ke aplikasi</div>
+            <p class="ringkas__ket">
+              Penempatan kelompok dan dosen pembimbing · Penilaian lima aspek
+              H·S·L·QP·QL · Penerbitan sertifikat bernomor dengan QR yang bisa
+              diperiksa siapa saja, tanpa akun
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-</main>
+<!-- ================= KAKI ================= -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="nav__brand">
+          <img class="nav__logo" src="/assets/img/logo-unfari.png" alt="" width="28" height="27">
+          <span>KKN&nbsp;LPPM</span>
+        </div>
+        <p>Lembaga Penelitian dan Pengabdian kepada Masyarakat,
+           Universitas Al-Ghifari.</p>
+      </div>
+      <div>
+        <h4>Halaman</h4>
+        <ul>
+          <li><a href="#tentang">Tentang</a></li>
+          <li><a href="#tahapan">Tahapan</a></li>
+          <li><a href="#berita">Berita</a></li>
+          <li><a href="#tanya">Tanya jawab</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Aplikasi</h4>
+        <ul>
+          <li><a href="/login/">Masuk</a></li>
+          <li><a href="https://unfari.ac.id" target="_blank" rel="noopener">unfari.ac.id</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bawah">
+      <span>© <span id="tahunKini">2026</span> Universitas Al-Ghifari</span>
+      <span>Register KKN · LPPM</span>
+    </div>
+  </div>
+</footer>
 
-<script src="/assets/js/scrollcraft.js"></script>
-<script>ScrollCraft.mount(document.body);</script>
 <script type="module" src="/assets/js/beranda.js"></script>
 </body>
 </html>

@@ -6,49 +6,36 @@
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/img/favicon-32.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <title>Berita, KKN LPPM Universitas Al-Ghifari</title>
+  <title>Berita — KKN LPPM Universitas Al-Ghifari</title>
   <meta name="description" content="Berita dan dokumentasi kegiatan KKN LPPM Universitas Al-Ghifari.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/fajar.css">
+  <link rel="stylesheet" href="/assets/css/beranda.css">
 </head>
-<body class="halaman-terang">
+<body>
 
-<header class="bilah" id="bilah" data-tanah="terang">
-  <div class="bilah__isi">
-    <a class="bilah__merek" href="/">
-      <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
+<header class="nav is-scrolled" id="nav">
+  <div class="container nav__inner">
+    <a class="nav__brand" href="/">
+      <img class="nav__logo" src="/assets/img/logo-unfari.png" alt="" width="28" height="27">
       <span>KKN&nbsp;LPPM</span>
     </a>
-    <nav class="bilah__tautan" aria-label="Bagian halaman">
+    <nav class="nav__links" aria-label="Bagian halaman">
       <a href="/#tentang">Tentang</a>
       <a href="/#tahapan">Tahapan</a>
-      <a href="/#kerja">Yang dikerjakan</a>
       <a href="/#berita">Berita</a>
       <a href="/#tanya">Tanya jawab</a>
     </nav>
-    <div class="bilah__aksi">
-      <a class="bilah__masuk" href="/login/">Masuk</a>
-      <button class="bilah__burger" id="burger" type="button"
-              aria-label="Buka menu" aria-expanded="false" aria-controls="menuPonsel">
-        <span></span><span></span><span></span>
-      </button>
+    <div class="nav__actions">
+      <a class="btn btn--sm" href="/login/">Masuk</a>
     </div>
   </div>
-  <nav class="bilah__ponsel" id="menuPonsel" aria-label="Bagian halaman" hidden>
-    <a href="/#tentang">Tentang</a>
-    <a href="/#tahapan">Tahapan</a>
-    <a href="/#kerja">Yang dikerjakan</a>
-    <a href="/#berita">Berita</a>
-    <a href="/#tanya">Tanya jawab</a>
-    <a class="bilah__ponsel-masuk" href="/login/">Masuk ke aplikasi</a>
-  </nav>
 </header>
 
-<main class="bab bab--terang artikel-halaman" data-tanah="terang">
-  <div class="bungkus">
-    <a class="artikel__kembali" href="/#berita">&larr; Semua berita</a>
+<main class="artikel">
+  <div class="container">
+    <a class="artikel__kembali" href="/#berita">← Semua berita</a>
 
     <div id="memuat" class="artikel__pesan">Memuat…</div>
 
@@ -63,10 +50,12 @@
   </div>
 </main>
 
-<footer class="bab bab--terang" data-tanah="terang" style="padding-block:0">
-  <div class="bungkus kolofon__bawah" style="margin-top:0">
-    <span>&copy; <span id="tahunKini">2026</span> Universitas Al-Ghifari</span>
-    <span>Register KKN &middot; LPPM</span>
+<footer class="footer">
+  <div class="container">
+    <div class="footer__bawah" style="margin-top:0;border-top:0;padding-top:0">
+      <span>© <span id="tahunKini">2026</span> Universitas Al-Ghifari</span>
+      <span>Register KKN · LPPM</span>
+    </div>
   </div>
 </footer>
 

@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     // Halaman depan (`index.html` + `beranda.js`) SENGAJA di luar Tailwind —
-    // ia gelap dan memakai `assets/css/fajar.css` sendiri. Tanpa dikecualikan,
+    // ia gelap dan memakai `assets/css/beranda.css` sendiri. Tanpa dikecualikan,
     // kelas-kelasnya ikut menumpuk di app.css yang tidak pernah memakainya.
     // `node_modules` dan `uji` dikecualikan supaya pemindaian tidak menyapu
     // ribuan berkas yang bukan milik situs ini.
@@ -12,9 +12,6 @@ module.exports = {
         "!./uji/**",
         "./assets/js/**/*.js",
         "!./assets/js/beranda.js",
-        // Mesin halaman depan. Memindainya menyeret .blur .filter .static
-        // .table .visible .transform ke app.css yang tidak pernah memakainya.
-        "!./assets/js/scrollcraft.js",
         "!./assets/js/jscroot/**",
     ],
 
