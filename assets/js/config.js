@@ -72,6 +72,10 @@ export const backend = {
         satuPublik: (slug) => asal + "/news/" + slug,
         kelola: asal + "/api/news",
         satu: (idnya) => asal + "/api/news/" + idnya,
+        // Backend meng-commit fotonya ke repo frontend lewat GitHub API,
+        // bukan menyimpannya sendiri — Cloud Functions gen2 tidak punya
+        // cakram yang bertahan antar-instance.
+        unggahFoto: asal + "/api/news/image",
     },
 
     // Sertifikat. `verify` sengaja tanpa autentikasi — siapa pun yang

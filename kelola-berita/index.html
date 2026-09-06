@@ -109,15 +109,25 @@
       <div>
         <span class="block text-sm font-medium mb-1.5">Foto</span>
         <div id="daftarFoto" class="grid grid-cols-3 gap-2 mb-2"></div>
-        <div class="flex gap-2">
-          <input id="fFotoURL" type="text" class="medan font-data text-xs"
-                 placeholder="/assets/berita/2026/09/foto.jpg">
-          <button type="button" id="tombolTambahFoto" class="tombol-halus shrink-0">Tambah</button>
-        </div>
-        <p id="ketFoto" class="text-xs text-tinta-redup mt-1">
-          Unggah berkasnya ke folder <span class="font-data">assets/berita/</span> di repo
-          frontend lewat GitHub, lalu tempel alamatnya di sini. Alamat https dari
-          inang lain juga boleh.
+        <label for="fFoto"
+               class="tombol-halus w-full cursor-pointer mb-2">Pilih foto dari komputer…</label>
+        <input id="fFoto" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only">
+
+        <details class="mt-1">
+          <summary class="text-xs text-tinta-redup cursor-pointer">
+            Atau tempel alamat foto yang sudah ada
+          </summary>
+          <div class="flex gap-2 mt-2">
+            <input id="fFotoURL" type="text" class="medan font-data text-xs"
+                   placeholder="/assets/berita/2026/09/foto.jpg">
+            <button type="button" id="tombolTambahFoto" class="tombol-halus shrink-0">Tambah</button>
+          </div>
+        </details>
+
+        <p id="ketFoto" class="text-xs text-tinta-redup mt-2">
+          JPG, PNG, atau WebP. Maksimal 5 MB. Fotonya tersimpan di repo frontend
+          dan tayang di halaman depan sekitar setengah menit setelah berita
+          diterbitkan.
         </p>
       </div>
 
@@ -139,7 +149,7 @@
 </aside>
 
 <script type="module">
-import { getJSON, postJSON, deleteJSON } from "/assets/js/jscroot/api.js";
+import { getJSON, postJSON, deleteJSON, postFileWithHeader } from "/assets/js/jscroot/api.js";
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
@@ -156,9 +166,13 @@ if (requireLogin()) {
     const laci = buatLaci("laci", "tirai", "tombolBatal");
 
     let sunting = null;
-    // Sejak 6 September 2026 isinya ALAMAT, bukan id objek — jadi tidak ada
-    // lagi larik kedua yang harus dijaga tetap sejajar.
+    // Yang DISIMPAN ke dokumen: jalur di situs (/assets/berita/…).
+    // Yang DITAMPILKAN sebagai pratinjau bisa berbeda — sesudah diunggah,
+    // jalur Pages belum hidup sampai deploy selesai (~30 detik), sedangkan
+    // alamat raw.githubusercontent hidup seketika. Karena itu dua larik,
+    // dijaga sejajar; kalau pratinjaunya kosong, jalurnya sendiri dipakai.
     let fotoTerpasang = [];
+    let fotoPratinjau = [];
 
     function tanggalIndonesia(iso) {
         if (!iso) return "—";
@@ -227,9 +241,10 @@ if (requireLogin()) {
         const wadah = document.getElementById("daftarFoto");
         kosongkan(wadah);
         fotoTerpasang.forEach(function (u, i) {
+            const tampil = fotoPratinjau[i] || u;
             const bungkus = el("div", "relative");
             const img = document.createElement("img");
-            img.src = u;
+            img.src = tampil;
             img.alt = "";
             img.className = "w-full h-20 object-cover rounded-lg border border-garis";
             const buang = el("button", "absolute top-1 right-1 bg-kertas border border-garis rounded-full px-1.5 text-xs text-galat", "×");
@@ -237,6 +252,7 @@ if (requireLogin()) {
             buang.setAttribute("aria-label", "Buang foto ini");
             buang.addEventListener("click", function () {
                 fotoTerpasang.splice(i, 1);
+                fotoPratinjau.splice(i, 1);
                 gambarFoto();
             });
             bungkus.appendChild(img);
@@ -264,6 +280,44 @@ if (requireLogin()) {
             img.src = alamat;
         });
     }
+
+    // Unggah berkas. Backend meng-commit-nya ke repo frontend dan mengembalikan
+    // DUA alamat: jalur situs untuk disimpan, dan alamat raw untuk pratinjau.
+    // Keduanya perlu — jalur situs baru hidup sesudah Pages selesai membangun,
+    // sekitar setengah menit, dan pratinjau yang rusak selama itu akan terbaca
+    // sebagai kegagalan padahal unggahannya berhasil.
+    document.getElementById("fFoto").addEventListener("change", function () {
+        const berkas = this.files && this.files[0];
+        if (!berkas) return;
+        const ket = document.getElementById("ketFoto");
+
+        if (berkas.size > 5 * 1024 * 1024) {
+            // Diperiksa di sini juga supaya 5 MB tidak perlu menyeberang
+            // jaringan lebih dulu hanya untuk ditolak.
+            ket.textContent = "Berkasnya lebih dari 5 MB. Kecilkan dulu.";
+            this.value = "";
+            return;
+        }
+
+        ket.textContent = "Mengunggah…";
+        postFileWithHeader(backend.news.unggahFoto, ...tokenHeader(), "fFoto", "foto",
+            function (hasil) {
+                document.getElementById("fFoto").value = "";
+                // Berbeda dari getJSON/postJSON, callback ini menerima badan
+                // yang SUDAH di-parse tanpa kode status — jadi keberhasilan
+                // dikenali dari bentuk jawabannya, bukan dari status.
+                const d = (hasil || {}).data || {};
+                if (!d.foto) {
+                    ket.textContent = (hasil && hasil.message) ||
+                        "Foto gagal diunggah. Berita tetap bisa disimpan tanpa foto.";
+                    return;
+                }
+                fotoTerpasang.push(d.foto);
+                fotoPratinjau.push(d.pratinjau || "");
+                gambarFoto();
+                ket.textContent = KET_FOTO;
+            });
+    });
 
     document.getElementById("tombolTambahFoto").addEventListener("click", async function () {
         const medan = document.getElementById("fFotoURL");
@@ -294,6 +348,7 @@ if (requireLogin()) {
             return;
         }
         fotoTerpasang.push(alamat);
+        fotoPratinjau.push("");
         medan.value = "";
         gambarFoto();
         ket.textContent = KET_FOTO;
@@ -310,6 +365,7 @@ if (requireLogin()) {
         form.tautan_label.value = b ? (b.tautan_label || "") : "";
         form.terbit.checked = b ? !!b.terbit : false;
         fotoTerpasang = b ? (b.foto || []).slice() : [];
+        fotoPratinjau = [];
         gambarFoto();
         document.getElementById("ketFoto").textContent = "JPG, PNG, atau WebP. Maksimal 5 MB per foto.";
         sembunyikan(document.getElementById("pesanLaci"));

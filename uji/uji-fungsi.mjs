@@ -53,7 +53,7 @@ function jawab(url) {
 async function buka(jalur) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await ctx.newPage();
-    const galat = [], tulis = [];
+    const galat = [], tulis = [], badan = [];
     page.on("pageerror", (e) => galat.push("pageerror: " + e.message));
     page.on("console", (m) => { if (m.type() === "error") galat.push("console: " + m.text()); });
     page.on("dialog", (d) => d.accept());
@@ -64,12 +64,25 @@ async function buka(jalur) {
     });
     await page.route("**/localhost:8090/**", (route) => {
         const q = route.request();
-        if (q.method() !== "GET") tulis.push(q.method() + " " + new URL(q.url()).pathname);
+        if (q.method() !== "GET") {
+            tulis.push(q.method() + " " + new URL(q.url()).pathname);
+            // Badan kiriman disimpan supaya uji bisa memeriksa APA yang
+            // dikirim, bukan sekadar bahwa sesuatu terkirim.
+            const b = q.postData();
+            if (b && b.startsWith("{")) { try { badan.push(JSON.parse(b)); } catch (e) { /* multipart */ } }
+        }
+        // Unggah membalas DUA alamat berbeda: jalur situs dan pratinjau raw.
+        if (/news\/image/.test(q.url())) {
+            return route.fulfill({ status: 200, contentType: "application/json",
+                body: JSON.stringify({ status: "ok", data: {
+                    foto: "/assets/berita/2026/09/abc.png",
+                    pratinjau: B + "/assets/img/logo-unfari.png" } }) });
+        }
         route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(jawab(q.url())) });
     });
     await page.goto(B + jalur, { waitUntil: "networkidle" });
     await page.waitForTimeout(400);
-    return { ctx, page, galat, tulis };
+    return { ctx, page, galat, tulis, badan };
 }
 
 // ---------- 1. Setiap kendali bereaksi tanpa melempar ----------
@@ -233,13 +246,18 @@ async function buka(jalur) {
 // menolaknya (ERR_BLOCKED_BY_ORB). Uji ini sengaja TIDAK menyentuh Drive
 // supaya tidak bergantung jaringan; yang dibuktikan mekanismenya.
 {
-    const { ctx, page, galat, tulis } = await buka("/kelola-berita/");
+    const { ctx, page, galat, tulis, badan } = await buka("/kelola-berita/");
     const tulisBtn = (await page.$$("main button"))[0];
     await tulisBtn.click();
     await page.waitForTimeout(300);
 
     const ket = () => page.textContent("#ketFoto");
     const jumlahFoto = () => page.$$eval("#daftarFoto img", (e) => e.length);
+
+    // Medan alamat tinggal di dalam <details> yang tertutup — jalan utamanya
+    // unggah berkas, menempel alamat itu jalan kedua. Dibuka dulu.
+    await page.click("#laci summary");
+    await page.waitForTimeout(200);
     async function coba(alamat) {
         await page.fill("#fFotoURL", alamat);
         await page.click("#tombolTambahFoto");
@@ -273,9 +291,29 @@ async function buka(jalur) {
     // yang diuji di atas. Yang disaring hanya kegagalan sumber daya; galat
     // skrip apa pun tetap membuat uji ini merah.
     const galatNyata = galat.filter((g) => !/Failed to load resource|ERR_UNSAFE_PORT|ERR_CONNECTION/.test(g));
+    // ── unggah berkas ──
+    //
+    // Yang dijaga adalah pemisahan dua alamat: jalur situs DISIMPAN, alamat
+    // raw hanya DITAMPILKAN. Menyimpan alamat raw akan membekukan nama repo
+    // dan cabangnya ke dalam dokumen berita — dan halaman depan akan memuat
+    // fotonya dari githubusercontent, bukan dari situsnya sendiri.
+    await page.setInputFiles("#fFoto", "../assets/img/logo-unfari.png");
+    await page.waitForTimeout(700);
+    const nFoto = await jumlahFoto();
+    lapor(nFoto === 1, `unggah berkas menambah satu foto (${nFoto})`);
+    const src = await page.$eval("#daftarFoto img", (e) => e.getAttribute("src"));
+    lapor(/logo-unfari/.test(src), `pratinjau memakai alamat dari server (${src.slice(-24)})`);
+
+    await page.fill("#fJudul", "Berita Uji");
+    tulis.length = 0;
+    await page.click("#tombolSimpan");
+    await page.waitForTimeout(400);
+    const kirimTerakhir = badan[badan.length - 1] || {};
+    lapor(Array.isArray(kirimTerakhir.foto) && kirimTerakhir.foto[0] === "/assets/berita/2026/09/abc.png",
+        `yang DISIMPAN jalur situs, bukan alamat pratinjau (${JSON.stringify(kirimTerakhir.foto)})`);
+
     lapor(galatNyata.length === 0, "kelola berita: tanpa galat skrip" +
         (galatNyata.length ? "\n    " + galatNyata[0] : ""));
-    void tulis;
     await ctx.close();
 }
 

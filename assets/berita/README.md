@@ -3,7 +3,17 @@
 Taruh foto berita di sini. Alamatnya lalu ditempel ke formulir berita di
 `/kelola-berita/`.
 
-## Cara menambah foto tanpa menyentuh baris perintah
+## Cara biasa: unggah dari halaman admin
+
+Buka **Kelola berita → Tulis berita**, tekan **Pilih foto dari komputer**.
+Backend meng-commit berkasnya ke folder ini dan langsung menampilkan
+pratinjaunya. Fotonya tayang di halaman depan sekitar setengah menit kemudian,
+setelah GitHub Actions selesai menerbitkan.
+
+Kalau tombolnya menjawab "unggah foto belum dikonfigurasi", `FOTO_REPO_TOKEN`
+belum dipasang di backend — pakai cara manual di bawah.
+
+## Cara manual, tanpa menyentuh baris perintah
 
 1. Buka repo ini di GitHub, masuk ke folder `assets/berita/`
 2. **Add file → Upload files**, seret fotonya, lalu **Commit changes**
