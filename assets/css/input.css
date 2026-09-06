@@ -244,6 +244,18 @@
         @apply font-data text-xs text-tinta-redup;
     }
 
+    /* Kartu kelompok di halaman Penilaian. Sasaran klik seukuran kartu, bukan
+       seukuran baris teks: dosen memilih satu dari 41 kelompok, dan itu
+       pekerjaan menunjuk, bukan membaca. */
+    .kartu-kelompok {
+        @apply block w-full text-left bg-kertas rounded-xl shadow-kartu px-4 py-3
+               border border-transparent overflow-hidden
+               transition-[border-color,box-shadow,transform] duration-100
+               hover:border-bata hover:shadow-naik
+               focus-visible:outline-none focus-visible:border-bata focus-visible:shadow-naik
+               active:translate-y-px;
+    }
+
     /* Kotak nilai. Lebar dipatok supaya kelima kolomnya tidak bergoyang
        saat angkanya berubah panjang, dan penanda naik-turun bawaan peramban
        dimatikan — dosen mengetik angka, bukan mengklik panah 80 kali. */

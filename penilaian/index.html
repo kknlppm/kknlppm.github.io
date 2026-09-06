@@ -35,10 +35,19 @@
 
   <div id="pesan" hidden role="alert"></div>
 
-  <div id="kosong" class="bg-kertas rounded-2xl shadow-kartu px-8 py-16 text-center">
-    <p class="text-tinta-redup">Pilih kelompok untuk mulai menilai.</p>
-    <p class="text-sm text-tinta-redup mt-2">
-      Nilai akhir dihitung sendiri dari lima aspek: rata-rata H, S, L, QP, dan QL.
+  <div id="kosong">
+    <p class="text-sm text-tinta-redup mb-3">
+      Pilih kelompok untuk mulai menilai. Nilai akhir dihitung sendiri dari lima
+      aspek: rata-rata H, S, L, QP, dan QL.
+    </p>
+    <!-- Dulu di sini ada kotak kosong setinggi 250px dengan 800px ruang mati di
+         bawahnya, dan satu-satunya jalan ke pekerjaannya lewat dropdown yang
+         menyembunyikan 41 kelompok. Kartunya digambar dari daftar yang MEMANG
+         sudah diambil untuk mengisi dropdown itu — tanpa permintaan tambahan. -->
+    <div id="petakKelompok" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+    <p id="kosongTanpaKelompok" hidden
+       class="bg-kertas rounded-2xl shadow-kartu px-8 py-16 text-center text-tinta-redup">
+      Tidak ada kelompok di tahun ajaran ini.
     </p>
   </div>
 
@@ -83,6 +92,35 @@ if (requireLogin()) {
     const isi = document.getElementById("isiTabel");
     const wadah = document.getElementById("wadahTabel");
     const kosong = document.getElementById("kosong");
+    const petak = document.getElementById("petakKelompok");
+    const tanpaKelompok = document.getElementById("kosongTanpaKelompok");
+
+    // gambarPetak menggambar satu kartu per kelompok. Menekan kartu sama
+    // dengan memilihnya di dropdown — dropdown tetap ada karena ia yang
+    // dipakai untuk BERPINDAH kelompok setelah tabelnya terbuka.
+    function gambarPetak(daftar) {
+        kosongkan(petak);
+        tanpaKelompok.hidden = daftar.length > 0;
+        daftar.forEach(function (g) {
+            const b = el("button", "kartu-kelompok");
+            b.type = "button";
+            const atas = el("div", "flex items-baseline justify-between gap-2");
+            atas.appendChild(el("span", "font-medium",
+                String(g.kelompok || "").replace(/^kelompok\s+/i, "Kelompok ") || "Kelompok"));
+            atas.appendChild(el("span", "font-data text-xs text-tinta-redup shrink-0",
+                (g.jumlah_anggota || 0) + " org"));
+            b.appendChild(atas);
+            const lokasi = String(g.lokasi || "").trim();
+            b.appendChild(el("div", "text-xs text-tinta-redup mt-1 truncate", lokasi || "—"));
+            b.appendChild(el("div", "text-xs text-tinta-samar mt-0.5 truncate", g.nama_dosen || "—"));
+            b.title = [lokasi, g.nama_dosen].filter(Boolean).join(" · ");
+            b.addEventListener("click", function () {
+                selKel.value = g.id;
+                muatAnggota();
+            });
+            petak.appendChild(b);
+        });
+    }
     const elPesan = document.getElementById("pesan");
 
     const ASPEK = ["nilai_h", "nilai_s", "nilai_l", "nilai_qp", "nilai_ql"];
@@ -265,6 +303,7 @@ if (requireLogin()) {
             if (!daftar.length) {
                 selKel.appendChild(opsi("", "Tidak ada kelompok di tahun ini", true));
             }
+            gambarPetak(daftar);
             // Kalau kelompok yang sedang dibuka masih ada di tahun yang baru
             // dipilih, ia tetap terbuka — berpindah tahun lalu kehilangan
             // tempat adalah gangguan, bukan fitur.

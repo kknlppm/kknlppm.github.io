@@ -144,6 +144,25 @@ cek("kolom Nilai dan Sertifikat ikut tampil",
     tabel.judul.includes("Nilai") && tabel.judul.includes("Sertifikat"), tabel.judul.join(" · "));
 cek("baris tidak membungkus jadi dua baris", tabel.tertinggi <= 48, `tertinggi ${tabel.tertinggi}px`);
 
+// ── penilaian: kelompok terlihat, bukan tersembunyi di dropdown ──
+await page.goto(ASAL + "/penilaian/");
+await page.waitForFunction(() => document.querySelectorAll("#petakKelompok button").length > 0,
+    null, { timeout: 25000 }).catch(() => {});
+const jmlKartu = await page.locator("#petakKelompok button").count();
+cek("penilaian menampilkan kelompok sebagai kartu", jmlKartu >= 20, jmlKartu + " kartu");
+cek("tabel penilaian belum terbuka", await page.locator("#wadahTabel").isHidden());
+
+const judulKartu = (await page.locator("#petakKelompok button").first().textContent()).trim().slice(0, 20);
+await page.locator("#petakKelompok button").first().click();
+await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 0,
+    null, { timeout: 25000 }).catch(() => {});
+cek("menekan kartu membuka penilaiannya", await page.locator("#wadahTabel").isVisible(), judulKartu);
+cek("petak kartu menyingkir", await page.locator("#kosong").isHidden());
+const anggota = await page.locator("#isiTabel tr").count();
+cek("anggota kelompok termuat", anggota > 0, anggota + " anggota");
+cek("dropdown ikut menunjuk kelompok yang sama",
+    (await page.locator("#pilihKelompok").inputValue()) !== "");
+
 cek("tidak ada galat skrip di seluruh alur", galat.length === 0, galat.join(" | ").slice(0, 200));
 
 await brw.close();
