@@ -28,6 +28,34 @@
    ────────────────────────────────────────────────────────────── */
 
 @layer base {
+    /* Dua permukaan peramban yang tidak digambar siapa pun tapi tetap
+       memikul desainnya. Tanpa keduanya, menyalin NIM menyorotnya biru OS
+       dan placeholder memakai abu #9ca3af bawaan Tailwind. */
+    ::selection {
+        @apply bg-bata-muda text-tinta;
+    }
+
+    ::placeholder {
+        @apply text-tinta-samar;
+        opacity: 1;
+    }
+
+    /* Kotak centang. Sejak plugin Flowbite dibuang, ia kembali native dan
+       PATUH pada accent-color; sebelumnya `appearance: none` miliknya
+       membuat kelas `accent-bata` di markup tidak pernah berlaku sama sekali.
+       18px, bukan 16px bawaan: ia dipakai memilih peserta satu per satu. */
+    input[type="checkbox"] {
+        @apply w-[18px] h-[18px] cursor-pointer;
+        accent-color: theme("colors.bata.DEFAULT");
+    }
+
+    @media (pointer: coarse) {
+        /* Kotak 18px di layar sentuh terlalu kecil; kotaknya sendiri
+           dibesarkan, bukan cuma area sekitarnya, supaya sasarannya terlihat
+           sebesar yang bisa ditekan. */
+        input[type="checkbox"] { @apply w-6 h-6; }
+    }
+
     html {
         /* Archivo punya sumbu lebar. Halaman depan memakai lebar WAJAR di
            seluruh halaman; supaya keduanya satu suara, di sini juga. */
@@ -77,9 +105,12 @@
     }
 
     .eyebrow {
-        @apply font-data text-mikro uppercase text-tinta-samar;
-        /* .12em — sama dengan .kaca__judul di halaman depan. */
-        letter-spacing: 0.12em;
+        /* `redup`, BUKAN `samar`. `samar` #5D7186 hanya 4,34 di `latar`, dan
+           eyebrow ini berukuran 11px. Sembilan pemanggil sudah menimpanya
+           jadi redup satu per satu; sekarang itu bawaannya. */
+        @apply font-data text-mikro uppercase text-tinta-redup;
+        /* .14em — sama dengan label di halaman depan. */
+        letter-spacing: 0.14em;
     }
 
     /* ── kendali ── */
@@ -160,7 +191,7 @@
        memaksa rel 60px memuat teks yang tidak muat. */
     .sisi__bagian {
         @apply px-3 pt-4 pb-1.5 font-data text-mikro uppercase text-tinta-samar;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
     }
     .sisi__bagian:first-child { @apply pt-1; }
 

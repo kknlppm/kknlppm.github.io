@@ -6,7 +6,7 @@
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/img/favicon-32.png" type="image/png">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <title>KKN LPPM — Universitas Al-Ghifari</title>
+  <title>KKN LPPM, Universitas Al-Ghifari</title>
   <meta name="description" content="Kuliah Kerja Nyata LPPM Universitas Al-Ghifari: penempatan kelompok, penilaian lima aspek, dan penerbitan sertifikat yang bisa diverifikasi siapa saja.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,8 +22,13 @@
     <span>KKN&nbsp;LPPM</span>
   </a>
   <span class="folio__bab" id="folioBab" aria-live="polite">Malam</span>
-  <a class="folio__masuk" href="/login/">Masuk</a>
+  <a class="folio__masuk" href="/login/">Masuk ke aplikasi</a>
 </div>
+
+<!-- Butiran melayang di atas SELURUH halaman: bab II dan III adalah lempeng
+     warna rata tanpa ini, dan ground gelap yang rata berpita di layar
+     sungguhan. -->
+<div class="butiran" aria-hidden="true"></div>
 
 <main>
 
@@ -99,7 +104,6 @@
       </picture>
     </div>
         <div class="adegan__kabut adegan__kabut--depan"></div>
-        <div class="butiran"></div>
       </div>
     </div>
   </div>
@@ -132,7 +136,7 @@
   <div class="bab__lembar" aria-hidden="true"></div>
 
   <div class="bungkus">
-    <div data-sc-in data-sc-stagger="70">
+    <div class="kepala-kanan" data-sc-in data-sc-stagger="70">
       <h2 class="judul-bab">
         Lima tahap, dari mendaftar<br>
         <span class="redup">sampai sertifikat terbit.</span>
@@ -264,31 +268,30 @@
           </p>
         </div>
         <div class="rajah" data-sc-parallax="-0.25">
-          <div class="aspek">
-            <b><i></i>H</b>
-            <b><i></i>S</b>
-            <b><i></i>L</b>
-            <b><i></i>QP</b>
-            <b><i></i>QL</b>
-          </div>
-          <p class="rajah__ket">Lima aspek, satu rata-rata</p>
+          <!-- Lima batang abu identik terbaca sebagai antarmuka placeholder,
+               dan itu ada di daftar tolak. Yang dikatakan bagian ini cuma
+               nama kelima aspeknya, jadi nama itu yang ditulis. -->
+          <dl class="aspek">
+            <div><dt>H</dt><dd>Kehadiran</dd></div>
+            <div><dt>S</dt><dd>Sikap</dd></div>
+            <div><dt>L</dt><dd>Kepemimpinan</dd></div>
+            <div><dt>QP</dt><dd>Kualitas Perencanaan</dd></div>
+            <div><dt>QL</dt><dd>Kualitas Luaran</dd></div>
+          </dl>
+          <p class="rajah__ket">Rata-rata kelimanya jadi nilai akhir.</p>
         </div>
       </article>
 
-      <article class="kerja__blok" data-sc-in data-sc-stagger="70">
+      <article class="kerja__blok kerja__blok--pernyataan" data-sc-in data-sc-stagger="70">
         <div>
-          <h3>Sertifikat yang bisa diperiksa siapa saja</h3>
+          <h3>Sertifikat yang bisa diperiksa siapa saja.</h3>
           <p class="badan">
             Setiap sertifikat membawa nomor dan kode QR yang melekat permanen.
             Pemberi kerja atau kampus lain memindainya dan langsung melihat
-            keabsahannya, tanpa akun, tanpa bertanya kepada kami.
+            keabsahannya, tanpa akun, tanpa bertanya kepada kami. Sekali terbit,
+            nomor dan kodenya tidak pernah berubah, supaya lembar yang sudah
+            tercetak tetap bisa diperiksa bertahun-tahun kemudian.
           </p>
-        </div>
-        <div class="rajah" data-sc-parallax="-0.25">
-          <div class="rantai">
-            <span>Sertifikat</span><em>&rarr;</em><span>Kode QR</span><em>&rarr;</em><span>Verifikasi</span>
-          </div>
-          <p class="rajah__ket">Terbuka untuk umum, tanpa akun</p>
         </div>
       </article>
     </div>
@@ -303,18 +306,6 @@
 <section class="bab bab--siang" data-tanah="terang" data-sc-act="flow" data-bab="Siang" id="dampak">
   <div class="bab__lembar" aria-hidden="true"></div>
 
-  <div class="ufuk ufuk--siang" aria-hidden="true">
-    <svg viewBox="0 0 1440 300" preserveAspectRatio="none" role="presentation">
-      <path d="M0,300 L0,214 C120,196 208,168 300,150 C392,132 452,152 540,138
-               C628,124 700,88 792,96 C884,104 940,146 1032,152
-               C1124,158 1200,132 1296,116 C1360,105 1404,112 1440,120 L1440,300 Z"
-            fill="#C7A29C"/>
-      <path d="M0,300 L0,252 C132,240 244,222 356,212 C468,202 540,214 656,206
-               C772,198 852,172 968,180 C1084,188 1160,214 1272,220
-               C1348,224 1400,222 1440,218 L1440,300 Z"
-            fill="#9A7273"/>
-    </svg>
-  </div>
 
   <div class="bungkus puncak" data-sc-in data-sc-stagger="80">
     <p class="puncak__kalimat">
@@ -323,6 +314,22 @@
     </p>
     <p class="puncak__sumber">Universitas Al-Ghifari &middot; Bandung</p>
   </div>
+
+  <!-- Anggaran aset milik puncak, bukan bab dua. Punggung yang sejak bab I
+       cuma bentuk gelap di kejauhan akhirnya terlihat cahayanya di sini, dan
+       itu bayaran yang dijanjikan struktur halaman ini. Media duduk di
+       kolomnya sendiri dengan keterangan, sesuai grammar. -->
+  <figure class="bungkus puncak__pandang" data-sc-reveal="up" data-sc-reveal-at="0.05 0.45">
+    <picture>
+      <source media="(max-width: 700px)" srcset="/assets/img/adegan/punggung-jauh-hp.avif">
+      <img src="/assets/img/adegan/punggung-jauh.avif" alt=""
+           width="1600" height="349" loading="lazy" decoding="async">
+    </picture>
+    <figcaption>
+      Punggung bukit yang sama yang berdiri gelap di awal halaman ini.
+      Palet seluruh sistem KKN diambil dari pikselnya.
+    </figcaption>
+  </figure>
 
   <div class="bungkus kolom-media" id="berita" data-sc-in data-sc-stagger="70">
     <div>

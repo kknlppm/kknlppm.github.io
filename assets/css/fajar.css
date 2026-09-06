@@ -62,8 +62,8 @@
    legap dan menutupinya. */
 html {
     background: linear-gradient(to bottom,
-        #0B0908 0 20%, #1A1310 20% 42%, #33231F 42% 59%,
-        #EFE0DC 59% 82%, #E9EFF4 82% 100%);
+        #0B0908 0 20%, #241619 20% 42%, #5C3F3C 42% 59%,
+        #C9A9A4 59% 82%, #E9EFF4 82% 100%);
 }
 
 body {
@@ -91,7 +91,7 @@ body {
     background: linear-gradient(to bottom,
         var(--folio-latar, transparent) 45%,
         transparent 100%);
-    transition: background-color 220ms var(--sc-ease-out);
+    transition: opacity 220ms var(--sc-ease-out);
 }
 
 .folio {
@@ -192,48 +192,45 @@ body {
 
 /* Halaman judul sudah punya 100svh dan padding sendiri; padding bab di
    atasnya menambah ruang mati yang tidak dipakai apa pun. */
-.bab--malam { padding-top: 0; }
-
-.bab > * { position: relative; z-index: 2; }
-
 .bab--malam {
     --ground: #0B0908;
     --lembar: #0B0908;
 }
 
 .bab--subuh {
-    --ground: #1A1310;
+    --ground: #241619;
     --lembar: #0B0908;
 }
 
+/* Fajar di lereng. Tinta redupnya DINAIKKAN di sini: #BCA9A2 di atas #5C3F3C
+   hanya 4,16:1, di bawah ambang. */
 .bab--pagi {
-    --ground: #33231F;
-    --lembar: #1A1310;
+    --ground: #5C3F3C;
+    --lembar: #241619;
+    --sc-ink-soft: #DCCCC6;
+    color: var(--sc-ink);
 }
 
-/* Fajar terbesar terjadi tepat di sini, di batas menuju puncak. */
+/* Puncak. Warnanya BUKAN krem-kuningan bawaan yang jadi jebakan taste.md:
+   #C9A9A4 diturunkan dari piksel puncak gunung yang sudah diukur di
+   tailwind.config.js (#BE9392, rona 1 derajat), dan render di dalamnya
+   memakai cahaya merah muda yang sama. */
 .bab--siang {
-    --ground: #EFE0DC;
-    --lembar: #33231F;
-    --sc-ink: #231A17;
-    --sc-ink-soft: #6A5A55;
-    --sc-accent: #8E4438;
+    --ground: #C9A9A4;
+    --lembar: #5C3F3C;
+    --sc-ink: #201513;
+    --sc-ink-soft: #4A3733;
+    --sc-accent: #7A3A30;
     --sc-accent-ink: #FFFFFF;
     color: var(--sc-ink);
 }
 
 /* Ground terakhir adalah latar aplikasinya, nilai per nilai dari
    tailwind.config.js: latar #E9EFF4, tinta #0B1B2B, tinta-redup #4A5D70,
-   bata #9C5248. Bukan sekadar "mirip terang" — menekan Masuk memindahkan
-   orang ke warna yang sudah ada di layarnya.
-
-   Latarnya sengaja SEJUK, bukan krem. Itu keputusan yang sudah beralasan di
-   konfigurasi aplikasi: latar netral sejuk membuat bata di atasnya terbaca
-   sebagai warna, bukan sebagai noda. Halaman depan boleh hangat sepanjang
-   fajarnya; di ujungnya ia menyerah pada aturan aplikasinya. */
+   bata #9C5248. */
 .bab--terang {
     --ground: #E9EFF4;
-    --lembar: #EFE0DC;
+    --lembar: #C9A9A4;
     --sc-ink: #0B1B2B;
     --sc-ink-soft: #4A5D70;
     --sc-accent: #9C5248;
@@ -257,13 +254,16 @@ body {
     background: var(--lembar);
     pointer-events: none;
     --tepi: calc(100% - var(--kelupas, 0) * 100%);
+    /* Tepinya TEGAS, cuma 1,5vh untuk menahan tangga piksel. Pita 12vh yang
+       dipakai sebelumnya adalah crossfade, dan grammar ini melarangnya
+       persis karena itu: "Hard cuts, not crossfades." */
     -webkit-mask-image: linear-gradient(to bottom,
         #000 0,
-        #000 max(0px, calc(var(--tepi) - 12vh)),
+        #000 max(0px, calc(var(--tepi) - 1.5vh)),
         transparent var(--tepi));
     mask-image: linear-gradient(to bottom,
         #000 0,
-        #000 max(0px, calc(var(--tepi) - 12vh)),
+        #000 max(0px, calc(var(--tepi) - 1.5vh)),
         transparent var(--tepi));
 }
 
@@ -288,9 +288,12 @@ body {
 
 /* Ruang di ATAS judul lebih besar daripada di bawahnya: jaraknya milik batas
    antar bagian, bukan milik pasangan judul-dan-badan. */
+/* --sc-t-2xl, BUKAN 3xl. Pada 1440px 3xl = 80px, dan itu membuat judul tanya
+   jawab jadi tipografi terbesar di seluruh situs: lebih besar dari kalimat
+   puncak (68px) dan dari judul hero (52px). Hierarkinya terbalik. */
 .judul-bab {
     font-family: var(--sc-font-display);
-    font-size: var(--sc-t-3xl);
+    font-size: var(--sc-t-2xl);
     line-height: 1.02;
     letter-spacing: -0.022em;
     font-weight: 600;
@@ -390,15 +393,22 @@ body {
 .aksi:hover { background: color-mix(in oklab, var(--sc-accent) 88%, #fff); }
 .aksi:active { transform: translateY(1px); }
 
-.prosa-lanjut { margin-top: var(--sc-section); }
-.judul-bab--kecil { font-size: var(--sc-t-xl); }
-/* Gunung di puncak: cukup untuk terlihat warnanya, tidak sampai bersaing
-   dengan kartu berita yang duduk di atasnya. */
-.ufuk--siang { opacity: .55; }
-/* Di dalam .judul-halaman (100svh) ufuk duduk tepat di lipatan, dan ia harus
-   di bawah teks: judulnya yang dibaca, gunungnya yang menemani. */
-.ufuk--judul { z-index: 0; opacity: .9; }
-.judul-halaman > *:not(.ufuk) { position: relative; z-index: 1; }
+/* Spread dua kolom, bukan tumpukan satu kolom. Ini grammar cetak: setelah
+   halaman judul datang bidang teks yang padat dan asimetris. Ia juga
+   memangkas tinggi bab I hampir separuh, dan bab I tidak boleh jadi bab
+   terpanjang di halaman yang puncaknya ada di bab IV. */
+.prosa-lanjut {
+    margin-top: var(--sc-section);
+    display: grid;
+    gap: var(--sc-5) var(--sc-8);
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+    .prosa-lanjut { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prosa-lanjut > *:first-child { grid-column: 1 / -1; max-width: 52ch; }
+}
+.judul-bab--kecil { font-size: var(--sc-t-lg); }
 
 /* ── Adegan hero: kedalaman sungguhan ─────────────────────────────────
  *
@@ -420,7 +430,7 @@ body {
    blok judul, tidak sampai membuat pembaca menunggu. */
 .panggung-hero {
     position: relative;
-    height: 170svh;
+    height: 132svh;
 }
 
 .kamera {
@@ -574,16 +584,15 @@ body {
     transform: translate3d(0, calc(var(--gulir, 0) * -238px), 0);
 }
 
-/* Tepi cahaya di punggung terdekat. Bibir sungguhan menangkap cahaya, dan
-   satu piksel di sana menjual kedalaman lebih baik daripada blur berapa pun. */
-.lapis--dekat .tepi { opacity: calc(.25 + var(--gulir, 0) * .55); }
-
 /* Butiran. Ground gelap yang rata BERPITA di layar sungguhan; ini yang
    membedakan "halaman gelap" dari "ruangan yang diterangi". */
+/* Butiran melayang di SELURUH halaman, bukan cuma di dalam kamera hero.
+   Bab II dan III adalah lempeng warna rata tanpa ini, dan ground gelap yang
+   rata berpita di layar sungguhan. */
 .butiran {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 4;
+    z-index: 60;
     pointer-events: none;
     opacity: .05;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -640,11 +649,23 @@ body {
     counter-reset: tahap;
 }
 
+/* Spread, bukan daftar. Lima tahap dalam satu kolom adalah dokumen; dua
+   kolom asimetris membuatnya terbaca sebagai halaman cetak, dan memangkas
+   tinggi babnya. */
+@media (min-width: 860px) {
+    .tahap {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--sc-8);
+    }
+    .tahap > li:first-child { grid-column: 1 / -1; }
+}
+
 .tahap > li {
     counter-increment: tahap;
     display: grid;
-    grid-template-columns: 3.5rem 1fr;
-    gap: var(--sc-4) var(--sc-5);
+    grid-template-columns: 3rem 1fr;
+    gap: var(--sc-3) var(--sc-4);
     padding-block: var(--sc-5);
     border-top: 1px solid color-mix(in oklab, var(--sc-ink) 12%, transparent);
 }
@@ -670,6 +691,10 @@ body {
 
 .tahap p { margin: 0; }
 
+/* Archivo, bukan mono. Sebelas aturan halaman ini memakai mono untuk
+   label, keterangan, dan meta; digabung dengan penomoran tahap ia jadi
+   tampilan SaaS gelap 2019, dan itu yang terbaca sebagai jadul. Mono
+   dipertahankan hanya untuk folio, tanggal, dan angka. */
 .medan-dicatat {
     display: flex;
     flex-wrap: wrap;
@@ -677,10 +702,8 @@ body {
     margin: var(--sc-4) 0 0;
     padding: 0;
     list-style: none;
-    font-family: var(--sc-font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.01em;
     color: color-mix(in oklab, var(--sc-ink-soft) 82%, transparent);
 }
 
@@ -728,47 +751,46 @@ body {
     border: 1px solid color-mix(in oklab, var(--sc-ink) 16%, transparent);
     border-radius: var(--r-kartu);
     padding: var(--sc-5);
-    background: color-mix(in oklab, var(--sc-ink) 4%, transparent);
+    background: color-mix(in oklab, var(--sc-ink) 6%, transparent);
+    /* Bayangan berjarak DAN tepi cahaya: bibir sungguhan menangkap cahaya,
+       dan garis 1px sendirian bukan kedalaman. */
+    box-shadow:
+        0 1px 0 color-mix(in oklab, var(--sc-ink) 14%, transparent) inset,
+        0 18px 40px -24px rgba(0, 0, 0, .75);
 }
 
 .rajah__ket {
-    font-family: var(--sc-font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.01em;
     color: var(--sc-ink-soft);
     margin: var(--sc-4) 0 0;
 }
 
 .aspek {
-    display: flex;
-    gap: 0.5rem;
-    align-items: flex-end;
-    justify-content: space-between;
+    display: grid;
+    gap: 0.55rem 1.25rem;
+    margin: 0;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
 }
 
-.aspek b {
-    flex: 1;
+.aspek > div {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: baseline;
     gap: 0.6rem;
+}
+
+.aspek dt {
     font-family: var(--sc-font-mono);
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--sc-accent);
+    min-width: 1.6rem;
 }
 
-/* Kelima batang SAMA TINGGI. Tinggi yang berbeda-beda menggambarkan sebaran
-   nilai yang tidak pernah ada, dan itu statistik karangan dengan bentuk lain.
-   Yang ingin dikatakan rajah ini cuma: lima aspek, satu rata-rata. */
-.aspek b i {
-    display: block;
-    width: 100%;
-    height: 52px;
-    border-radius: 3px;
-    background: color-mix(in oklab, var(--sc-accent) 34%, transparent);
-    font-style: normal;
+.aspek dd {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--sc-ink);
 }
 
 .rantai {
@@ -776,18 +798,32 @@ body {
     align-items: center;
     gap: 0.65rem;
     flex-wrap: wrap;
-    font-family: var(--sc-font-mono);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--sc-ink-soft);
 }
 
 .rantai span {
     padding: 0.35rem 0.7rem;
     border: 1px solid color-mix(in oklab, var(--sc-ink) 18%, transparent);
-    border-radius: 999px;
+    border-radius: var(--r-medan);
 }
 
 .rantai em { font-style: normal; color: var(--sc-accent); }
+
+/* Blok ketiga BUKAN zigzag. Tiga zigzag berturut-turut ada di daftar tolak,
+   dan komentar di atas berkas ini sendiri sudah menuliskan aturannya
+   sementara markup-nya melanggarnya. */
+.kerja__blok--pernyataan {
+    grid-template-columns: 1fr;
+    text-align: left;
+}
+
+.kerja__blok--pernyataan h3 {
+    font-size: var(--sc-t-xl);
+    max-width: 20ch;
+}
+
+.kerja__blok--pernyataan .badan { max-width: 56ch; }
 
 @media (max-width: 800px) {
     .kerja__blok { grid-template-columns: 1fr; }
@@ -802,12 +838,33 @@ body {
 /* Puncak dapat ruang gulir terbesar di halaman, dan bab sebelumnya lebih
    tenang. Kalau bab lain lebih panjang, yang jadi puncak bukan yang ini. */
 .puncak {
-    padding-block: calc(var(--sc-section) * 2.9);
+    padding-block: calc(var(--sc-section) * 2.2);
+    /* Satu-satunya blok yang ditengahkan di seluruh halaman. Menengahkan
+       semua akan jadi kebisingan; menengahkan SATU membuatnya berbunyi. */
+    text-align: center;
+}
+
+.puncak__kalimat { margin-inline: auto; }
+.puncak__sumber { margin-inline: auto; }
+
+/* Bab II bersauh KANAN. Lima bab dengan sauh kiri semua adalah satu tata
+   letak yang diulang lima kali. */
+@media (min-width: 860px) {
+    .kepala-kanan {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        gap: var(--sc-7);
+        align-items: end;
+    }
+    .kepala-kanan > *:first-child { order: 2; }
+    .kepala-kanan .judul-bab { margin-bottom: 0; }
 }
 
 .puncak__kalimat {
     font-family: var(--sc-font-display);
-    font-size: clamp(2rem, 1.1rem + 3.9vw, 4.25rem);
+    /* Puncak adalah tipografi terbesar di halaman. Kalau bukan, yang jadi
+       puncak bukan bab ini. */
+    font-size: var(--sc-t-3xl);
     line-height: 1.05;
     letter-spacing: -0.026em;
     font-weight: 600;
@@ -823,12 +880,35 @@ body {
 }
 
 .puncak__sumber {
-    font-family: var(--sc-font-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
     color: var(--sc-ink-soft);
     margin: var(--sc-6) 0 0;
+}
+
+/* Pandangan puncak. Gambarnya dibiarkan penuh lebar kolomnya dan diberi
+   keterangan, bukan dibentangkan di bawah teks. */
+.puncak__pandang {
+    margin: calc(var(--sc-section) * 0.5) auto 0;
+    max-width: var(--maxw);
+    padding-inline: var(--sc-gutter);
+}
+
+.puncak__pandang picture,
+.puncak__pandang img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--r-kartu);
+    box-shadow: var(--bayang-kartu);
+}
+
+.puncak__pandang figcaption {
+    margin-top: var(--sc-4);
+    max-width: 46ch;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--sc-ink-soft);
 }
 
 /* Media duduk di kolomnya sendiri dengan keterangan. Grammar ini melarang
@@ -1025,10 +1105,8 @@ body {
 }
 
 .kolofon__data h4 {
-    font-family: var(--sc-font-mono);
-    font-size: 0.625rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.01em;
     color: var(--sc-ink-soft);
     margin: 0 0 var(--sc-3);
     font-weight: 500;

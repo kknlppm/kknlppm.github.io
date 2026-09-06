@@ -12,13 +12,10 @@ module.exports = {
         "!./uji/**",
         "./assets/js/**/*.js",
         "!./assets/js/beranda.js",
+        // Mesin halaman depan. Memindainya menyeret .blur .filter .static
+        // .table .visible .transform ke app.css yang tidak pernah memakainya.
+        "!./assets/js/scrollcraft.js",
         "!./assets/js/jscroot/**",
-        // Flowbite 2.5.2 — jalur Tailwind 3. Versi 4.x menuntut Tailwind v4,
-        // yang membuang tailwind.config.js ini beserta palet yang kontrasnya
-        // sudah diukur. Dipakai POLANYA (sidebar, dropdown), bukan JS-nya:
-        // laci.js sudah menjebak fokus dan mengembalikannya ke pemanggil,
-        // dan itu lebih baik daripada laci generik seharga 133 KB.
-        "./node_modules/flowbite/**/*.js",
     ],
 
     // Kelas yang dirakit dinamis di JavaScript tidak terlihat oleh pemindai
@@ -79,7 +76,12 @@ module.exports = {
             // penanda di mana kotak isian berakhir, dan kotaknya duduk di
             // atas kartu putih. WCAG 1.4.11 minta 3:1 untuk itu; #CFDAE4
             // hanya 1,42. #8195AB = 3,08 di kertas, masih sekeluarga sejuk.
-            garis: { DEFAULT: "#CFDAE4", tipis: "#E3EAF1", kendali: "#8195AB" },
+            // `kendali` diukur ulang: #8195AB memang 3,08 di KERTAS, tapi
+            // kotak isian dan segmen juga duduk langsung di `latar`, dan di
+            // sana ia cuma 2,66 — di bawah ambang 3:1 WCAG 1.4.11, padahal
+            // ia satu-satunya penanda batas kendalinya.
+            //   #6E8299  3,09 di latar · 3,85 di kertas
+            garis: { DEFAULT: "#CFDAE4", tipis: "#E3EAF1", kendali: "#6E8299" },
 
             // Penanda status dipakai sebagai teks 11px huruf besar DI ATAS
             // latar mudanya sendiri, jadi ambangnya 4,5 — bukan 3. Nilai
@@ -134,5 +136,13 @@ module.exports = {
         },
     },
 
-    plugins: [require("flowbite/plugin")],
+    // TANPA plugin Flowbite. Nol kelasnya dipakai di repo ini — sidebarnya
+    // ditulis tangan, lacinya punya penjebak fokus sendiri — tapi `addBase`
+    // miliknya tetap menyuntik ke app.css: kotak centang tercentang BIRU
+    // (#1c64f2) dan bersudut siku, cincin fokusnya biru, `progress` biru
+    // (#3f83f8), dan panah `select` abu (#6B7280). Sembilan belas kemunculan
+    // warna asing di palet yang paragraf di atas bilang "DIGANTI, bukan
+    // diperluas". `accent-bata` pada kotak centangnya tidak pernah berlaku
+    // karena Flowbite menyetel `appearance: none`.
+    plugins: [],
 };
