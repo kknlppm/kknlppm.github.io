@@ -23,6 +23,13 @@
        data — bukan hiasan pemasaran. -->
   <section class="hidden lg:flex flex-col p-12 bg-kertas border-r border-garis">
     <div>
+      <!-- Kunci merek yang sama persis dengan folio halaman depan: logo, lalu
+           nama. Ini halaman pertama setelah orang menekan "Masuk", jadi yang
+           dilihatnya harus benda yang barusan ditinggalkannya. -->
+      <a class="inline-flex items-center gap-2 mb-8 text-tinta font-medium no-underline" href="/">
+        <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
+        <span>KKN&nbsp;LPPM</span>
+      </a>
       <div class="eyebrow">Lembaga Penelitian dan Pengabdian kepada Masyarakat</div>
       <h1 class="judul-halaman text-4xl mt-2 leading-[1.1]">
         Register Kuliah Kerja&nbsp;Nyata
@@ -38,17 +45,18 @@
          terbaca sebagai ruang kosong yang belum diisi. -->
     <div class="mt-auto space-y-8">
 
-    <!-- Contoh deret nilai, memakai lambang yang sama dengan di dalam:
-         lima aspek H·S·L·QP·QL, tingginya sebanding dengan skor. -->
+    <!-- Lambang lima aspek. Batangnya SAMA TINGGI: tinggi yang
+         berbeda-beda menggambarkan sebaran nilai yang tidak pernah ada, dan
+         itu statistik karangan dengan bentuk lain. -->
     <div>
       <div class="eyebrow mb-3 text-tinta-redup">Lima aspek penilaian</div>
       <div class="flex items-end gap-6">
         <div class="deret-nilai" style="height:2.5rem" aria-hidden="true">
-          <i style="height:26px;width:7px"></i>
-          <i style="height:34px;width:7px"></i>
-          <i style="height:22px;width:7px"></i>
           <i style="height:30px;width:7px"></i>
-          <i style="height:19px;width:7px"></i>
+          <i style="height:30px;width:7px"></i>
+          <i style="height:30px;width:7px"></i>
+          <i style="height:30px;width:7px"></i>
+          <i style="height:30px;width:7px"></i>
         </div>
         <div class="font-data text-mikro text-tinta-redup leading-5">
           H · S · L<br>QP · QL
@@ -56,9 +64,13 @@
       </div>
     </div>
 
-    <div class="font-data text-mikro text-tinta-redup">
-      1.706 mahasiswa · 202 kelompok · 5 tahun ajaran
-    </div>
+    <!-- Angka operasional (jumlah mahasiswa, kelompok, tahun ajaran) DIBUANG
+         dari sini. Halaman ini publik, dan keputusannya sama dengan yang
+         berlaku di halaman depan. -->
+    <p class="text-sm text-tinta-redup max-w-sm">
+      Sertifikat yang diterbitkan di sini membawa kode QR, dan keasliannya
+      bisa diperiksa siapa saja tanpa akun.
+    </p>
 
     </div>
   </section>

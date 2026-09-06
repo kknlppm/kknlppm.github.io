@@ -33,6 +33,25 @@
 
     --maxw: 1120px;
     --ukur: 60ch;
+
+    /* ── Atom yang DIBAGI dengan aplikasi ──────────────────────────────
+     *
+     * Nilainya disalin apa adanya dari `tailwind.config.js`, bukan dikira
+     * mirip. Dua berkas memang, tapi selisihnya sekarang terlihat kalau ada:
+     * yang berbeda cuma cara memakainya, bukan bahannya.
+     *
+     *   radius kartu   rounded-2xl   16px
+     *   radius medan   rounded-xl    12px
+     *   radius pil     rounded-full  999px
+     *   bayangan       shadow-kartu / shadow-naik
+     *
+     * Halaman ini gelap sepanjang tiga bab pertama, dan bayangan berbasis
+     * tinta #0B1B2B tidak terlihat di sana. Karena itu ia hanya dipakai di
+     * ground terang, tempat aplikasinya juga memakainya. */
+    --r-kartu: 16px;
+    --r-medan: 12px;
+    --bayang-kartu: 0 1px 2px rgba(11, 27, 43, .06), 0 8px 24px -12px rgba(11, 27, 43, .18);
+    --bayang-naik: 0 1px 0 rgba(11, 27, 43, .08), 0 6px 12px -8px rgba(11, 27, 43, .28);
 }
 
 /* Latar kanvas, yaitu yang terlihat saat halaman dipantulkan (overscroll).
@@ -44,7 +63,7 @@
 html {
     background: linear-gradient(to bottom,
         #0B0908 0 20%, #1A1310 20% 42%, #33231F 42% 59%,
-        #EFE0DC 59% 82%, #F7F4F1 82% 100%);
+        #EFE0DC 59% 82%, #E9EFF4 82% 100%);
 }
 
 body {
@@ -203,13 +222,20 @@ body {
     color: var(--sc-ink);
 }
 
-/* Ground terakhir adalah kertas aplikasinya, persis. Menekan "Masuk" tidak
-   memindahkan orang ke tempat baru. */
+/* Ground terakhir adalah latar aplikasinya, nilai per nilai dari
+   tailwind.config.js: latar #E9EFF4, tinta #0B1B2B, tinta-redup #4A5D70,
+   bata #9C5248. Bukan sekadar "mirip terang" — menekan Masuk memindahkan
+   orang ke warna yang sudah ada di layarnya.
+
+   Latarnya sengaja SEJUK, bukan krem. Itu keputusan yang sudah beralasan di
+   konfigurasi aplikasi: latar netral sejuk membuat bata di atasnya terbaca
+   sebagai warna, bukan sebagai noda. Halaman depan boleh hangat sepanjang
+   fajarnya; di ujungnya ia menyerah pada aturan aplikasinya. */
 .bab--terang {
-    --ground: #F7F4F1;
+    --ground: #E9EFF4;
     --lembar: #EFE0DC;
-    --sc-ink: #1B2430;
-    --sc-ink-soft: #5A6675;
+    --sc-ink: #0B1B2B;
+    --sc-ink-soft: #4A5D70;
     --sc-accent: #9C5248;
     --sc-accent-ink: #FFFFFF;
     color: var(--sc-ink);
@@ -488,7 +514,7 @@ body {
    tidak ada bilah judul, tidak ada sidebar, tidak ada nama karangan. */
 .rajah {
     border: 1px solid color-mix(in oklab, var(--sc-ink) 16%, transparent);
-    border-radius: 14px;
+    border-radius: var(--r-kartu);
     padding: var(--sc-5);
     background: color-mix(in oklab, var(--sc-ink) 4%, transparent);
 }
@@ -609,8 +635,8 @@ body {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 12px;
-    box-shadow: var(--sc-e2);
+    border-radius: var(--r-medan);
+    box-shadow: var(--bayang-kartu);
 }
 
 .kolom-media figcaption {
@@ -642,7 +668,8 @@ body {
 }
 
 .pos__gbr {
-    border-radius: 10px;
+    border-radius: var(--r-medan);
+    box-shadow: var(--bayang-kartu);
     overflow: hidden;
     background: color-mix(in oklab, var(--sc-ink) 8%, transparent);
 }
