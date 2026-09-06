@@ -907,6 +907,75 @@ body {
     .kerja__blok--balik > *:first-child { order: 0; }
 }
 
+/* ── Pita lanskap di kaki bab ─────────────────────────────────────────
+ *
+ * `worlds.md`: satu tingkat realisme. Hero dan puncak memakai render 3D,
+ * jadi bab di antaranya tidak boleh jadi lempeng warna rata — itu terbaca
+ * sebagai dua situs yang ditempel jadi satu.
+ *
+ * Ia menempel di KAKI bab dan meleleh ke ground-nya lewat masker, jadi
+ * batas bab tetap potongan tegas: yang menyeberang cuma tanahnya.
+ */
+.pita-lanskap {
+    position: relative;
+    z-index: 2;
+    margin-top: calc(var(--sc-section) * 0.5);
+    margin-bottom: calc(var(--sc-section) * -1.15);
+    pointer-events: none;
+    line-height: 0;
+    /* Meleleh di KEDUA ujung. Tepi bawah yang padat meninggalkan batas
+       persegi di atas ground babnya, dan persegi di lapisan lanskap terbaca
+       sebagai foto yang ditempel, bukan sebagai tanah. */
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0, #000 34%, #000 76%, transparent 100%);
+    mask-image: linear-gradient(to bottom,
+        transparent 0, #000 34%, #000 76%, transparent 100%);
+}
+
+/* Rona ground babnya ditumpangkan tipis supaya lanskapnya duduk DI DALAM
+   cahaya bab itu, bukan berdiri sebagai gambar terpisah. */
+.pita-lanskap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ground);
+    opacity: .34;
+    mix-blend-mode: color;
+}
+
+/* Lebarnya di PEMBUNGKUSNYA, bukan di gambarnya: `<picture>` bawaannya
+   inline, jadi `width: 112%` pada `img` diukur terhadap sesuatu yang
+   lebarnya justru ditentukan gambar itu sendiri, dan hasilnya 100%. Pitanya
+   berakhir 86px sebelum tepi kanan layar. */
+.pita-lanskap picture {
+    display: block;
+    width: 112%;
+    margin-left: -6%;
+}
+
+.pita-lanskap img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Tingginya dipotong: yang dibutuhkan cuma garis tanahnya, bukan langitnya,
+   dan langit render itu transparan sehingga ia hanya menambah ruang mati. */
+.pita-lanskap--subuh { max-height: 26vh; overflow: hidden; }
+.pita-lanskap--subuh img { margin-top: -12%; }
+
+.pita-lanskap--pagi { max-height: 20vh; overflow: hidden; }
+
+@media (max-width: 700px) {
+    .pita-lanskap--subuh { max-height: 16vh; }
+    .pita-lanskap--pagi { max-height: 13vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Tetap ada: ia komposisi, bukan gerak. */
+    .pita-lanskap { margin-bottom: calc(var(--sc-section) * -1); }
+}
+
 /* ── Puncak (bab IV) ────────────────────────────────────────────────────
  *
  * Ruang paling lapang di seluruh halaman, dan perangkat paling sedikit.
