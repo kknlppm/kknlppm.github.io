@@ -21,7 +21,7 @@
       Berita yang diterbitkan tampil di halaman depan
       <a href="/" class="text-bata underline underline-offset-2">halaman depan</a>.
     </p>
-    <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap"></output>
+    <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
     <button id="tombolTambah" class="tombol-utama">Tulis berita</button>
   </div>
 
@@ -222,7 +222,7 @@ if (requireLogin()) {
         const ubah = el("button", "tautan-aksi ml-3", "Ubah");
         ubah.type = "button";
         ubah.addEventListener("click", function () { bukaForm(b); });
-        const hapus = el("button", "tautan-aksi text-galat ml-3", "Hapus");
+        const hapus = el("button", "tautan-aksi tautan-aksi--bahaya ml-3", "Hapus");
         hapus.type = "button";
         hapus.addEventListener("click", function () { hapusBerita(b); });
         td.appendChild(ubah);

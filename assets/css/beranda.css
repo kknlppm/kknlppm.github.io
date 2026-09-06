@@ -10,16 +10,20 @@
    Ia ditulis tangan dan DI-COMMIT — bukan hasil build.
    ===================================================================== */
 :root {
-  --bg: #000;
-  --bg-2: #0a0a0a;
-  --surface: #0f0f0f;
-  --surface-2: #171717;
-  --surface-3: #242424;
+  /* Off-black HANGAT, bukan #000. Hitam murni tidak punya udara dan
+     berpita di layar sungguhan; ronanya mengikuti bata gunung. */
+  --bg: #070505;
+  --bg-2: #0e0b0b;
+  --surface: #141010;
+  --surface-2: #1b1616;
+  --surface-3: #292222;
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.14);
   --text: #fff3f0;
   --text-2: rgba(255, 243, 240, 0.72);
-  --text-3: rgba(255, 243, 240, 0.45);
+  /* 0,52, bukan 0,45: pada 0,45 sembilan baris kecil terukur 4,18:1,
+     di bawah ambang 4,5 WCAG AA. Pada 0,52 ia sekitar 5,0:1. */
+  --text-3: rgba(255, 243, 240, 0.52);
   --btn: #d9d9d9;
   --btn-hover: #ffffff;
   --btn-text: #111;
@@ -124,7 +128,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   position: fixed; inset: 0 0 auto; height: var(--nav-h); z-index: 80;
   border-bottom: 1px solid transparent; transition: background .3s, border-color .3s;
 }
-.nav.is-scrolled { background: rgba(0,0,0,.7); backdrop-filter: blur(14px); border-color: var(--line); }
+.nav.is-scrolled { background: rgba(7,5,5,.7); backdrop-filter: blur(14px); border-color: var(--line); }
 .nav__inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
 .nav__brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
 /* Lambang kampus apa adanya. Ia sudah merah pekat, dan justru itu asal-usul
@@ -139,7 +143,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .nav__burger span { display: block; width: 18px; height: 1.5px; background: #fff; margin: 3px 0; transition: transform .3s, opacity .3s; }
 .nav__mobile {
   position: fixed; inset: var(--nav-h) 0 auto; z-index: 79; display: none;
-  padding: 20px 24px 28px; background: rgba(0,0,0,.95); backdrop-filter: blur(14px);
+  padding: 20px 24px 28px; background: rgba(7,5,5,.95); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
 body.nav-open .nav__mobile { display: block; }
@@ -159,7 +163,7 @@ body.nav-open .nav__mobile { display: block; }
   background: url("/assets/img/beranda-bukit.webp") center bottom / cover no-repeat;
   opacity: .55;
 }
-.hero__fade { position: absolute; left: 0; right: 0; bottom: 0; height: 32%; z-index: 2; background: linear-gradient(180deg, transparent, #000 88%); }
+.hero__fade { position: absolute; left: 0; right: 0; bottom: 0; height: 32%; z-index: 2; background: linear-gradient(180deg, transparent, var(--bg) 88%); }
 .hero__content { position: relative; z-index: 3; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px; }
 .hero__content .h1 { max-width: 700px; }
 .hero__content .lead { max-width: 460px; }
@@ -194,8 +198,8 @@ body.nav-open .nav__mobile { display: block; }
   transform: rotateX(7deg);
   transform-origin: 50% 100%;
   box-shadow:
-    0 60px 120px rgba(0, 0, 0, .7),
-    0 20px 40px rgba(0, 0, 0, .5),
+    0 60px 120px rgba(22, 9, 7, .7),
+    0 20px 40px rgba(22, 9, 7, .5),
     0 0 0 1px rgba(255, 255, 255, .1),
     inset 0 1px 0 rgba(255, 255, 255, .9);
 }
@@ -233,7 +237,7 @@ body.nav-open .nav__mobile { display: block; }
   border: 1px solid rgba(255,255,255,.1); border-bottom: 0;
   border-radius: 20px 20px 0 0; overflow: hidden;
   backdrop-filter: blur(20px);
-  box-shadow: 0 -20px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 -20px 80px rgba(22, 9, 7,.5), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .jendela--kartu { border-bottom: 1px solid rgba(255,255,255,.1); border-radius: 20px; }
 .jendela__sisi { padding: 18px; border-right: 1px solid rgba(255,255,255,.06); }
@@ -273,7 +277,7 @@ body.nav-open .nav__mobile { display: block; }
 .kaca {
   background: rgba(12, 16, 21, .62); backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,.16); border-radius: 14px; padding: 18px 20px;
-  box-shadow: 0 20px 45px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.1);
+  box-shadow: 0 20px 45px rgba(22, 9, 7,.45), inset 0 1px 0 rgba(255,255,255,.1);
 }
 .kaca__judul { font-family: var(--font-data); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-bottom: 12px; }
 .kaca__baris { display: grid; grid-template-columns: 60px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.08); font-size: 12px; }
@@ -286,7 +290,7 @@ body.nav-open .nav__mobile { display: block; }
 .kaca__bulat {
   width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px;
   background: conic-gradient(from 200deg, #C28780, #E9D0C9, #9C5248, #C28780);
-  filter: blur(.4px); box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  filter: blur(.4px); box-shadow: 0 10px 30px rgba(22, 9, 7,.45);
 }
 .kaca--tengah { text-align: center; }
 .kaca--tengah b { display: block; font-size: 16px; font-weight: 600; color: #fff; }
@@ -314,15 +318,15 @@ body.nav-open .nav__mobile { display: block; }
 .panggung {
   position: relative; margin-top: 26px; min-height: 560px;
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 40px 90px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 40px 90px rgba(22, 9, 7,.5), inset 0 1px 0 rgba(255,255,255,.06);
 }
 /* Latar bergambar, persis pola `feature-stage` Fora: kartu di atasnya baru
    punya sesuatu untuk melayang di atasnya. Panel gradien rata tidak. */
 .panggung__latar {
   position: absolute; inset: 0;
   background:
-    url("/assets/img/beranda-bukit-lembut.webp") center bottom / cover no-repeat,
-    linear-gradient(180deg, #0e1319, #1b2630 60%, #33454f);
+    url("/assets/img/adegan/punggung-tengah.avif") center bottom / cover no-repeat,
+    linear-gradient(180deg, #120c0c, #2a1c1c 60%, #4a3232);
 }
 .panggung__latar::after {
   content: ""; position: absolute; inset: 0;
@@ -341,14 +345,14 @@ body.nav-open .nav__mobile { display: block; }
   background: rgba(16, 20, 26, .78); backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,.12); border-radius: 16px;
   padding: 28px 30px; display: grid; gap: 12px;
-  box-shadow: 0 30px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 30px 60px rgba(22, 9, 7,.55), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .panggung__judul { font-size: 24px; }
 .panggung__teks { font-size: 14px; }
 .panggung__slide .jendela {
   width: 100%; min-height: 320px; grid-template-columns: 150px 1fr;
   border-radius: 14px; border-bottom: 1px solid var(--line);
-  box-shadow: 0 30px 60px rgba(0,0,0,.5);
+  box-shadow: 0 30px 60px rgba(22, 9, 7,.5);
 }
 .panggung__slide .jendela__sisi { padding: 14px; }
 .panggung__slide .jendela__nav li { font-size: 11px; padding: 5px 4px; }
@@ -376,7 +380,7 @@ body.nav-open .nav__mobile { display: block; }
   position: sticky; top: 100px; display: grid; grid-template-columns: 1fr 1fr;
   background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
   overflow: hidden; min-height: 420px; margin-bottom: 24px;
-  box-shadow: 0 -10px 40px rgba(0,0,0,.6);
+  box-shadow: 0 -10px 40px rgba(22, 9, 7,.6), inset 0 1px 0 rgba(255,255,255,.06);
 }
 .tumpuk__kartu:nth-child(2) { top: 116px; }
 .tumpuk__kartu:nth-child(3) { top: 132px; }
@@ -390,11 +394,11 @@ body.nav-open .nav__mobile { display: block; }
 }
 .tumpuk__visual {
   position: relative; overflow: hidden; display: grid; place-items: center; padding: 32px;
-  background: linear-gradient(180deg, #1a2430, #2b3d49 60%, #16202a);
+  background: linear-gradient(180deg, #1c1414, #3a2828 60%, #171010);
 }
 .tumpuk__visual::before {
   content: ""; position: absolute; inset: 0;
-  background: url("/assets/img/beranda-bukit-lembut.webp") center bottom / cover no-repeat;
+  background: url("/assets/img/adegan/punggung-jauh.avif") center bottom / cover no-repeat;
   opacity: .85;
 }
 .tumpuk__kartu--balik .tumpuk__visual { order: -1; }
@@ -404,7 +408,7 @@ body.nav-open .nav__mobile { display: block; }
   position: relative; z-index: 1; width: 100%; max-width: 380px;
   background: rgba(12, 16, 21, .88); backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 16px 18px;
-  box-shadow: 0 24px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 24px 50px rgba(22, 9, 7,.6), inset 0 1px 0 rgba(255,255,255,.08);
   font-size: 12px;
 }
 .cuplik__judul { font-family: var(--font-data); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
@@ -425,31 +429,36 @@ body.nav-open .nav__mobile { display: block; }
 .pengumuman {
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--bg-2); padding: 40px 44px;
-  display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;
+  display: grid; grid-template-columns: 1fr minmax(260px, .85fr); gap: 40px; align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
 }
 .pengumuman__periode { font-family: var(--font-data); font-size: 13px; color: var(--bata-terang); letter-spacing: .06em; }
 .pengumuman__judul { font-size: 26px; letter-spacing: -.02em; margin: 8px 0 10px; }
 .pengumuman__teks { color: var(--text-2); font-size: 15px; max-width: 520px; }
-.pengumuman__angka { text-align: right; }
-.pengumuman__angka b { display: block; font-family: var(--font-data); font-size: 32px; font-weight: 500; letter-spacing: -.02em; }
-.pengumuman__angka small { font-size: 12px; color: var(--text-3); }
+/* Kalimat pemilik, bukan angka operasional: halaman publik tidak memuat
+   statistik, dan kalimat ini yang diminta diingat pengunjung. */
+.pengumuman__kalimat {
+  font-size: clamp(22px, 2.3vw, 30px); line-height: 1.22; letter-spacing: -.02em;
+  text-align: right; color: var(--text-2); text-wrap: balance;
+}
+.pengumuman__kalimat b { font-weight: 400; color: var(--text); }
 
 /* Berita --------------------------------------------------------------- */
 .berita-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.pos { border: 1px solid var(--line); background: var(--bg-2); border-radius: var(--radius); padding: 8px; display: flex; flex-direction: column; transition: border-color .3s, transform .3s var(--ease); }
+.pos { border: 1px solid var(--line); background: var(--bg-2); border-radius: var(--radius); padding: 8px; display: flex; flex-direction: column; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); transition: border-color .3s, transform .3s var(--ease); }
 .pos:hover { border-color: var(--line-2); transform: translateY(-3px); }
 .pos__gbr { aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #111; position: relative; }
 .pos__gbr > div { position: absolute; inset: 0; overflow: hidden; transition: transform .8s var(--ease); background-size: cover; background-position: center; }
 .pos:hover .pos__gbr > div { transform: scale(1.04); }
 .pos__tanpa-foto {
-  background: radial-gradient(60% 55% at 50% 40%, #24384a, #14202b 55%, #0b1116 85%);
+  background: radial-gradient(60% 55% at 50% 40%, #3a2a2a, #1f1616 55%, #0f0b0b 85%);
   display: grid; align-items: end; padding: 22px 20px;
 }
 .pos__tanpa-foto::after {
   content: ""; position: absolute; left: 50%; top: 38%; width: 30%; aspect-ratio: 1;
   transform: translate(-50%, -50%) rotate(-8deg); border-radius: 18%;
   background: linear-gradient(135deg, #e9d0c9, #b08a80 50%, #5e3a33);
-  box-shadow: 0 24px 50px rgba(0,0,0,.6);
+  box-shadow: 0 24px 50px rgba(22, 9, 7,.6);
   opacity: .55;
 }
 .pos__tanpa-foto p {
@@ -484,10 +493,10 @@ body.nav-open .nav__mobile { display: block; }
 /* FAQ ------------------------------------------------------------------ */
 .faq { display: grid; grid-template-columns: 300px 1fr; gap: 40px; align-items: start; }
 .faq__list { display: grid; gap: 10px; }
-.faq__bantu { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); padding: 26px 24px; }
+.faq__bantu { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); padding: 26px 24px; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
 .faq__bantu h4 { font-size: 17px; font-weight: 400; margin-bottom: 8px; }
 .faq__bantu p { color: var(--text-3); font-size: 14px; margin-bottom: 14px; }
-.acc { border: 1px solid var(--line); background: var(--bg-2); border-radius: 18px; overflow: hidden; }
+.acc { border: 1px solid var(--line); background: var(--bg-2); border-radius: 18px; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
 .acc__q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px 26px; text-align: left; font-size: 16px; }
 .acc__q i { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-2); display: grid; place-items: center; transition: transform .4s var(--ease); flex: none; font-style: normal; font-size: 12px; }
 .acc.is-open .acc__q i { transform: rotate(180deg); }
@@ -503,12 +512,12 @@ body.nav-open .nav__mobile { display: block; }
 .cta { position: relative; overflow: hidden; padding: 190px 0 0; }
 .cta__bg {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, #000 0%, #0d0a0b 40%, #1e1517 60%, #3d2b2c 85%, #8a6a68 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, #0d0a0b 40%, #1e1517 60%, #3d2b2c 85%, #8a6a68 100%);
 }
 .cta__dunes {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 45%;
-  background: url("/assets/img/beranda-punggung.webp") center bottom / cover no-repeat;
-  opacity: .75;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+  background: url("/assets/img/adegan/punggung-tengah.avif") center 35% / cover no-repeat;
+  opacity: .8;
 }
 .cta .container {
   position: relative; display: grid; grid-template-columns: 380px 1fr;
@@ -536,7 +545,7 @@ body.nav-open .nav__mobile { display: block; }
 .ringkas__bulat {
   width: 46px; height: 46px; border-radius: 50%; background: #fff; color: #111;
   display: grid; place-items: center; font-weight: 600; font-size: 15px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  box-shadow: 0 4px 14px rgba(22, 9, 7,.35);
 }
 .ringkas__judul { font-weight: 600; font-size: 16px; color: #fff; }
 .ringkas__meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,.85); }
@@ -552,7 +561,7 @@ body.nav-open .nav__mobile { display: block; }
 .ringkas__ket { max-width: 420px; text-align: left; font-size: 13px; color: rgba(255,255,255,.85); line-height: 1.5; margin-top: 10px; }
 
 /* Kaki ----------------------------------------------------------------- */
-.footer { background: #000; padding: 64px 0 34px; border-top: 1px solid var(--line); }
+.footer { background: var(--bg); padding: 64px 0 34px; border-top: 1px solid var(--line); }
 .footer__grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 40px; }
 .footer__brand p { color: var(--text-3); font-size: 14px; max-width: 320px; margin-top: 14px; }
 .footer h4 { font-size: 15px; font-weight: 500; margin-bottom: 22px; }
@@ -589,7 +598,7 @@ body.nav-open .nav__mobile { display: block; }
   .tabs button.is-active { background: var(--surface-3); }
   .panggung__slide { padding: 32px 26px; }
   .pengumuman { grid-template-columns: 1fr; padding: 30px 26px; }
-  .pengumuman__angka { text-align: left; }
+  .pengumuman__kalimat { text-align: left; }
   .berita-grid { grid-template-columns: 1fr; }
   .tumpuk__kartu { grid-template-columns: 1fr; position: relative; top: 0 !important; min-height: 0; }
   .tumpuk__kartu--balik .tumpuk__visual { order: 0; }
@@ -616,4 +625,19 @@ body.nav-open .nav__mobile { display: block; }
   .sertifikat { padding: 24px 22px 20px; }
   .sertifikat__nama { font-size: 19px; }
   .footer__grid { grid-template-columns: 1fr; }
+}
+
+/* Render 3D milik pemilik, varian ponsel: berkasnya separuh lebar. */
+@media (max-width: 700px) {
+  .panggung__latar { background-image: url("/assets/img/adegan/punggung-tengah-hp.avif"), linear-gradient(180deg, #120c0c, #2a1c1c 60%, #4a3232); }
+  .tumpuk__visual::before { background-image: url("/assets/img/adegan/punggung-jauh-hp.avif"); }
+  .cta__dunes { background-image: url("/assets/img/adegan/punggung-tengah-hp.avif"); }
+}
+
+/* Butiran di atas seluruh halaman. Ground gelap yang rata berpita di layar
+   sungguhan; derau 4,5 persen adalah bedanya "halaman gelap" dari "ruangan
+   yang diterangi". Di atas bilah navigasi juga, supaya bilahnya bukan pulau. */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  opacity: .045; background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='.85'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url%28%23n%29'/%3E%3C/svg%3E"); background-size: 240px 240px;
 }

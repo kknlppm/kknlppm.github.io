@@ -233,9 +233,48 @@ function pasangKepalaTabel() {
     });
 }
 
+/* Kepala halaman melayang hanya saat halaman bergulir di bawahnya. Di
+ * halaman tabel dokumennya tidak bergulir, jadi kelas ini tidak pernah
+ * terpasang di sana; di Penilaian dan Pengaturan ia yang menyatakan bahwa
+ * judulnya berada DI ATAS isi yang lewat. */
+function pasangKepalaHalaman() {
+    // Dicari saat dibutuhkan, bukan sekali di awal: berkas ini dievaluasi
+    // SEBELUM halaman memanggil nav.js:pasang() yang membangun kepalanya,
+    // jadi pada saat itu `.kepala` belum ada.
+    const perbarui = function () {
+        const kepala = document.querySelector(".kepala");
+        if (kepala) kepala.classList.toggle("melayang", window.scrollY > 2);
+    };
+    addEventListener("scroll", perbarui, { passive: true });
+    perbarui();
+}
+
+/* Segmen yang menggulung mendatar: tepi kanannya memudar selama masih ada
+ * tombol yang tersembunyi di sana. Tombolnya digambar belakangan oleh
+ * halaman, jadi perubahannya diamati, bukan diperiksa sekali di awal. */
+function pasangSegmen() {
+    const semua = document.querySelectorAll(".segmen");
+    if (!semua.length) return;
+    const periksa = function (seg) {
+        const sisa = seg.scrollWidth - seg.clientWidth - seg.scrollLeft;
+        seg.classList.toggle("segmen--lanjut", sisa > 4);
+    };
+    semua.forEach(function (seg) {
+        seg.addEventListener("scroll", function () { periksa(seg); }, { passive: true });
+        if (typeof MutationObserver === "function") {
+            new MutationObserver(function () { periksa(seg); })
+                .observe(seg, { childList: true, attributes: true, attributeFilter: ["hidden"] });
+        }
+        periksa(seg);
+    });
+    addEventListener("resize", function () { semua.forEach(periksa); }, { passive: true });
+}
+
 function pasangTataLetak() {
     samakanLebarKepala();
     pasangKepalaTabel();
+    pasangKepalaHalaman();
+    pasangSegmen();
     pasangTinggiTabel();
 }
 

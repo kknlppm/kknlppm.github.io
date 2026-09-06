@@ -170,6 +170,13 @@
     .segmen > button[aria-pressed="true"] {
         @apply bg-bata text-kertas;
     }
+    /* Di ponsel segmen tahun menggulung mendatar, dan tombol terakhirnya
+       terpotong tanpa tanda apa pun. Kelas ini dipasang ui.js hanya
+       selama masih ada yang tersembunyi di kanan. */
+    .segmen--lanjut {
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+    }
     .segmen > button:not([aria-pressed="true"]):hover {
         @apply text-bata bg-bata-muda;
     }
@@ -183,7 +190,7 @@
         @apply fixed inset-y-0 left-0 z-40 w-60 flex flex-col
                bg-kertas border-r border-garis
                -translate-x-full transition-transform duration-200
-               lg:translate-x-0;
+               lg:translate-x-0 lg:shadow-naik-kanan;
     }
     body.sisi-terbuka .sisi { @apply translate-x-0 shadow-laci; }
 
@@ -195,15 +202,14 @@
        depan, supaya keduanya terbaca sebagai satu lembaga. Ia tidak diberi
        kotak berwarna di belakangnya: lambang itu justru ASAL-USUL palet
        bata di sini. */
-    /* Kunci merek DISAMAKAN dengan folio halaman depan: lambang 20x19,
-       jarak 8px, berat 600. Sebelumnya 26x25, jarak 10px, berat 500 —
-       tiga nilai berbeda untuk satu lockup yang sama. */
+    /* Kunci merek DISAMAKAN dengan .nav__brand halaman depan: lambang
+       28x27, jarak 10px. Satu lockup, satu ukuran, di kedua sisi. */
     .sisi__merek {
-        @apply flex items-center gap-2 px-5 h-16 shrink-0
+        @apply flex items-center gap-2.5 px-5 h-16 shrink-0
                font-semibold tracking-[-0.02em] border-b border-garis-tipis;
     }
     .sisi__merek img {
-        @apply w-5 h-[19px] object-contain shrink-0;
+        @apply w-7 h-[27px] object-contain shrink-0;
     }
 
     .sisi__nav { @apply flex-1 overflow-y-auto p-3 space-y-0.5; }
@@ -266,7 +272,14 @@
     body.ada-sisi { @apply lg:pl-60; }
     body.ada-sisi.sisi-ciut { @apply lg:pl-[60px]; }
 
-    .kepala { @apply bg-kertas border-b border-garis pt-[3px]; }
+    /* Menempel di atas. Di halaman yang bergulir (Penilaian, Pengaturan)
+       judulnya tetap terbaca, dan bayangannya hanya muncul saat ada isi
+       yang menyelinap di bawahnya; kelasnya dipasang ui.js. */
+    .kepala {
+        @apply sticky top-0 z-20 bg-kertas border-b border-garis pt-[3px];
+        transition: box-shadow 160ms ease-out;
+    }
+    .kepala.melayang { @apply shadow-naik; }
     .kepala__isi {
         @apply max-w-[1400px] mx-auto px-5 min-h-14 py-2
                flex items-center gap-3;
@@ -373,6 +386,13 @@
         @apply text-sm text-bata underline decoration-bata/40 underline-offset-4
                hover:decoration-bata;
     }
+    /* Hapus dulu memakai `galat` #B4232A di samping Ubah `bata` #9C5248:
+       dua warna yang nyaris sama untuk dua niat yang berlawanan. Yang
+       merusak diam dulu, dan baru memerah saat disorot. */
+    .tautan-aksi--bahaya {
+        @apply text-tinta-samar decoration-tinta-samar/40
+               hover:text-galat hover:decoration-galat;
+    }
 
     /* ── penanda status ── */
     .tanda {
@@ -449,6 +469,23 @@
     @media (prefers-reduced-motion: reduce) {
         .tombol { transition: none; }
         .tombol:active { transform: none; }
+    }
+
+    /* Kemajuan penilaian di kartu kelompok: berapa anggota yang sudah
+       dinilai, terbaca dari daftar tanpa membuka kelompoknya. */
+    .kemajuan { @apply block flex-1 h-1 rounded-full bg-garis-tipis overflow-hidden; }
+    .kemajuan i { @apply block h-full rounded-full bg-bata; }
+    .kemajuan--selesai i { @apply bg-sah; }
+
+    /* Ambang halaman masuk: punggung bukit yang sama dengan halaman depan,
+       di ruang kosong panel kiri, memudar ke kertas di kedua ujungnya.
+       Orang yang menekan Masuk masih melihat tempat yang ditinggalkannya. */
+    .ambang {
+        @apply absolute inset-x-0 pointer-events-none;
+        top: 36%; height: 30%;
+        background: url("/assets/img/adegan/punggung-jauh.avif") center / 100% auto no-repeat;
+        -webkit-mask-image: linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
+        mask-image: linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
     }
 
     .huruf-mutu {

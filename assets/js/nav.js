@@ -123,7 +123,7 @@ export function pasang(judul, keterangan) {
         const lambang = document.createElement("img");
         lambang.src = "/assets/img/logo-unfari.png";
         lambang.alt = "";
-        lambang.width = 26; lambang.height = 25;
+        lambang.width = 28; lambang.height = 27;
         merek.appendChild(lambang);
         merek.title = "KKN LPPM · Universitas Al-Ghifari";
         merek.appendChild(el("span", "sisi__label", "KKN LPPM"));

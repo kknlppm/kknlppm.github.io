@@ -113,6 +113,21 @@ if (requireLogin()) {
             const lokasi = String(g.lokasi || "").trim();
             b.appendChild(el("div", "text-xs text-tinta-redup mt-1 truncate", lokasi || "—"));
             b.appendChild(el("div", "text-xs text-tinta-samar mt-0.5 truncate", g.nama_dosen || "—"));
+            // Kemajuan: berapa anggota yang sudah dinilai. Hanya digambar kalau
+            // server mengirimnya, supaya backend lama tidak membuat kartu
+            // berkata "0 / 10 dinilai" untuk kelompok yang sudah selesai.
+            const n = g.jumlah_anggota || 0, d = g.jumlah_dinilai;
+            if (typeof d === "number" && n > 0) {
+                const baris = el("div", "flex items-center gap-2 mt-2.5");
+                const bar = el("span", "kemajuan" + (d >= n ? " kemajuan--selesai" : ""));
+                const isiBar = el("i");
+                isiBar.style.width = Math.round(100 * Math.min(d, n) / n) + "%";
+                bar.appendChild(isiBar);
+                baris.appendChild(bar);
+                baris.appendChild(el("span", "font-data text-mikro text-tinta-redup shrink-0",
+                    Math.min(d, n) + " / " + n + " dinilai"));
+                b.appendChild(baris);
+            }
             b.title = [lokasi, g.nama_dosen].filter(Boolean).join(" · ");
             b.addEventListener("click", function () {
                 selKel.value = g.id;
