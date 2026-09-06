@@ -1142,6 +1142,100 @@ body {
     .kolofon { grid-template-columns: 1fr; }
 }
 
+/* Halaman yang seluruhnya terang (mis. /berita/) memakai kanvas aplikasi,
+   bukan kanvas malam milik halaman depan. Tanpa ini, area di luar <main>
+   dan pantulan overscroll-nya tetap hitam. */
+.halaman-terang,
+html:has(.halaman-terang) {
+    background: #E9EFF4;
+    color: #0B1B2B;
+}
+
+/* ── Halaman berita (/berita/) ─────────────────────────────────────────
+ *
+ * Ia dicapai dengan menekan kartu di halaman depan, dan sampai sekarang
+ * mendarat di desain lama yang hitam pekat: satu alur, tiga produk berbeda.
+ * Sekarang ia memakai ground terakhir halaman depan, yaitu latar aplikasi.
+ */
+.artikel-halaman {
+    min-height: 100svh;
+    padding-block: calc(var(--sc-section) * 0.9) var(--sc-section);
+}
+
+.artikel__kembali {
+    display: inline-block;
+    margin-bottom: var(--sc-6);
+    font-size: 0.875rem;
+    color: var(--sc-accent);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in oklab, var(--sc-accent) 35%, transparent);
+    text-underline-offset: 4px;
+}
+
+.artikel__kembali:hover { border-bottom-color: var(--sc-accent); }
+
+.artikel__judul {
+    font-family: var(--sc-font-display);
+    font-size: var(--sc-t-2xl);
+    line-height: 1.06;
+    letter-spacing: -0.022em;
+    font-weight: 600;
+    text-wrap: balance;
+    max-width: 22ch;
+    margin: 0 0 var(--sc-4);
+    color: var(--sc-ink);
+}
+
+.artikel__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    font-family: var(--sc-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: var(--sc-ink-soft);
+    margin-bottom: var(--sc-6);
+}
+
+.artikel__ringkas {
+    font-size: 1.1875rem;
+    line-height: 1.55;
+    color: var(--sc-ink);
+    max-width: 52ch;
+    margin: 0 0 var(--sc-6);
+}
+
+.artikel__foto img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--r-kartu);
+    box-shadow: var(--bayang-kartu);
+}
+
+.artikel__isi p {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--sc-ink-soft);
+    max-width: var(--ukur);
+    margin: 0 0 var(--sc-4);
+    text-wrap: pretty;
+}
+
+.artikel__pesan {
+    font-size: 0.9375rem;
+    color: var(--sc-ink-soft);
+}
+
+.artikel__tautan {
+    display: inline-flex;
+    margin-top: var(--sc-5);
+    color: var(--sc-accent);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in oklab, var(--sc-accent) 35%, transparent);
+}
+
 /* ── Permukaan peramban ─────────────────────────────────────────────────*/
 ::selection { background: color-mix(in oklab, var(--sc-accent) 32%, transparent); }
 
