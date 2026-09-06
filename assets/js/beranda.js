@@ -39,7 +39,37 @@ const kurangGerak = matchMedia("(prefers-reduced-motion: reduce)").matches;
  * tidak menyelang-nyeling baca-tulis tata letak.
  */
 const bab = $$(".bab");
-const folioBab = $("#folioBab");
+const folioBab = $("#folioNama");
+const tombolBab = $("#folioBab");
+const daftarBab = $("#daftarBab");
+
+/* Daftar isi ------------------------------------------------------------
+ *
+ * Folio menggantikan bilah tetap, tapi bilah itu memikul navigasi bagian.
+ * Ini mengembalikannya tanpa mengembalikan bilahnya: tertutup sampai
+ * diminta, tertutup lagi begitu dipakai, Escape mengembalikan fokus.
+ */
+if (tombolBab && daftarBab) {
+    const buka = (ya) => {
+        daftarBab.hidden = !ya;
+        tombolBab.setAttribute("aria-expanded", String(ya));
+    };
+
+    tombolBab.addEventListener("click", () => buka(daftarBab.hidden));
+
+    daftarBab.addEventListener("click", (e) => {
+        if (e.target.closest("a")) buka(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !daftarBab.hidden) { buka(false); tombolBab.focus(); }
+    });
+
+    document.addEventListener("pointerdown", (e) => {
+        if (daftarBab.hidden) return;
+        if (!e.target.closest(".folio__pusat")) buka(false);
+    });
+}
 const folio = $(".folio");
 const hero = $(".bab--malam");
 

@@ -126,22 +126,28 @@ if (requireLogin()) {
                     return;
                 }
                 inp.classList.remove("salah");
-                inp.classList.add("menyimpan");
+                // Keadaan simpan milik BARIS, bukan kotaknya, sama seperti
+                // halaman Penilaian. Kelas `menyimpan`/`tersimpan` pada kotak
+                // yang dipakai sebelumnya tidak pernah ada di CSS mana pun:
+                // dosen mengisi nilai dan tidak melihat umpan balik apa pun.
+                tr.classList.add("baris-menyimpan");
                 postJSON(backend.kkn.gradesCourse, { id: r.id, field: aspek, nilai: nilai },
                     function (hasil) {
-                        inp.classList.remove("menyimpan");
+                        tr.classList.remove("baris-menyimpan");
                         if (!sehat(hasil, elPesan)) {
                             // Ditandai salah supaya penilai tahu angka di layar
                             // TIDAK tersimpan di server.
                             inp.classList.add("salah");
+                            tr.classList.add("baris-gagal");
                             return;
                         }
+                        tr.classList.remove("baris-gagal");
                         r[aspek] = nilai;
                         const d = (hasil.data || {}).data || {};
                         segarkan(d.nilai != null ? d.nilai : r.nilai);
                         sembunyikan(elPesan);
-                        inp.classList.add("tersimpan");
-                        setTimeout(function () { inp.classList.remove("tersimpan"); }, 2000);
+                        tr.classList.add("baris-tersimpan");
+                        setTimeout(function () { tr.classList.remove("baris-tersimpan"); }, 1600);
                     }, ...tokenHeader());
             });
             td.appendChild(inp);

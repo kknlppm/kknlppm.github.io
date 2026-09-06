@@ -81,7 +81,9 @@ if (requireLogin()) {
     function pasangBaris(kunci, nilai) {
         if (nilai == null || nilai === "") return;
         const dt = el("dt", "eyebrow text-tinta-redup", kunci);
-        const dd = el("dd", "mb-1", String(nilai));
+        // `break-words` + `min-w-0`: kolom grid-nya ~232px di kartu max-w-xl,
+        // dan surel 40+ karakter (~300px) menembus padding kartunya.
+        const dd = el("dd", "mb-1 break-words min-w-0", String(nilai));
         dl.appendChild(dt);
         dl.appendChild(dd);
     }

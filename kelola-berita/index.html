@@ -188,10 +188,22 @@ if (requireLogin()) {
         return d.getDate() + " " + bulan[d.getMonth()] + " " + d.getFullYear();
     }
 
+    // `max-width` pada <td> di tabel tata-letak otomatis DIABAIKAN, dan
+    // `truncate` menambahkan `white-space: nowrap` sehingga judul 140
+    // karakter jadi lebar minimum selnya: tabelnya meluber ke samping dan
+    // kolom Tindakan tergeser keluar layar. Pemotongan harus terjadi di
+    // dalam elemen blok, bukan di selnya.
+    function selJudul(teks) {
+        const td = el("td", "font-medium");
+        td.appendChild(el("div", "max-w-[26rem] truncate", teks || "—"));
+        td.title = teks || "";
+        return td;
+    }
+
     function baris(b) {
         const tr = el("tr");
 
-        const tdJudul = sel(b.judul, "font-medium max-w-[26rem] truncate");
+        const tdJudul = selJudul(b.judul);
         tdJudul.title = b.judul || "";
         tr.appendChild(tdJudul);
 

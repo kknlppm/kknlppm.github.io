@@ -149,6 +149,14 @@
         @apply shrink-0 font-data text-xs px-3 py-2 rounded-full text-tinta-redup
                transition-colors whitespace-nowrap;
     }
+    /* Cincin fokus DI DALAM tombolnya. `.segmen` punya `overflow-x: auto`
+       dan padding 2px, sedangkan cincin global memakai offset 3px: ia
+       terpotong seluruhnya, jadi fokus keyboard di segmen tahun dan status
+       tidak terlihat sama sekali. */
+    .segmen > button:focus-visible {
+        outline: 2px solid theme("colors.bata.DEFAULT");
+        outline-offset: -2px;
+    }
     .segmen > button[aria-pressed="true"] {
         @apply bg-bata text-kertas;
     }
@@ -225,8 +233,11 @@
         body.sisi-ciut .sisi { @apply w-[60px]; }
         body.sisi-ciut .sisi__label { @apply hidden; }
         body.sisi-ciut .sisi__merek { @apply justify-center px-0; }
-        body.sisi-ciut .sisi__ciut { @apply hidden; }
-        body.sisi-ciut .sisi__merek:hover .sisi__ciut { @apply grid ml-0; }
+        /* JANGAN disembunyikan. Keadaan ciut disimpan di localStorage, dan
+           tombol yang hanya muncul saat merek-nya di-hover berarti pemakai
+           keyboard (dan layar sentuh, yang tidak punya hover) tidak punya
+           cara membuka sidebar lagi. Selamanya. */
+        body.sisi-ciut .sisi__ciut { @apply grid ml-0 mx-auto; }
         body.sisi-ciut .sisi__tautan { @apply justify-center px-0; }
         body.sisi-ciut .sisi__bagian {
             @apply p-0 mx-2 my-2 h-px overflow-hidden bg-garis text-transparent;
@@ -283,8 +294,15 @@
                border border-transparent overflow-hidden
                transition-[border-color,box-shadow,transform] duration-100
                hover:border-bata hover:shadow-naik
-               focus-visible:outline-none focus-visible:border-bata focus-visible:shadow-naik
                active:translate-y-px;
+        /* Fokus TIDAK boleh sama dengan hover: sebelumnya keduanya persis
+           border 1px + shadow-naik, jadi pemakai keyboard tidak punya
+           penanda posisi sama sekali. */
+    }
+
+    .kartu-kelompok:focus-visible {
+        outline: 2px solid theme("colors.bata.DEFAULT");
+        outline-offset: 2px;
     }
 
     /* Kotak nilai. Lebar dipatok supaya kelima kolomnya tidak bergoyang
@@ -388,7 +406,16 @@
         .tombol { @apply h-11; }
         .segmen > button { @apply py-3.5; }
         .medan { @apply min-h-11; }
-        .tab-nav { @apply py-3.5; }
+        /* Yang berikut ini sebelumnya terlewat semuanya, dan semuanya
+           ditekan tiap hari: navigasi ponselnya sendiri (36px), tombol menu
+           (40px), tautan Ubah/Hapus (~20px), kotak nilai yang diisi dosen
+           (30px), dan tombol ciut sidebar (28px). `.tab-nav` yang dulu
+           tercantum di sini tidak cocok dengan apa pun di repo ini. */
+        .sisi__tautan { @apply py-3; }
+        .kepala__menu { @apply w-11 h-11; }
+        .sisi__ciut { @apply w-11 h-11; }
+        .tautan-aksi { @apply inline-flex items-center min-h-11 px-1; }
+        .kotak-nilai { @apply min-h-11 py-2; }
     }
 
     /* Gerak dihormati: kalau pengguna memintanya berhenti, transisinya mati.

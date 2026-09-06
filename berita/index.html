@@ -24,7 +24,23 @@
     <img src="/assets/img/logo-unfari.png" alt="" width="20" height="19">
     <span>KKN&nbsp;LPPM</span>
   </a>
-  <span class="folio__bab">Berita</span>
+  <div class="folio__pusat">
+    <button class="folio__bab" id="folioBab" type="button"
+            aria-expanded="false" aria-controls="daftarBab">
+      <span id="folioNama">Berita</span>
+      <svg viewBox="0 0 12 12" aria-hidden="true" width="10" height="10">
+        <path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor"
+              stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <nav class="daftar-bab" id="daftarBab" aria-label="Daftar isi" hidden>
+      <a href="/#tentang">Tentang</a>
+      <a href="/#tahapan">Tahapan</a>
+      <a href="/#kerja">Yang dikerjakan</a>
+      <a href="/#berita">Berita</a>
+      <a href="/#tanya">Tanya jawab</a>
+    </nav>
+  </div>
   <a class="folio__masuk" href="/login/">Masuk ke aplikasi</a>
 </div>
 

@@ -39,7 +39,7 @@
            dan "Judul KKN" — yang 98% baris kosong — mengambil 352px lalu
            mendorong Nilai dan Sertifikat keluar layar di 1440px. Dengan lebar
            dipatok, tabelnya muat dan judulnya tetap terlihat saat ada isinya. -->
-      <table class="register table-fixed min-w-[46rem] xl:min-w-[62rem]">
+      <table class="register table-fixed min-w-[52rem] lg:min-w-[60rem] 2xl:min-w-[70rem]">
         <thead>
           <tr>
             <th class="w-[6.5rem]">NIM</th>
@@ -47,7 +47,7 @@
             <th class="hidden lg:table-cell w-[8.5rem]">Program studi</th>
             <th class="w-[5rem]">Kelompok</th>
             <th class="hidden md:table-cell w-[6rem]">TA</th>
-            <th class="hidden xl:table-cell w-[9rem]">Judul KKN</th>
+            <th class="hidden 2xl:table-cell w-[9rem]">Judul KKN</th>
             <th class="hidden sm:table-cell w-[6.5rem]">Bayar</th>
             <th class="w-[6.5rem]"><span class="text-tinta-redup">H·S·L·QP·QL</span></th>
             <th class="text-right w-[4.5rem]">Nilai</th>
@@ -177,7 +177,7 @@ if (requireLogin()) {
         tr.appendChild(sel(String(r.kelompok || "").replace(/^kelompok\s+/i, ""), "kode"));
         tr.appendChild(sel(r.tahun_ajaran, "kode whitespace-nowrap hidden md:table-cell"));
 
-        const tdJudul = sel(r.judul_kkn, "text-xs text-tinta-redup hidden xl:table-cell truncate");
+        const tdJudul = sel(r.judul_kkn, "text-xs text-tinta-redup hidden 2xl:table-cell truncate");
         tdJudul.title = r.judul_kkn || "";
         tr.appendChild(tdJudul);
 
