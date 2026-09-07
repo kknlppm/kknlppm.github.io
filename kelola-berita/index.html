@@ -23,6 +23,10 @@
       Berita yang diterbitkan tampil di halaman depan
       <a href="/" class="text-bata underline underline-offset-2">halaman depan</a>.
     </p>
+    <div class="flex-1 min-w-[12rem]">
+      <label for="cari" class="sr-only">Cari judul</label>
+      <input id="cari" type="search" class="medan" spellcheck="false" placeholder="Cari judul berita">
+    </div>
     <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
     <button id="tombolTambah" class="tombol-utama">Tulis berita</button>
   </div>
@@ -45,6 +49,12 @@
       </table>
     </div>
   </div>
+
+  <nav id="kakiHalaman" class="flex items-center justify-between gap-3 mt-4" aria-label="Halaman" hidden>
+    <button id="sebelumnya" type="button" class="tombol-halus" disabled aria-label="Sebelumnya"><span aria-hidden="true">←</span><span class="hidden sm:inline">Sebelumnya</span></button>
+    <span id="posisiHalaman" class="font-data text-xs text-tinta-redup whitespace-nowrap"></span>
+    <button id="berikutnya" type="button" class="tombol-halus" disabled aria-label="Berikutnya"><span class="hidden sm:inline">Berikutnya</span><span aria-hidden="true">→</span></button>
+  </nav>
 </main>
 
 <div id="tirai" class="tirai" hidden></div>
@@ -59,10 +69,10 @@
 
       <div>
         <label for="fJudul" class="block text-sm font-medium mb-1.5">Judul</label>
-        <input id="fJudul" name="judul" class="medan" required maxlength="140"
+        <input id="fJudul" name="judul" class="medan" required maxlength="180"
                placeholder="mis. Penutupan KKN Angkatan XII di Desa Cikahuripan">
         <p class="text-xs text-tinta-redup mt-1">
-          Maksimal 140 karakter. <strong>Judul dikunci setelah diterbitkan</strong> —
+          Maksimal 180 karakter. <strong>Judul dikunci setelah diterbitkan</strong> —
           alamat berita dibuat darinya, dan alamat yang sudah dibagikan orang
           tidak boleh mati.
         </p>
@@ -86,7 +96,7 @@
           <strong>Teks polos.</strong> Tidak ada tebal, miring, atau daftar — dan
           itu disengaja: halaman depan satu alamat dengan aplikasi ini, jadi
           apa pun yang bisa jadi HTML di sana bisa mencuri sesi pembacanya.
-          Setiap ganti baris memulai paragraf baru. Maksimal 40 paragraf,
+          Setiap ganti baris memulai paragraf baru. Maksimal 100 paragraf,
           4.000 karakter per paragraf.
         </p>
       </div>
@@ -94,6 +104,17 @@
       <div>
         <label for="fPenulis" class="block text-sm font-medium mb-1.5">Penulis</label>
         <input id="fPenulis" name="penulis" class="medan" placeholder="mis. LPPM Unfari">
+      </div>
+
+      <div>
+        <label for="fKelompokBerita" class="block text-sm font-medium mb-1.5">Kelompok penulis</label>
+        <select id="fKelompokBerita" name="group_id" class="medan">
+          <option value="">Bukan dari kelompok (LPPM)</option>
+        </select>
+        <p class="text-xs text-tinta-redup mt-1">
+          Berita dari kelompok bisa disaring per tahun ajaran dan kelompok di
+          halaman berita publik.
+        </p>
       </div>
 
       <fieldset class="border border-garis rounded-xl p-3">
@@ -161,7 +182,7 @@ import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
 import { buat as buatLaci } from "/assets/js/laci.js";
-import { el, sel, tanda, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
+import { el, sel, tanda, opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 
 if (requireLogin()) {
     pasang("Kelola berita", "Tampil di halaman depan publik");
@@ -233,10 +254,20 @@ if (requireLogin()) {
         return tr;
     }
 
+    const SEHALAMAN = 50;
+    let halaman = 1, totalHalaman = 1;
+    const inpCari = document.getElementById("cari");
+    const kakiHal = document.getElementById("kakiHalaman");
+    const posisi = document.getElementById("posisiHalaman");
+    const btnPrev = document.getElementById("sebelumnya");
+    const btnNext = document.getElementById("berikutnya");
+
     function muat() {
         sembunyikan(elPesan);
         kosongkan(isi);
-        getJSON(backend.news.kelola + "?limit=100", function (hasil) {
+        const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman) });
+        if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
+        getJSON(backend.news.kelola + "?" + p.toString(), function (hasil) {
             if (!sehat(hasil, elPesan)) return;
             const amplop = hasil.data || {};
             const rows = amplop.data || [];
@@ -251,10 +282,47 @@ if (requireLogin()) {
                 rows.forEach(function (b) { isi.appendChild(baris(b)); });
             }
             const m = amplop.meta || {};
-            const terbit = rows.filter(function (b) { return b.terbit; }).length;
-            ringkasan.textContent = (m.total || 0) + " berita · " + terbit + " terbit";
+            ringkasan.textContent = (m.total || 0).toLocaleString("id-ID") + " berita";
+            totalHalaman = m.total_pages || 1;
+            if (totalHalaman <= 1) {
+                kakiHal.hidden = true;
+            } else {
+                kakiHal.hidden = false;
+                posisi.textContent = "Halaman " + (m.page || 1) + " dari " + totalHalaman;
+                btnPrev.disabled = (m.page || 1) <= 1;
+                btnNext.disabled = (m.page || 1) >= totalHalaman;
+            }
         }, ...tokenHeader());
     }
+
+    btnPrev.addEventListener("click", function () { if (halaman > 1) { halaman--; muat(); } });
+    btnNext.addEventListener("click", function () { if (halaman < totalHalaman) { halaman++; muat(); } });
+    let jedaCari;
+    inpCari.addEventListener("input", function () {
+        clearTimeout(jedaCari);
+        jedaCari = setTimeout(function () { halaman = 1; muat(); }, 350);
+    });
+
+    // Pilihan kelompok penulis: semua kelompok, tahun terbaru dulu. Dua
+    // halaman karena plafon limit server 200 dan kelompoknya lebih dari itu.
+    function muatKelompok() {
+        const pilihan = document.getElementById("fKelompokBerita");
+        const ambil = function (hal) {
+            getJSON(backend.kkn.groups + "?limit=200&page=" + hal, function (hasil) {
+                if (!hasil || hasil.status !== 200) return;   // opsional
+                const amplop = hasil.data || {};
+                (amplop.data || []).forEach(function (g) {
+                    const nomor = String(g.kelompok || "").replace(/^kelompok\s+/i, "");
+                    pilihan.appendChild(opsi(g.id, g.tahun_ajaran + " · Kelompok " + nomor +
+                        (g.julukan ? " · " + g.julukan : "")));
+                });
+                const m = amplop.meta || {};
+                if ((m.page || 1) < (m.total_pages || 1)) ambil(hal + 1);
+            }, ...tokenHeader());
+        };
+        ambil(1);
+    }
+    muatKelompok();
 
     function gambarFoto() {
         const wadah = document.getElementById("daftarFoto");
@@ -389,7 +457,7 @@ if (requireLogin()) {
     // Angkanya disamakan dengan model/news.go di backend; server tetap yang
     // menegakkan, ini hanya supaya orang tidak menulis dua ribu kata lalu
     // baru diberi tahu.
-    const MAKS_PARAGRAF = 40, MAKS_PANJANG = 4000;
+    const MAKS_PARAGRAF = 100, MAKS_PANJANG = 4000;
     const medanIsi = document.getElementById("fIsi");
     const hitungIsi = document.getElementById("hitungIsi");
 
@@ -414,6 +482,7 @@ if (requireLogin()) {
         form.isi.value = b ? (b.paragraf || []).join("\n\n") : "";
         segarkanHitung();
         form.penulis.value = b ? (b.penulis || "") : "";
+        form.group_id.value = b ? (b.group_id || "") : "";
         form.tautan_url.value = b ? (b.tautan_url || "") : "";
         form.tautan_label.value = b ? (b.tautan_label || "") : "";
         form.terbit.checked = b ? !!b.terbit : false;
@@ -447,6 +516,7 @@ if (requireLogin()) {
             tautan_url: form.tautan_url.value.trim(),
             tautan_label: form.tautan_label.value.trim(),
             penulis: form.penulis.value.trim(),
+            group_id: form.group_id.value,
             terbit: form.terbit.checked,
         }, function (hasil) {
             tombol.disabled = false;

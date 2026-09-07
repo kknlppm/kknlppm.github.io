@@ -431,6 +431,80 @@ const BERITA = [
     await ctx.close();
 }
 
+// ---------- 12b. Daftar berita: saringan tahun, kelompok, kata, dan halaman ----------
+//
+// Tanpa ?slug=, /berita/ adalah daftar. Tab tahun dan pilihan kelompok
+// diisi dari /news/kelompok; kisinya dari /news dengan parameter saringan
+// yang HARUS sampai ke server — menyaring di peramban berarti hanya
+// menyaring satu halaman.
+{
+    const { ctx, page, galat } = await halamanBaru(false);
+    const KEL = [
+        { group_id: "grp-1", tahun_ajaran: "2025-2026", kelompok_no: 1, kelompok: "Kelompok 1", julukan: "Arunika Karsa" },
+        { group_id: "grp-9", tahun_ajaran: "2024-2025", kelompok_no: 9, kelompok: "Kelompok 9", julukan: "" },
+    ];
+    const daftar = Array.from({ length: 30 }, (_, i) => ({
+        id: "b" + i, slug: "b" + i, judul: "Berita " + i + (i % 2 ? " Posyandu" : ""), paragraf: ["Isi."], foto: [],
+        penulis: "Kelompok 1", terbit: true, tanggal_terbit: "2026-08-" + String(1 + (i % 28)).padStart(2, "0") + "T02:00:00Z",
+        group_id: i % 3 ? "grp-1" : "grp-9", tahun_ajaran: i % 3 ? "2025-2026" : "2024-2025",
+    }));
+    const diminta = [];
+    await page.route("**/localhost:8090/**", (r) => {
+        const u = new URL(r.request().url()); diminta.push(u.pathname + u.search);
+        let isi;
+        if (u.pathname === "/news/kelompok") isi = amplop(KEL);
+        else if (u.pathname === "/news") {
+            const q = u.searchParams; let rows = daftar;
+            if (q.get("tahun_ajaran")) rows = rows.filter((n) => n.tahun_ajaran === q.get("tahun_ajaran"));
+            if (q.get("group_id")) rows = rows.filter((n) => n.group_id === q.get("group_id"));
+            if (q.get("q")) rows = rows.filter((n) => n.judul.includes(q.get("q")));
+            const limit = +q.get("limit") || 50, pg = +q.get("page") || 1;
+            isi = amplop(rows.slice((pg - 1) * limit, pg * limit), { total: rows.length, page: pg, total_pages: Math.ceil(rows.length / limit) });
+        } else isi = amplop([]);
+        return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(isi) });
+    });
+    await page.goto(B + "/berita/", { waitUntil: "networkidle" });
+    await page.waitForTimeout(500);
+    lapor(await page.locator("#daftar").isVisible() && await page.locator("#artikel").isHidden(), "tanpa slug: mode daftar, bukan pesan 'tidak ditemukan'");
+    const tab = await page.locator("#tabTahunBerita button").allTextContents();
+    lapor(tab.join(",") === "Semua,2025-2026,2024-2025", `tab tahun: Semua lalu terbaru dulu (${tab.join(",")})`);
+    lapor(await page.locator("#kisiBerita .pos").count() === 12, `halaman pertama 12 kartu (${await page.locator("#kisiBerita .pos").count()})`);
+    lapor(/Halaman 1 dari 3/.test(await page.textContent("#posisiHal") || ""), "penunjuk halaman 1 dari 3");
+    await page.click("#halSesudah"); await page.waitForTimeout(300);
+    lapor(diminta.some((j) => /\/news\?.*page=2/.test(j)), "Berikutnya meminta page=2 ke server");
+    await page.locator("#tabTahunBerita button", { hasText: "2024-2025" }).click(); await page.waitForTimeout(300);
+    lapor(diminta.some((j) => /tahun_ajaran=2024-2025/.test(j)), "tab tahun jadi parameter tahun_ajaran");
+    const opsi = await page.locator("#pilihKelompok option").allTextContents();
+    lapor(opsi.length === 2 && /Kelompok 9/.test(opsi[1]), `pilihan kelompok mengikuti tahun (${opsi.join(" | ")})`);
+    await page.selectOption("#pilihKelompok", "grp-9"); await page.waitForTimeout(300);
+    lapor(diminta.some((j) => /group_id=grp-9/.test(j)), "pilihan kelompok jadi parameter group_id");
+    lapor(/kelompok=grp-9/.test(page.url()) && /tahun=2024-2025/.test(page.url()), `saringan tercermin di alamat (${new URL(page.url()).search})`);
+    await page.fill("#cariBerita", "Posyandu"); await page.waitForTimeout(600);
+    lapor(diminta.some((j) => /q=Posyandu/.test(j)), "kata pencarian jadi parameter q");
+    await page.fill("#cariBerita", "tidak-ada-yang-cocok"); await page.waitForTimeout(600);
+    lapor(await page.locator("#daftarKosong").isVisible(), "tanpa hasil: keadaan kosong tampil");
+    lapor(galat.length === 0, "daftar berita tanpa galat" + (galat.length ? "\n    " + galat.join("\n    ") : ""));
+    await ctx.close();
+}
+
+// ---------- 12c. Alamat bersaringan membuka daftar dalam keadaan itu ----------
+{
+    const { ctx, page } = await halamanBaru(false);
+    const diminta = [];
+    await page.route("**/localhost:8090/**", (r) => {
+        const u = new URL(r.request().url()); diminta.push(u.pathname + u.search);
+        const isi = u.pathname === "/news/kelompok"
+            ? amplop([{ group_id: "grp-1", tahun_ajaran: "2025-2026", kelompok_no: 1, kelompok: "Kelompok 1", julukan: "Arunika" }])
+            : amplop([], { total: 0, page: 1, total_pages: 1 });
+        return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(isi) });
+    });
+    await page.goto(B + "/berita/?tahun=2025-2026&kelompok=grp-1", { waitUntil: "networkidle" });
+    await page.waitForTimeout(500);
+    lapor(diminta.some((j) => /tahun_ajaran=2025-2026/.test(j) && /group_id=grp-1/.test(j)), "saringan dari alamat diteruskan ke server");
+    lapor(await page.locator("#pilihKelompok").inputValue() === "grp-1", "pilihan kelompok terisi dari alamat");
+    await ctx.close();
+}
+
 // ---------- 13. Slug tak dikenal diberi pesan, bukan halaman kosong ----------
 {
     const { ctx, page } = await halamanBaru(false);

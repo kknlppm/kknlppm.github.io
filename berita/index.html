@@ -23,7 +23,7 @@
     </a>
     <nav class="nav__links" aria-label="Bagian halaman">
       <a href="/#tentang">Tentang</a>
-      <a href="/#tahapan">Tahapan</a>
+      <a href="/#kelompok">Kelompok</a>
       <a href="/#berita">Berita</a>
       <a href="/#tanya">Tanya jawab</a>
     </nav>
@@ -35,7 +35,40 @@
 
 <main class="artikel">
   <div class="container">
-    <a class="artikel__kembali" href="/#berita">← Semua berita</a>
+    <!-- Dua mode di satu halaman: DAFTAR (tanpa ?slug=) dan BACAAN (dengan
+         ?slug=). Keduanya publik, tanpa token, digambar lewat textContent. -->
+    <section id="daftar" hidden aria-label="Daftar berita">
+      <div class="daftar__kepala">
+        <div>
+          <span class="tag">Berita</span>
+          <h1 class="daftar__judul" style="margin-top:18px">Kegiatan dan dokumentasi<br><span class="dim">kelompok-kelompok KKN.</span></h1>
+        </div>
+        <a class="artikel__kembali" href="/" style="margin-bottom:6px">← Halaman depan</a>
+      </div>
+      <div class="saring">
+        <div class="tabs" id="tabTahunBerita" role="tablist" aria-label="Tahun ajaran">
+          <span class="tabs__pill" aria-hidden="true"></span>
+        </div>
+        <select id="pilihKelompok" aria-label="Kelompok">
+          <option value="">Semua kelompok</option>
+        </select>
+        <input id="cariBerita" type="search" placeholder="Cari judul…" aria-label="Cari judul" autocomplete="off">
+      </div>
+      <div class="berita-grid" id="kisiBerita"></div>
+      <div class="berita-kosong" id="daftarKosong" hidden>
+        <b>Tidak ada berita yang cocok</b>
+        Coba tahun ajaran, kelompok, atau kata lain.
+      </div>
+      <nav class="hal" id="hal" hidden aria-label="Halaman">
+        <button type="button" id="halSebelum">← Sebelumnya</button>
+        <span id="posisiHal"></span>
+        <button type="button" id="halSesudah">Berikutnya →</button>
+      </nav>
+    </section>
+
+    <div id="bacaan" hidden>
+      <a class="artikel__kembali" href="/berita/">← Semua berita</a>
+    </div>
 
     <div id="memuat" class="artikel__pesan">Memuat…</div>
 
@@ -46,6 +79,7 @@
       <div class="artikel__foto" id="foto" hidden></div>
       <div class="artikel__isi" id="isi"></div>
       <a class="btn btn--ghost artikel__tautan" id="tautan" hidden rel="noopener" target="_blank"></a>
+      <a class="artikel__lagi" id="lagi" hidden>Berita lain dari kelompok ini →</a>
     </article>
   </div>
 </main>
@@ -140,12 +174,189 @@ function gambar(b) {
         t.textContent = b.tautan_label || "Selengkapnya";
         t.hidden = false;
     }
+
+    // Ke daftar berita kelompok yang sama — hanya kalau beritanya memang
+    // punya kelompok. Berita LPPM sendiri tidak punya.
+    if (b.group_id) {
+        const lagi = $("lagi");
+        lagi.href = "/berita/?kelompok=" + encodeURIComponent(b.group_id);
+        lagi.hidden = false;
+    }
 }
 
-const slug = (getQueryString().slug || "").trim();
+/* Mode daftar ----------------------------------------------------------- */
+
+const SEHALAMAN = 12;
+const q = getQueryString();
+const keadaan = {
+    tahun: (q.tahun || "").trim(),
+    kelompok: (q.kelompok || "").trim(),
+    cari: (q.q || "").trim(),
+    hal: Math.max(1, parseInt(q.hal, 10) || 1),
+};
+let kelompokPenulis = [];   // dari /news/kelompok: {group_id, tahun_ajaran, kelompok_no, kelompok, julukan}
+
+function kartuBerita(b) {
+    const a = el("a", "pos");
+    a.href = "/berita/?slug=" + encodeURIComponent(b.slug || "");
+    const gbr = el("div", "pos__gbr");
+    const dalam = el("div");
+    const foto = (b.foto || [])[0];
+    if (foto) {
+        dalam.style.backgroundImage = 'url("' + encodeURI(foto) + '")';
+    } else {
+        dalam.className = "pos__tanpa-foto";
+        if (b.ringkasan) dalam.appendChild(el("p", null, b.ringkasan));
+    }
+    gbr.appendChild(dalam);
+    const badan = el("div", "pos__isi");
+    badan.appendChild(el("div", "pos__judul", b.judul || ""));
+    const meta = el("div", "pos__meta");
+    const tgl = tanggalIndonesia(b.tanggal_terbit);
+    if (tgl) meta.appendChild(el("span", null, tgl));
+    if (b.penulis) meta.appendChild(el("span", null, b.penulis));
+    badan.appendChild(meta);
+    a.appendChild(gbr);
+    a.appendChild(badan);
+    return a;
+}
+
+function alamatKeadaan() {
+    const p = new URLSearchParams();
+    if (keadaan.tahun) p.set("tahun", keadaan.tahun);
+    if (keadaan.kelompok) p.set("kelompok", keadaan.kelompok);
+    if (keadaan.cari) p.set("q", keadaan.cari);
+    if (keadaan.hal > 1) p.set("hal", String(keadaan.hal));
+    const s = p.toString();
+    history.replaceState(null, "", "/berita/" + (s ? "?" + s : ""));
+}
+
+// Pilihan kelompok mengikuti tahun yang dipilih: kelompok 12 tahun ini dan
+// kelompok 12 tahun lalu adalah dua kelompok yang berbeda.
+function isiPilihanKelompok() {
+    const sel = $("pilihKelompok");
+    while (sel.options.length > 1) sel.remove(1);
+    kelompokPenulis
+        .filter((k) => !keadaan.tahun || k.tahun_ajaran === keadaan.tahun)
+        .forEach((k) => {
+            const o = document.createElement("option");
+            o.value = k.group_id;
+            const nomor = String(k.kelompok || "").replace(/^kelompok\s+/i, "");
+            o.textContent = (keadaan.tahun ? "" : k.tahun_ajaran + " · ") + "Kelompok " + nomor +
+                (k.julukan ? " · " + k.julukan : "");
+            sel.appendChild(o);
+        });
+    sel.value = keadaan.kelompok;
+    if (sel.value !== keadaan.kelompok) { keadaan.kelompok = ""; sel.value = ""; }
+}
+
+function pasangTabTahun() {
+    const tabs = $("tabTahunBerita");
+    const tahun = [...new Set(kelompokPenulis.map((k) => k.tahun_ajaran).filter(Boolean))].sort().reverse();
+    const pilihan = [""].concat(tahun);
+    if (keadaan.tahun && !tahun.includes(keadaan.tahun)) keadaan.tahun = "";
+    tabs.style.setProperty("--n", String(pilihan.length));
+    tabs.hidden = tahun.length === 0;
+    const tombol = pilihan.map((ta) => {
+        const b = el("button", null, ta || "Semua");
+        b.type = "button";
+        b.setAttribute("role", "tab");
+        tabs.appendChild(b);
+        return b;
+    });
+    const pil = tabs.querySelector(".tabs__pill");
+    const tandai = () => {
+        const kini = Math.max(0, pilihan.indexOf(keadaan.tahun));
+        tombol.forEach((b, k) => {
+            b.classList.toggle("is-active", k === kini);
+            b.setAttribute("aria-selected", String(k === kini));
+        });
+        if (pil) pil.style.transform = "translateX(" + (kini * 100) + "%)";
+    };
+    tombol.forEach((b, k) => b.addEventListener("click", () => {
+        keadaan.tahun = pilihan[k];
+        keadaan.hal = 1;
+        tandai();
+        isiPilihanKelompok();
+        muatDaftar();
+    }));
+    tandai();
+}
+
+function muatDaftar() {
+    alamatKeadaan();
+    const kisi = $("kisiBerita");
+    kisi.textContent = "";
+    $("daftarKosong").hidden = true;
+    $("hal").hidden = true;
+    $("memuat").hidden = false;
+    $("memuat").textContent = "Memuat…";
+
+    const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(keadaan.hal) });
+    if (keadaan.tahun) p.set("tahun_ajaran", keadaan.tahun);
+    if (keadaan.kelompok) p.set("group_id", keadaan.kelompok);
+    if (keadaan.cari) p.set("q", keadaan.cari);
+
+    let dijawab = false;
+    const penjaga = setTimeout(() => {
+        if (dijawab) return;
+        dijawab = true;
+        pesan("Belum bisa dimuat", "Server tidak terjangkau saat ini. Coba lagi sebentar lagi.");
+    }, 10000);
+    getJSON(backend.news.daftar + "?" + p.toString(), (hasil) => {
+        if (dijawab) return;
+        dijawab = true;
+        clearTimeout(penjaga);
+        if (!hasil || hasil.status !== 200) {
+            pesan("Belum bisa dimuat", "Server menjawab dengan galat.");
+            return;
+        }
+        $("memuat").hidden = true;
+        const amplop = hasil.data || {};
+        const rows = amplop.data || [];
+        const meta = amplop.meta || {};
+        if (!rows.length) { $("daftarKosong").hidden = false; return; }
+        rows.forEach((b) => kisi.appendChild(kartuBerita(b)));
+        const total = meta.total_pages || 1;
+        if (total > 1) {
+            $("hal").hidden = false;
+            $("posisiHal").textContent = "Halaman " + (meta.page || 1) + " dari " + total;
+            $("halSebelum").disabled = (meta.page || 1) <= 1;
+            $("halSesudah").disabled = (meta.page || 1) >= total;
+        }
+    });
+}
+
+function mulaiDaftar() {
+    document.title = "Berita — KKN LPPM Universitas Al-Ghifari";
+    $("daftar").hidden = false;
+    $("halSebelum").addEventListener("click", () => { if (keadaan.hal > 1) { keadaan.hal--; muatDaftar(); window.scrollTo({ top: 0 }); } });
+    $("halSesudah").addEventListener("click", () => { keadaan.hal++; muatDaftar(); window.scrollTo({ top: 0 }); });
+    $("pilihKelompok").addEventListener("change", function () { keadaan.kelompok = this.value; keadaan.hal = 1; muatDaftar(); });
+    let jeda;
+    const cari = $("cariBerita");
+    cari.value = keadaan.cari;
+    cari.addEventListener("input", function () {
+        clearTimeout(jeda);
+        jeda = setTimeout(() => { keadaan.cari = cari.value.trim(); keadaan.hal = 1; muatDaftar(); }, 350);
+    });
+
+    // Saringan diisi dari daftar kelompok penulis; kalau panggilan ini
+    // gagal, daftar beritanya tetap dimuat tanpa saringan.
+    let siap = false;
+    const lanjut = () => { if (siap) return; siap = true; pasangTabTahun(); isiPilihanKelompok(); muatDaftar(); };
+    setTimeout(lanjut, 6000);
+    getJSON(backend.news.kelompokPublik, (hasil) => {
+        if (hasil && hasil.status === 200) kelompokPenulis = ((hasil.data || {}).data) || [];
+        lanjut();
+    });
+}
+
+const slug = (q.slug || "").trim();
 if (!slug) {
-    pesan("Berita tidak ditemukan", "Alamatnya tidak menyebut berita mana yang dibuka.");
+    mulaiDaftar();
 } else {
+    $("bacaan").hidden = false;
     let dijawab = false;
     const penjaga = setTimeout(() => {
         if (dijawab) return;

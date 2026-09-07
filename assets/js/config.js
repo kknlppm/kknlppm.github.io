@@ -75,6 +75,8 @@ export const backend = {
     news: {
         daftar: asal + "/news",
         satuPublik: (slug) => asal + "/news/" + slug,
+        // Kelompok yang punya berita terbit, untuk saringan di /berita/.
+        kelompokPublik: asal + "/news/kelompok",
         kelola: asal + "/api/news",
         satu: (idnya) => asal + "/api/news/" + idnya,
         // Backend meng-commit fotonya ke repo frontend lewat GitHub API,
