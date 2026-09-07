@@ -95,10 +95,49 @@
             <input id="NIK_NIP_LPPM" name="NIK_NIP_LPPM" class="medan font-data" type="text" required>
           </div>
         </div>
-        <p class="text-xs text-tinta-redup mt-4">
-          Berkas tanda tangan
-          <span id="berkasTtd" class="font-data"></span>
-          belum bisa diganti dari sini.
+
+        <!-- Tanda tangan. Diunggah ke basis data, bukan ke repo situs yang
+             publik: gambar tanda tangan Rektor yang bisa diunduh siapa saja
+             adalah bahan pemalsuan. Pratinjaunya diambil dengan token, dan
+             kalau belum ada unggahan yang tampil adalah gambar bawaan. -->
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-garis p-3" data-ttd="rektor">
+            <div class="flex items-baseline justify-between gap-2 mb-2">
+              <span class="text-sm font-medium">Tanda tangan Rektor</span>
+              <span class="tanda is-kosong" data-peran="status">memuat…</span>
+            </div>
+            <div class="h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
+              <img data-peran="gambar" alt="" class="max-h-20 max-w-full object-contain" hidden>
+              <span data-peran="kosong" class="text-xs text-tinta-samar">belum ada</span>
+            </div>
+            <p class="text-xs text-tinta-redup mt-2 min-h-4" data-peran="keterangan"></p>
+            <div class="flex flex-wrap items-center gap-3 mt-3">
+              <input id="fTtdRektor" type="file" accept="image/png" class="sr-only" data-peran="berkas">
+              <button type="button" class="tombol-halus !h-8 px-3 text-xs" data-peran="ganti">Ganti tanda tangan</button>
+              <button type="button" class="tautan-aksi tautan-aksi--bahaya text-xs" data-peran="bawaan" hidden>Kembalikan bawaan</button>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-garis p-3" data-ttd="lppm">
+            <div class="flex items-baseline justify-between gap-2 mb-2">
+              <span class="text-sm font-medium">Tanda tangan Ketua LPPM</span>
+              <span class="tanda is-kosong" data-peran="status">memuat…</span>
+            </div>
+            <div class="h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
+              <img data-peran="gambar" alt="" class="max-h-20 max-w-full object-contain" hidden>
+              <span data-peran="kosong" class="text-xs text-tinta-samar">belum ada</span>
+            </div>
+            <p class="text-xs text-tinta-redup mt-2 min-h-4" data-peran="keterangan"></p>
+            <div class="flex flex-wrap items-center gap-3 mt-3">
+              <input id="fTtdLppm" type="file" accept="image/png" class="sr-only" data-peran="berkas">
+              <button type="button" class="tombol-halus !h-8 px-3 text-xs" data-peran="ganti">Ganti tanda tangan</button>
+              <button type="button" class="tautan-aksi tautan-aksi--bahaya text-xs" data-peran="bawaan" hidden>Kembalikan bawaan</button>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-tinta-redup mt-3">
+          PNG berlatar transparan, maksimal 512 KB. Langsung dipakai sertifikat yang
+          diterbitkan sesudahnya; yang sudah terbit tidak berubah.
         </p>
       </section>
 
@@ -131,9 +170,9 @@
 </main>
 
 <script type="module">
-import { getJSON, postJSON } from "/assets/js/jscroot/api.js";
-import { backend } from "/assets/js/config.js";
-import { requireLogin, tokenHeader, clear as bersihkanSesi } from "/assets/js/auth.js";
+import { getJSON, postJSON, deleteJSON, postFileWithHeader } from "/assets/js/jscroot/api.js";
+import { backend, tokenKey } from "/assets/js/config.js";
+import { requireLogin, tokenHeader, getToken, clear as bersihkanSesi } from "/assets/js/auth.js";
 import { redirect } from "/assets/js/jscroot/url.js";
 import { pasang } from "/assets/js/nav.js";
 
@@ -225,18 +264,137 @@ if (requireLogin()) {
                 galat("Gagal memuat pengaturan: " + (amplop.message || "HTTP " + hasil.status));
                 return;
             }
-            const d = amplop.data || {};
+            // Jawabannya dua bagian: teks pengaturan, dan keterangan tanda
+            // tangan mana yang sedang dipakai.
+            const isi = amplop.data || {};
+            const d = isi.pengaturan || {};
             KUNCI.forEach(function (k) {
                 const elemen = medan(k);
                 if (elemen) elemen.value = d[k] || "";
             });
-            const ttd = [d.TTD_REKTOR, d.TTD_LPPM].filter(Boolean).join(" · ");
-            document.getElementById("berkasTtd").textContent = ttd || "(belum ada)";
+            const ttd = isi.ttd || {};
+            TTD.forEach(function (n) {
+                tulisTtd(n, ttd[n] || {});
+                muatGambarTtd(n);
+            });
             pratinjau();
         }, ...tokenHeader());
     }
 
     form.addEventListener("input", pratinjau);
+
+    /* ── tanda tangan ── */
+    const TTD = ["rektor", "lppm"];
+    const urlObjek = {};
+
+    function urlTtd(n) { return backend.master.settings + "/ttd/" + n; }
+    function blokTtd(n) { return document.querySelector('[data-ttd="' + n + '"]'); }
+    function bagian(n, peran) { return blokTtd(n).querySelector('[data-peran="' + peran + '"]'); }
+
+    function tanggalPendek(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        if (isNaN(d)) return "";
+        return tanggalIndonesia(d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0"));
+    }
+
+    // Keterangan dari server: unggahan (siapa, kapan, ukuran) atau bawaan.
+    function tulisTtd(n, k) {
+        const status = bagian(n, "status");
+        const ket = bagian(n, "keterangan");
+        const unggahan = k.sumber === "unggahan";
+        status.textContent = unggahan ? "unggahan" : "bawaan";
+        status.className = "tanda " + (unggahan ? "is-sah" : "is-kosong");
+        if (unggahan) {
+            ket.textContent = "Diunggah " + (k.oleh ? k.oleh + ", " : "") + tanggalPendek(k.updated_at) +
+                " · " + (k.lebar || "?") + "×" + (k.tinggi || "?") + " px · " +
+                Math.round((k.ukuran || 0) / 1024) + " KB";
+        } else {
+            ket.textContent = "Gambar bawaan sistem. Unggah PNG untuk menggantinya.";
+        }
+        bagian(n, "bawaan").hidden = !unggahan;
+    }
+
+    // Gambarnya di balik token, jadi tidak bisa lewat src biasa: diambil
+    // sebagai blob lalu dipasang. URL objek lama dilepas supaya tidak bocor.
+    async function muatGambarTtd(n) {
+        const img = bagian(n, "gambar");
+        const kosong = bagian(n, "kosong");
+        try {
+            const res = await fetch(urlTtd(n), { headers: { [tokenKey]: getToken() }, cache: "no-store" });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const blob = await res.blob();
+            if (urlObjek[n]) URL.revokeObjectURL(urlObjek[n]);
+            urlObjek[n] = URL.createObjectURL(blob);
+            img.src = urlObjek[n];
+            img.hidden = false;
+            kosong.hidden = true;
+        } catch (e) {
+            img.hidden = true;
+            kosong.hidden = false;
+        }
+    }
+
+    TTD.forEach(function (n) {
+        const berkas = bagian(n, "berkas");
+        const label = n === "rektor" ? "Rektor" : "Ketua LPPM";
+
+        bagian(n, "ganti").addEventListener("click", function () { berkas.click(); });
+
+        berkas.addEventListener("change", function () {
+            const f = this.files && this.files[0];
+            if (!f) return;
+            bersih();
+            // Diperiksa di sini juga supaya berkas yang salah tidak perlu
+            // menyeberang jaringan hanya untuk ditolak. Backend tetap yang
+            // menegakkan aturannya, termasuk isi berkasnya.
+            if (f.type !== "image/png") {
+                galat("Tanda tangan harus berkas PNG berlatar transparan.");
+                this.value = "";
+                return;
+            }
+            if (f.size > 512 * 1024) {
+                galat("Berkasnya " + Math.round(f.size / 1024) + " KB. Maksimal 512 KB.");
+                this.value = "";
+                return;
+            }
+            penanda.textContent = "Mengunggah tanda tangan " + label + "…";
+            postFileWithHeader(urlTtd(n), ...tokenHeader(), berkas.id, "ttd", function (hasil) {
+                berkas.value = "";
+                // Callback ini menerima badan yang sudah di-parse tanpa kode
+                // status, jadi keberhasilan dikenali dari bentuk jawabannya.
+                if (!hasil || hasil.status !== "ok") {
+                    penanda.textContent = "";
+                    galat((hasil && hasil.message) || "Tanda tangan gagal diunggah.");
+                    return;
+                }
+                tulisTtd(n, hasil.data || {});
+                muatGambarTtd(n);
+                penanda.textContent = "Tanda tangan " + label + " diganti";
+                setTimeout(function () { penanda.textContent = ""; }, 2500);
+            });
+        });
+
+        bagian(n, "bawaan").addEventListener("click", function () {
+            if (!window.confirm("Buang unggahan tanda tangan " + label + " dan kembali ke gambar bawaan?")) return;
+            bersih();
+            penanda.textContent = "Mengembalikan…";
+            deleteJSON(urlTtd(n), {}, function (hasil) {
+                const amplop = (hasil && typeof hasil.status === "number") ? (hasil.data || {}) : (hasil || {});
+                if (amplop.status !== "ok") {
+                    penanda.textContent = "";
+                    galat(amplop.message || "Gagal mengembalikan tanda tangan.");
+                    return;
+                }
+                tulisTtd(n, amplop.data || {});
+                muatGambarTtd(n);
+                penanda.textContent = "Tanda tangan " + label + " kembali ke bawaan";
+                setTimeout(function () { penanda.textContent = ""; }, 2500);
+            }, ...tokenHeader());
+        });
+    });
 
     form.addEventListener("submit", function (ev) {
         ev.preventDefault();

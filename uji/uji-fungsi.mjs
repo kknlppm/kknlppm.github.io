@@ -36,7 +36,7 @@ function jawab(url) {
     const p = new URL(url).pathname;
     if (p.endsWith("/issue")) return { status: "ok", data: { no_sertifikat: "041/X" } };
     if (p === "/auth/me") return { status: "ok", data: { id: "u-1", uname: "admin", name: "Admin", role: 1, role_name: "Admin" } };
-    if (p === "/api/settings") return { status: "ok", data: { KOTA: "BANDUNG", JUDUL_KKN: "J" } };
+    if (p === "/api/settings") return { status: "ok", data: { pengaturan: { KOTA: "BANDUNG", JUDUL_KKN: "J" }, ttd: { rektor: { sumber: "bawaan" }, lppm: { sumber: "unggahan", oleh: "admin", updated_at: "2026-09-07T01:00:00Z", lebar: 300, tinggi: 208, ukuran: 43233 } } } };
     if (p === "/api/academic-years") return { data: ["2025-2026"], meta: { total: 1, page: 1, total_pages: 1 } };
     if (p === "/api/groups") return { data: [{ id: "g-1", kelompok: "20", lokasi: "Desa", nama_dosen: "Dosen", nidn: "04", tahun_ajaran: "2025-2026", jumlah_anggota: 6 }], meta: { total: 1, page: 1, total_pages: 1 } };
     if (p === "/api/participations") return { data: PESERTA, meta: { total: PESERTA.length, page: 1, total_pages: 1 } };
