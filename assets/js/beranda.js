@@ -214,26 +214,35 @@ if (seksiKelompok && tabTahun && kisiLambang) {
 // berjalan — bukan karangan. Kalau salah satunya berubah di aplikasi,
 // jawabannya di sini harus ikut berubah.
 const TANYA = [
-    ["Apa itu KKN dan siapa yang wajib mengikutinya?",
+    ["Apa itu KKN dan siapa yang mengikutinya?",
      ["Kuliah Kerja Nyata adalah kegiatan pengabdian kepada masyarakat yang " +
       "diselenggarakan LPPM Universitas Al-Ghifari. Mahasiswa ditempatkan dalam " +
-      "kelompok di lokasi tertentu, didampingi seorang Dosen Pembimbing Lapangan.",
+      "kelompok di sebuah desa mitra, didampingi seorang Dosen Pembimbing Lapangan.",
       "Ketentuan siapa yang wajib mengikuti dan pada semester ke berapa " +
       "mengikuti aturan program studi masing-masing."]],
+
+    ["Di mana kelompok ditempatkan?",
+     ["Di desa-desa mitra, sebagian besar di Kabupaten Bandung dan Bandung " +
+      "Barat; angkatan sebelumnya juga di Cianjur. Setiap kelompok tinggal di " +
+      "posko di desanya selama periode KKN berlangsung.",
+      "Penempatan ditentukan LPPM. Kelompok dan lambangnya bisa dilihat di " +
+      "bagian Kelompok, dan kegiatannya di bagian Berita."]],
+
+    ["Apa saja yang dikerjakan selama KKN?",
+     ["Programnya mengikuti kebutuhan desa. Yang paling sering: mengajar di SD " +
+      "dan PAUD, penyuluhan kesehatan dan posyandu, bank sampah dan kerja bakti, " +
+      "pendampingan usaha warga, serta kegiatan keagamaan dan peringatan hari besar.",
+      "Setiap kelompok mencatat kegiatannya sebagai berita, lengkap dengan " +
+      "fotonya, dan itu yang tampil di halaman ini."]],
 
     ["Bagaimana nilai KKN dihitung?",
      ["Ada lima aspek yang dinilai Dosen Pembimbing Lapangan, masing-masing " +
       "0 sampai 100: Kehadiran (H), Sikap (S), Kepemimpinan (L), Kualitas " +
       "Perencanaan (QP), dan Kualitas Luaran (QL).",
       "Nilai akhir adalah rata-rata kelimanya, dibulatkan. Huruf mutunya: " +
-      "A untuk 80 ke atas, B untuk 68–79, C untuk 56–67, dan D untuk 45–55. " +
-      "Di bawah 45 dinyatakan tidak lulus."]],
-
-    ["Bagaimana cara masuk ke aplikasi?",
-     ["Mahasiswa masuk memakai NIM sebagai nama pengguna. Dosen dan staf " +
-      "memakai nama pengguna yang diberikan LPPM.",
-      "Kalau sandi terlupa atau akun belum aktif, hubungi LPPM — pengaturan " +
-      "akun tidak bisa dilakukan sendiri dari halaman masuk."]],
+      "A untuk 80 ke atas, B untuk 68\u201379, C untuk 56\u201367, dan D untuk 45\u201355. " +
+      "Di bawah 45 dinyatakan tidak lulus. Nilai hanya terlihat oleh yang " +
+      "bersangkutan, pembimbingnya, dan LPPM."]],
 
     ["Bagaimana memeriksa keaslian sertifikat KKN?",
      ["Pindai kode QR yang tercetak di sertifikat. Ia langsung membuka halaman " +
@@ -243,12 +252,6 @@ const TANYA = [
       "tidak perlu punya hubungan apa pun dengan kampus.",
       "Kalau kode QR-nya rusak, sobek, atau tercetak terlalu buram untuk " +
       "dipindai, hubungi LPPM."]],
-
-    ["Apakah nilai saya terlihat oleh mahasiswa lain?",
-     ["Tidak. Halaman verifikasi sertifikat yang terbuka untuk umum hanya " +
-      "menampilkan identitas dan keabsahan sertifikatnya — nilai tidak pernah " +
-      "ikut ditampilkan di sana.",
-      "Di dalam aplikasi, apa yang bisa dilihat seseorang ditentukan perannya."]],
 ];
 
 const daftarTanya = $("#daftarFaq");

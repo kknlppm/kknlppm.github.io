@@ -292,6 +292,11 @@ body.nav-open .nav__mobile { display: block; }
   background: conic-gradient(from 200deg, #C28780, #E9D0C9, #9C5248, #C28780);
   filter: blur(.4px); box-shadow: 0 10px 30px rgba(22, 9, 7,.45);
 }
+.kaca--foto { padding: 14px 16px 10px; }
+.mosaik { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 4px 0 8px; }
+/* height:auto WAJIB: atribut height di <img> (untuk ruang sebelum muat)
+   mengalahkan aspect-ratio kalau tingginya tidak dilepas di sini. */
+.mosaik img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; display: block; }
 .kaca--tengah { text-align: center; }
 .kaca--tengah b { display: block; font-size: 16px; font-weight: 600; color: #fff; }
 .kaca--tengah small { color: rgba(255,255,255,.72); font-size: 12px; }
@@ -393,27 +398,12 @@ body.nav-open .nav__mobile { display: block; }
 }
 .tumpuk__kartu--balik .tumpuk__visual { order: -1; }
 
-/* Cuplikan antarmuka yang melayang di dalam kartu visual. */
-.cuplik {
-  position: relative; z-index: 1; width: 100%; max-width: 380px;
-  background: rgba(12, 16, 21, .88); backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 16px 18px;
+/* Foto kegiatan sungguhan yang melayang di dalam kartu visual. */
+.tumpuk__foto {
+  position: relative; z-index: 1; width: 100%; height: auto; max-width: 420px; aspect-ratio: 4 / 3; object-fit: cover;
+  border-radius: 14px; border: 1px solid rgba(255,255,255,.14);
   box-shadow: 0 24px 50px rgba(22, 9, 7,.6), inset 0 1px 0 rgba(255,255,255,.08);
-  font-size: 12px;
 }
-.cuplik__judul { font-family: var(--font-data); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
-.cuplik__baris { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid rgba(255,255,255,.07); }
-.cuplik__baris:first-of-type { border-top: 0; }
-.cuplik__nim { font-family: var(--font-data); color: var(--text-3); font-size: 11px; }
-.cuplik__nama { color: var(--text); }
-.cuplik__nilai { font-family: var(--font-data); color: var(--bata-terang); }
-.cuplik__kotak { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 4px; }
-.cuplik__kotak i {
-  display: grid; place-items: center; height: 30px; border-radius: 6px;
-  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-  font-family: var(--font-data); font-size: 11px; color: var(--text-2); font-style: normal;
-}
-.cuplik__kotak i.on { background: rgba(62,155,221,.18); border-color: rgba(62,155,221,.4); color: #fff; }
 
 /* Pengumuman ----------------------------------------------------------- */
 .pengumuman {
@@ -540,6 +530,7 @@ body.nav-open .nav__mobile { display: block; }
 .cta__teks { display: flex; flex-direction: column; align-items: flex-start; }
 .cta__teks .h1 { margin-bottom: 24px; font-size: clamp(36px, 4.4vw, 52px); max-width: 360px; }
 .cta__teks p { color: var(--text-2); max-width: 330px; margin-bottom: 32px; }
+.cta__aksi { display: flex; flex-wrap: wrap; gap: 12px; }
 
 /* Jendela penutup: lebih lebar dari kolomnya dan sengaja meluber, supaya
    tepi kanannya keluar bidang seperti di Fora. Auroranya dimatikan — di sini
@@ -555,23 +546,8 @@ body.nav-open .nav__mobile { display: block; }
 .cta__mock .jendela__utama { background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05)); }
 
 /* Isinya telanjang di atas permukaan itu — tanpa kartu berbingkai. */
-.cta__mock .jendela__isi { padding: 150px 40px 40px; align-content: start; justify-items: center; text-align: center; gap: 8px; }
-.ringkas__bulat {
-  width: 46px; height: 46px; border-radius: 50%; background: #fff; color: #111;
-  display: grid; place-items: center; font-weight: 600; font-size: 15px;
-  box-shadow: 0 4px 14px rgba(22, 9, 7,.35);
-}
-.ringkas__judul { font-weight: 600; font-size: 16px; color: #fff; }
-.ringkas__meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,.85); }
-.ringkas__titik { display: flex; }
-.ringkas__titik i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(20,20,20,.9); margin-left: -6px; background: linear-gradient(135deg, #C28780, #3A201C); }
-.ringkas__titik i:first-child { margin-left: 0; }
-.ringkas__titik i:nth-child(2) { background: linear-gradient(135deg, #E9D0C9, #9C5248); }
-.ringkas__titik i:nth-child(3) { background: linear-gradient(135deg, #D0A79E, #4A241F); }
-.ringkas__tombol {
-  margin-top: 12px; width: 100%; max-width: 420px; height: 44px; border-radius: 999px;
-  background: #e6e6e6; color: #111; font-weight: 500; display: grid; place-items: center;
-}
+.cta__mock .jendela__isi { padding: 110px 40px 40px; align-content: start; justify-items: center; text-align: center; gap: 18px; }
+.cta__mock .kaca--tengah { width: 100%; max-width: 360px; }
 .ringkas__ket { max-width: 420px; text-align: left; font-size: 13px; color: rgba(255,255,255,.85); line-height: 1.5; margin-top: 10px; }
 
 /* Kaki ----------------------------------------------------------------- */
