@@ -163,6 +163,26 @@ cek("anggota kelompok termuat", anggota > 0, anggota + " anggota");
 cek("dropdown ikut menunjuk kelompok yang sama",
     (await page.locator("#pilihKelompok").inputValue()) !== "");
 
+// ── pengaturan: tanda tangan ──
+// Pratinjaunya diambil dengan token, jadi kalau autentikasi pada rute gambar
+// rusak, yang tampil "belum ada" tanpa galat apa pun di konsol.
+await page.goto(ASAL + "/pengaturan/", { waitUntil: "networkidle" });
+await page.waitForFunction(() => {
+    const g = [...document.querySelectorAll('[data-peran="gambar"]')];
+    return g.length === 2 && g.every((i) => !i.hidden && i.naturalWidth > 0);
+}, null, { timeout: 15000 }).catch(() => {});
+const ttd = await page.evaluate(() => [...document.querySelectorAll("[data-ttd]")].map((b) => {
+    const img = b.querySelector('[data-peran="gambar"]');
+    return {
+        nama: b.dataset.ttd, tampil: !img.hidden && img.naturalWidth > 0,
+        status: b.querySelector('[data-peran="status"]').textContent.trim(),
+        ganti: !!b.querySelector('[data-peran="ganti"]'),
+        bawaanSesuai: b.querySelector('[data-peran="bawaan"]').hidden === (b.querySelector('[data-peran="status"]').textContent.trim() !== "unggahan"),
+    };
+}));
+cek("pengaturan: kedua pratinjau tanda tangan tampil", ttd.length === 2 && ttd.every((t) => t.tampil), ttd.map((t) => t.nama + "=" + t.status).join(", "));
+cek("pengaturan: status, tombol ganti, dan tombol bawaan konsisten", ttd.every((t) => ["bawaan", "unggahan"].includes(t.status) && t.ganti && t.bawaanSesuai));
+
 cek("tidak ada galat skrip di seluruh alur", galat.length === 0, galat.join(" | ").slice(0, 200));
 
 await brw.close();
