@@ -198,11 +198,27 @@ for (const jalur of terlindungi) {
 {
     const { ctx, page, galat } = await halamanBaru(false);
     const dipanggil = [];
+    // Lambang kelompok: dua tahun ajaran, dan satu julukan yang berisi markup —
+    // ia harus tampil sebagai TEKS, bukan jadi elemen.
+    // Tahun pertama 18 kelompok — lebih dari dua baris, supaya tombol
+    // "tampilkan semua" ikut teruji. Kelompok 2 berjulukan markup: ia harus
+    // tampil sebagai TEKS. Kelompok 3 tanpa julukan.
+    const LAMBANG = Array.from({ length: 18 }, (_, i) => ({
+        kelompok: "Kelompok " + (i + 1), kelompok_no: i + 1, tahun_ajaran: "2025-2026",
+        julukan: i === 1 ? "<img src=x onerror=alert(1)>" : (i === 2 ? undefined : "Julukan " + (i + 1)),
+        lambang: "/assets/kelompok/2025-2026/" + (i + 1) + ".webp",
+    })).concat([
+        { kelompok: "Kelompok 2", kelompok_no: 2, tahun_ajaran: "2024-2025", julukan: "Sampurna Mandala", lambang: "/assets/kelompok/2024-2025/d.webp" },
+    ]);
     await page.route("**/localhost:8090/**", (r) => {
-        dipanggil.push(new URL(r.request().url()).pathname);
-        return r.fulfill({ status: 200, contentType: "application/json",
-            body: JSON.stringify(amplop([], { total: 0, page: 1, total_pages: 1 })) });
+        const jalur = new URL(r.request().url()).pathname;
+        dipanggil.push(jalur);
+        const isi = jalur === "/kelompok" ? amplop(LAMBANG) : amplop([], { total: 0, page: 1, total_pages: 1 });
+        return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(isi) });
     });
+    // Berkas lambangnya tidak ada di repo uji; yang diuji kisinya, bukan
+    // gambarnya. Semua dilayani logo yang memang ada supaya tidak ada 404.
+    await page.route("**/assets/kelompok/**", (r) => r.fulfill({ path: decodeURIComponent(new URL("../assets/img/logo-unfari.png", import.meta.url).pathname) }));
     await page.goto(B + "/", { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
 
@@ -224,14 +240,33 @@ for (const jalur of terlindungi) {
     const faq = await page.locator("#daftarFaq .acc").count();
     lapor(faq >= 5, `tanya jawab tergambar (${faq} butir)`);
 
-    const ket = await page.textContent("#ketTahap");
-    lapor(!!(ket || "").trim(), `tahapan aktif punya keterangan ("${(ket || "").slice(0, 40)}…")`);
-
-    // Berpindah tahap benar-benar mengganti panel.
-    await page.locator("#tabTahap button").nth(3).click();
-    await page.waitForTimeout(300);
-    const judulTahap = await page.textContent(".panggung__slide.is-active .panggung__judul");
-    lapor(/Penilaian/i.test(judulTahap || ""), `tab keempat membuka panel yang benar ("${judulTahap}")`);
+    // Lambang kelompok: seksi tampil begitu ada lambang, satu tab per tahun
+    // ajaran (terbaru dulu), dan ubin hanya untuk tahun yang dipilih.
+    lapor(await page.locator("#kelompok").isVisible(), "seksi kelompok tampil karena ada lambang");
+    const tabTahun = await page.locator("#tabTahun button").allTextContents();
+    lapor(tabTahun.join(",") === "2025-2026,2024-2025", `tab tahun ajaran terbaru dulu (${tabTahun.join(",")})`);
+    const ubin1 = await page.locator("#daftarLambang .lambang__ubin").count();
+    lapor(ubin1 === 18, `tahun pertama menggambar 18 ubin (${ubin1})`);
+    const tampak = await page.locator("#daftarLambang .lambang__ubin:visible").count();
+    lapor(tampak === 16, `dua baris dulu: 16 yang tampak (${tampak})`);
+    lapor(await page.locator("#lambangSemua").isVisible(), "tombol tampilkan semua ada");
+    await page.click("#lambangSemua"); await page.waitForTimeout(200);
+    lapor(await page.locator("#daftarLambang .lambang__ubin:visible").count() === 18
+        && await page.locator("#lambangSemua").isHidden(), "tampilkan semua membuka sisanya dan menyembunyikan tombolnya");
+    const namaUbin = await page.locator("#daftarLambang .lambang__nama").allTextContents();
+    lapor(namaUbin[2] === "Kelompok 3", `tanpa julukan, ubin bernama nomornya ("${namaUbin[2]}")`);
+    // Julukan ber-markup tetap teks: tidak ada <img> tambahan di kisi selain
+    // lambangnya sendiri, dan teksnya terbaca apa adanya.
+    const imgKisi = await page.locator("#daftarLambang img").count();
+    lapor(imgKisi === 18 && namaUbin[1].includes("<img src=x"),
+        `julukan ber-HTML tetap teks (img=${imgKisi}, nama="${namaUbin[1]}")`);
+    await page.locator("#tabTahun button").nth(1).click();
+    await page.waitForTimeout(200);
+    const ubin2 = await page.locator("#daftarLambang .lambang__ubin").count();
+    lapor(ubin2 === 1, `tab kedua mengganti kisi (${ubin2} ubin)`);
+    lapor(await page.locator("#lambangSemua").isHidden(), "satu ubin: tombol tampilkan semua tidak muncul");
+    lapor(await page.locator("#tabTahun button").nth(1).getAttribute("aria-selected") === "true",
+        "tab kedua ditandai terpilih");
 
     // Satu-satunya pintu keluar halaman depan adalah Masuk.
     const masuk = await page.locator('a[href="/login/"]').count();
@@ -337,8 +372,12 @@ const BERITA = [
     await page.route("**/localhost:8090/news**", (r) => r.fulfill({ status: 200,
         contentType: "application/json",
         body: JSON.stringify(amplop(BERITA, { total: 2, page: 1, total_pages: 1 })) }));
+    // Lambang kelompok kosong: seksinya tetap tersembunyi, dan itu bukan galat.
+    await page.route("**/localhost:8090/kelompok", (r) => r.fulfill({ status: 200,
+        contentType: "application/json", body: JSON.stringify(amplop([])) }));
     await page.goto(B + "/", { waitUntil: "networkidle" });
     await page.waitForTimeout(400);
+    lapor(await page.locator("#kelompok").isHidden(), "tanpa lambang, seksi kelompok tersembunyi");
 
     const kartu = await page.locator("#daftarBerita .pos").count();
     lapor(kartu === 2, `halaman depan menggambar kartu berita (${kartu})`);
@@ -358,9 +397,11 @@ const BERITA = [
 {
     const { ctx, page } = await halamanBaru(false);
     await page.route("**/localhost:8090/news**", (r) => r.abort());
+    await page.route("**/localhost:8090/kelompok", (r) => r.abort());
     await page.goto(B + "/", { waitUntil: "networkidle" });
     await page.waitForTimeout(400);
     lapor(await page.locator("#daftarBerita").isHidden(), "berita gagal: kartunya tidak digambar");
+    lapor(await page.locator("#kelompok").isHidden(), "lambang gagal: seksi kelompok tetap tersembunyi");
     lapor(await page.locator("#daftarFaq .acc").count() >= 5, "…dan tanya jawab tetap ada");
     lapor(await page.locator(".hero__content .h1").count() === 1, "…dan hero tetap ada");
     await ctx.close();

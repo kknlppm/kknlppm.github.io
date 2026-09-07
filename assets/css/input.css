@@ -600,3 +600,16 @@
         from { height: 2px; }
     }
 }
+
+/* Ubin lambang kelompok. Selalu di atas kertas-cetak: lambang dirancang untuk
+   latar putih, dan yang bertinta gelap lenyap di latar gelap tema gelap. */
+@layer components {
+  .ubin-lambang {
+    @apply w-20 h-20 rounded-xl border border-garis grid place-items-center overflow-hidden shrink-0;
+  }
+  .ubin-lambang img { @apply w-full h-full object-contain p-1.5; }
+  .ubin-lambang--kecil { @apply w-8 h-8 rounded-md; }
+  .ubin-lambang--kecil img { @apply p-0.5; }
+  /* Julukan di sel bernomor: kembali ke huruf biasa, bukan huruf data. */
+  .teks-biasa { @apply font-teks tracking-normal; }
+}

@@ -89,35 +89,105 @@ if (kataIntro.length) {
     nyala();
 }
 
-/* Tahapan KKN ----------------------------------------------------------- */
-const tabs = $("#tabTahap");
-if (tabs) {
-    const tombol = $$("button", tabs);
-    const pil = $(".tabs__pill", tabs);
-    const slide = $$(".panggung__slide");
-    const ket = $("#ketTahap");
+/* Kelompok: lambang per tahun ajaran ----------------------------------- */
+//
+// Panggilan publik kedua di halaman ini, dan seperti berita ia harus boleh
+// gagal tanpa merusak apa pun. Bedanya: berita punya keadaan kosong, seksi
+// ini tetap TERSEMBUNYI sampai ada yang bisa ditampilkan. Kotak bertuliskan
+// "belum ada lambang" hanya memberi tahu pengunjung apa yang belum
+// dikerjakan LPPM.
+const seksiKelompok = $("#kelompok");
+const tabTahun = $("#tabTahun");
+const kisiLambang = $("#daftarLambang");
+const tombolSemua = $("#lambangSemua");
+// Berapa ubin yang tampil sebelum tombol "tampilkan semua": dua baris di
+// lebar penuh, empat baris tiga ubin di ponsel. Angkanya HARUS sama dengan
+// aturan nth-child di beranda.css.
+const batasUbin = () => (matchMedia("(max-width: 900px)").matches ? 12 : 16);
+
+function nomorKelompok(k) {
+    return String(k.kelompok || "").replace(/^kelompok\s+/i, "");
+}
+
+function ubinLambang(k, i) {
+    const ubin = el("div", "lambang__ubin");
+    ubin.dataset.reveal = "";
+    ubin.style.setProperty("--d", Math.min(i, 24) * 28 + "ms");
+
+    const gbr = el("div", "lambang__gbr");
+    const img = el("img");
+    // Alamatnya dari server, dan server hanya menerima berkas di folder
+    // lambang repo ini. Dipasang sebagai atribut, tidak pernah disisipkan ke
+    // markup.
+    img.src = k.lambang;
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.width = 160;
+    img.height = 160;
+    gbr.appendChild(img);
+    ubin.appendChild(gbr);
+
+    // textContent, selalu: julukan diketik admin.
+    const nomor = "Kelompok " + nomorKelompok(k);
+    ubin.appendChild(el("div", "lambang__nama", k.julukan || nomor));
+    if (k.julukan) ubin.appendChild(el("div", "lambang__no", nomor));
+    return ubin;
+}
+
+function gambarLambang(daftar) {
+    // Dikelompokkan per tahun ajaran, terbaru dulu. Server sudah
+    // mengurutkannya begitu; di sini hanya dipecah.
+    const perTahun = new Map();
+    daftar.forEach((k) => {
+        if (!k || !k.lambang || !k.tahun_ajaran) return;
+        if (!perTahun.has(k.tahun_ajaran)) perTahun.set(k.tahun_ajaran, []);
+        perTahun.get(k.tahun_ajaran).push(k);
+    });
+    const tahun = [...perTahun.keys()].sort().reverse();
+    if (!tahun.length) return false;
+
+    const tombol = tahun.map((ta) => {
+        const b = el("button", null, ta);
+        b.type = "button";
+        b.setAttribute("role", "tab");
+        b.setAttribute("aria-selected", "false");
+        b.setAttribute("aria-controls", "daftarLambang");
+        tabTahun.appendChild(b);
+        return b;
+    });
+    tabTahun.style.setProperty("--n", String(tahun.length));
+    // Satu tahun saja: deretan tab dengan satu tab bukan pilihan, cuma hiasan.
+    tabTahun.hidden = tahun.length < 2;
+    const pil = $(".tabs__pill", tabTahun);
     let kini = 0;
 
     const ke = (n) => {
-        kini = (n + tombol.length) % tombol.length;
+        kini = (n + tahun.length) % tahun.length;
         tombol.forEach((b, k) => {
             b.classList.toggle("is-active", k === kini);
             b.setAttribute("aria-selected", String(k === kini));
         });
-        slide.forEach((s, k) => {
-            s.classList.toggle("is-active", k === kini);
-            s.hidden = k !== kini;
-        });
         if (pil) pil.style.transform = `translateX(${kini * 100}%)`;
-        if (ket) ket.textContent = slide[kini].dataset.ket || "";
+        kisiLambang.textContent = "";
+        const daftarTahun = perTahun.get(tahun[kini]);
+        daftarTahun.forEach((k, i) => kisiLambang.appendChild(ubinLambang(k, i)));
+        kisiLambang.classList.add("terbatas");
+        if (tombolSemua) tombolSemua.hidden = daftarTahun.length <= batasUbin();
+        $$("[data-reveal]", kisiLambang).forEach((e) => pengamat.observe(e));
     };
 
-    tombol.forEach((b, k) => b.addEventListener("click", () => ke(k)));
-    $("#tahapSebelum")?.addEventListener("click", () => ke(kini - 1));
-    $("#tahapSesudah")?.addEventListener("click", () => ke(kini + 1));
+    tombolSemua?.addEventListener("click", () => {
+        kisiLambang.classList.remove("terbatas");
+        tombolSemua.hidden = true;
+        // Ubin yang tadi display:none belum pernah dilaporkan pengamat
+        // sebagai terlihat; sekarang ia tampil dan pengamat melaporkannya.
+        $$("[data-reveal]", kisiLambang).forEach((e) => pengamat.observe(e));
+    });
 
+    tombol.forEach((b, k) => b.addEventListener("click", () => ke(k)));
     // Panah kiri/kanan saat fokus ada di deretan tab — perilaku baku tablist.
-    tabs.addEventListener("keydown", (e) => {
+    tabTahun.addEventListener("keydown", (e) => {
         if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
         e.preventDefault();
         ke(kini + (e.key === "ArrowRight" ? 1 : -1));
@@ -125,6 +195,17 @@ if (tabs) {
     });
 
     ke(0);
+    return true;
+}
+
+if (seksiKelompok && tabTahun && kisiLambang) {
+    getJSON(backend.kkn.lambangPublik, (hasil) => {
+        if (!hasil || hasil.status !== 200) return;   // seksi tetap tersembunyi
+        const daftar = ((hasil.data || {}).data) || [];
+        if (!Array.isArray(daftar) || !gambarLambang(daftar)) return;
+        seksiKelompok.hidden = false;
+        $$("[data-reveal]", seksiKelompok).forEach((e) => pengamat.observe(e));
+    });
 }
 
 /* FAQ ------------------------------------------------------------------- */

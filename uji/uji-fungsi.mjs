@@ -38,7 +38,7 @@ function jawab(url) {
     if (p === "/auth/me") return { status: "ok", data: { id: "u-1", uname: "admin", name: "Admin", role: 1, role_name: "Admin" } };
     if (p === "/api/settings") return { status: "ok", data: { pengaturan: { KOTA: "BANDUNG", JUDUL_KKN: "J" }, ttd: { rektor: { sumber: "bawaan" }, lppm: { sumber: "unggahan", oleh: "admin", updated_at: "2026-09-07T01:00:00Z", lebar: 300, tinggi: 208, ukuran: 43233 } } } };
     if (p === "/api/academic-years") return { data: ["2025-2026"], meta: { total: 1, page: 1, total_pages: 1 } };
-    if (p === "/api/groups") return { data: [{ id: "g-1", kelompok: "20", lokasi: "Desa", nama_dosen: "Dosen", nidn: "04", tahun_ajaran: "2025-2026", jumlah_anggota: 6 }], meta: { total: 1, page: 1, total_pages: 1 } };
+    if (p === "/api/groups") return { data: [{ id: "g-1", kelompok: "20", lokasi: "Desa", nama_dosen: "Dosen", nidn: "04", tahun_ajaran: "2025-2026", jumlah_anggota: 6, julukan: "Bhakti Praja", lambang: "/assets/img/logo-unfari.png" }], meta: { total: 1, page: 1, total_pages: 1 } };
     if (p === "/api/participations") return { data: PESERTA, meta: { total: PESERTA.length, page: 1, total_pages: 1 } };
     if (p === "/api/students") return { data: [{ id: "s-1", nim: "21900001", name: "Mhs", kelas: "A", email: "a@b.c" }], meta: { total: 1, page: 1, total_pages: 1 } };
     if (p === "/api/programs") return { data: [{ id: "pr-1", prodi: "Farmasi", fakultas_id: 1 }], meta: { total: 1, page: 1, total_pages: 1 } };
@@ -151,12 +151,32 @@ async function buka(jalur) {
 {
     // kelompok
     {
-        const { ctx, page, tulis } = await buka("/kelompok/");
+        const { ctx, page, tulis, badan } = await buka("/kelompok/");
+        // Julukan dan lambang di tabel: dari data, bukan hiasan.
+        lapor(/Bhakti Praja/.test(await page.textContent("#isiTabel") || ""), "julukan tampil di tabel kelompok");
+        lapor(await page.locator("#isiTabel .ubin-lambang img").count() === 1, "lambang tampil sebagai ubin di tabel");
         await page.click("#tombolTambah"); await page.waitForTimeout(300);
+        // Kelompok baru belum punya id: unggah lambang dimatikan dengan
+        // penjelasan, bukan disembunyikan.
+        lapor(/Simpan kelompoknya dulu/.test(await page.textContent("#ketLambang") || ""),
+            "kelompok baru: unggah lambang menunggu kelompoknya tersimpan");
         await page.fill("#fKelompok", "99");
         await page.fill("#fTahun", "2025-2026");
+        await page.fill("#fJulukan", "Uji Julukan");
         await page.click("#tombolSimpan"); await page.waitForTimeout(400);
         lapor(tulis.some((x) => x === "POST /api/groups"), `kelompok Simpan → ${tulis[0] || "TIDAK MENGIRIM"}`);
+        lapor(badan.some((b) => b && b.julukan === "Uji Julukan"), "julukan ikut terkirim saat menyimpan");
+        tulis.length = 0;
+        // Ubah kelompok yang sudah ada: julukan terisi, pratinjau lambang
+        // tampil, dan tombol lepas tersedia.
+        await page.locator("#isiTabel button", { hasText: "Ubah" }).first().click();
+        await page.waitForTimeout(300);
+        lapor(await page.inputValue("#fJulukan") === "Bhakti Praja", "laci Ubah memuat julukan");
+        lapor(await page.locator("#lambangPratinjau").isVisible() && await page.locator("#tombolLepasLambang").isVisible(),
+            "laci Ubah menampilkan pratinjau lambang dan tombol lepas");
+        await page.click("#tombolLepasLambang"); await page.waitForTimeout(400);
+        lapor(tulis.some((x) => x === "DELETE /api/groups/g-1/lambang"), `lepas lambang → ${tulis[0] || "TIDAK MENGIRIM"}`);
+        await page.click("#tombolBatal"); await page.waitForTimeout(200);
         tulis.length = 0;
         await page.locator("#isiTabel button", { hasText: "Hapus" }).first().click();
         await page.waitForTimeout(400);

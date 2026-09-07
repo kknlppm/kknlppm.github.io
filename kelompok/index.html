@@ -75,6 +75,14 @@
         <input id="fKelompok" name="kelompok" class="medan" required placeholder="mis. 23">
       </div>
       <div>
+        <label for="fJulukan" class="block text-sm font-medium mb-1.5">Julukan</label>
+        <input id="fJulukan" name="julukan" class="medan" maxlength="40" placeholder="mis. Bhakti Praja">
+        <p class="text-xs text-tinta-redup mt-1">
+          Nama yang dipilih kelompok untuk dirinya. Tampil di halaman depan
+          bersama lambangnya.
+        </p>
+      </div>
+      <div>
         <label for="fTahun" class="block text-sm font-medium mb-1.5">Tahun ajaran</label>
         <input id="fTahun" name="tahun_ajaran" class="medan font-data" required
                placeholder="2025-2026" pattern="\d{4}-\d{4}">
@@ -93,6 +101,29 @@
           Hanya dosen berstatus pembimbing lapangan yang bisa dipilih.
         </p>
       </div>
+
+      <!-- Lambang diunggah lewat jalurnya sendiri, bukan ikut formulir:
+           kelompoknya harus sudah ada dulu supaya ada yang ditempeli. Ubin
+           pratinjaunya kertas-cetak — lambang dirancang untuk latar putih,
+           dan di tema gelap latar gelap membuat lambang bertinta gelap
+           lenyap. -->
+      <div>
+        <span class="block text-sm font-medium mb-1.5">Lambang</span>
+        <div class="flex items-start gap-3">
+          <div class="ubin-lambang kertas-cetak">
+            <img id="lambangPratinjau" alt="Lambang kelompok" hidden>
+            <span id="lambangKosong" class="text-xs text-tinta-redup">Belum ada</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <label for="fLambang" id="labelLambang" class="tombol-halus w-full cursor-pointer mb-2">Pilih berkas lambang…</label>
+            <input id="fLambang" type="file" accept="image/png,image/jpeg,image/webp" class="sr-only">
+            <p id="ketLambang" class="text-xs text-tinta-redup">
+              PNG, JPG, atau WebP, sebaiknya bujur sangkar. Maksimal 1 MB.
+            </p>
+            <button type="button" id="tombolLepasLambang" class="tautan-aksi tautan-aksi--bahaya text-xs mt-2" hidden>Lepas lambang</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="px-5 py-4 border-t border-garis flex gap-2 justify-end">
@@ -103,7 +134,7 @@
 </aside>
 
 <script type="module">
-import { getJSON, postJSON, deleteJSON } from "/assets/js/jscroot/api.js";
+import { getJSON, postJSON, deleteJSON, postFileWithHeader } from "/assets/js/jscroot/api.js";
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
@@ -134,7 +165,26 @@ if (requireLogin()) {
 
     function baris(g) {
         const tr = el("tr");
-        tr.appendChild(sel(String(g.kelompok || "").replace(/^kelompok\s+/i, ""), "kode"));
+        const nomor = String(g.kelompok || "").replace(/^kelompok\s+/i, "");
+        const tdK = el("td", "kode");
+        const isiK = el("div", "flex items-center gap-2.5");
+        if (g.lambang) {
+            // Ubin putih kecil, apa pun temanya: lambang dirancang untuk
+            // latar putih.
+            const ubin = el("span", "ubin-lambang ubin-lambang--kecil kertas-cetak shrink-0");
+            const im = el("img");
+            im.src = g.lambang;
+            im.alt = "";
+            im.loading = "lazy";
+            ubin.appendChild(im);
+            isiK.appendChild(ubin);
+        }
+        const teks = el("div", "min-w-0");
+        teks.appendChild(el("div", null, nomor));
+        if (g.julukan) teks.appendChild(el("div", "teks-biasa text-xs text-tinta-redup truncate", g.julukan));
+        isiK.appendChild(teks);
+        tdK.appendChild(isiK);
+        tr.appendChild(tdK);
 
         // Jumlah anggota: angka yang paling dicari saat menempatkan. Nol
         // ditandai — kelompok kosong biasanya berarti pekerjaan yang belum
@@ -227,9 +277,75 @@ if (requireLogin()) {
         form.tahun_ajaran.value = g ? (g.tahun_ajaran || "") : (tahun || "");
         form.lokasi.value = g ? (g.lokasi || "") : "";
         form.lecturer_id.value = g ? (g.lecturer_id || "") : "";
+        form.julukan.value = g ? (g.julukan || "") : "";
+        gambarLambang(g ? (g.lambang || "") : "", "");
+        // Unggah butuh kelompok yang sudah tersimpan — belum ada id untuk
+        // ditempeli. Tombolnya dimatikan dengan penjelasan, bukan
+        // disembunyikan: yang tahu fiturnya ada tidak perlu mencari-cari.
+        const bisaUnggah = !!g;
+        labelLambang.classList.toggle("opacity-50", !bisaUnggah);
+        labelLambang.classList.toggle("pointer-events-none", !bisaUnggah);
+        ketLambang.textContent = bisaUnggah ? KET_LAMBANG
+            : "Simpan kelompoknya dulu, lalu buka Ubah untuk mengunggah lambang.";
         sembunyikan(document.getElementById("pesanLaci"));
         laci.buka();
     }
+
+    const labelLambang = document.getElementById("labelLambang");
+    const ketLambang = document.getElementById("ketLambang");
+    const KET_LAMBANG = ketLambang.textContent.trim();
+    const pratinjau = document.getElementById("lambangPratinjau");
+    const lambangKosong = document.getElementById("lambangKosong");
+    const tombolLepas = document.getElementById("tombolLepasLambang");
+
+    // `alamat` yang disimpan; `segera` alamat raw yang hidup seketika sesudah
+    // unggah, sebelum GitHub Pages selesai membangun (~30 detik).
+    function gambarLambang(alamat, segera) {
+        const ada = !!alamat;
+        pratinjau.hidden = !ada;
+        lambangKosong.hidden = ada;
+        tombolLepas.hidden = !ada;
+        pratinjau.src = ada ? (segera || alamat) : "";
+    }
+
+    document.getElementById("fLambang").addEventListener("change", function () {
+        const berkas = this.files && this.files[0];
+        if (!berkas || !sunting) return;
+        if (berkas.size > 1024 * 1024) {
+            ketLambang.textContent = "Berkasnya lebih dari 1 MB. Kecilkan dulu.";
+            this.value = "";
+            return;
+        }
+        ketLambang.textContent = "Mengunggah…";
+        const id = sunting.id;
+        postFileWithHeader(backend.kkn.groupLambang(encodeURIComponent(id)), ...tokenHeader(),
+            "fLambang", "lambang", function (hasil) {
+                document.getElementById("fLambang").value = "";
+                // Callback ini menerima badan yang sudah di-parse tanpa kode
+                // status — keberhasilan dikenali dari bentuk jawabannya.
+                const d = (hasil || {}).data || {};
+                if (!d.lambang) {
+                    ketLambang.textContent = (hasil && hasil.message) || "Lambang gagal diunggah.";
+                    return;
+                }
+                if (sunting && sunting.id === id) sunting.lambang = d.lambang;
+                gambarLambang(d.lambang, d.pratinjau || "");
+                ketLambang.textContent = "Tersimpan. Di halaman depan tampil setelah situs selesai dibangun, sekitar setengah menit.";
+                muat();
+            });
+    });
+
+    tombolLepas.addEventListener("click", function () {
+        if (!sunting || !window.confirm("Lepas lambang kelompok " + sunting.kelompok + "?")) return;
+        const id = sunting.id;
+        deleteJSON(backend.kkn.groupLambang(encodeURIComponent(id)), {}, function (hasil) {
+            if (!sehat(hasil, document.getElementById("pesanLaci"))) return;
+            if (sunting && sunting.id === id) sunting.lambang = "";
+            gambarLambang("", "");
+            ketLambang.textContent = KET_LAMBANG;
+            muat();
+        }, ...tokenHeader());
+    });
 
     document.getElementById("tombolTambah").addEventListener("click", function () { bukaForm(null); });
 
@@ -246,6 +362,7 @@ if (requireLogin()) {
             tahun_ajaran: form.tahun_ajaran.value.trim(),
             lokasi: form.lokasi.value.trim(),
             lecturer_id: form.lecturer_id.value,
+            julukan: form.julukan.value.trim(),
         }, function (hasil) {
             tombol.disabled = false;
             if (!sehat(hasil, pl)) return;

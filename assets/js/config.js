@@ -56,6 +56,11 @@ export const backend = {
     kkn: {
         groups: asal + "/api/groups",
         group: (idnya) => asal + "/api/groups/" + idnya,
+        // Lambang kelompok: unggah (POST) dan lepas (DELETE) lewat jalur per
+        // kelompok, hanya staf. Daftarnya untuk halaman depan PUBLIK, tanpa
+        // token — hanya nama, nomor, julukan, dan alamat lambangnya.
+        groupLambang: (idnya) => asal + "/api/groups/" + idnya + "/lambang",
+        lambangPublik: asal + "/kelompok",
         participations: asal + "/api/participations",
         participation: (idnya) => asal + "/api/participations/" + idnya,
         gradesKkn: asal + "/api/grades/kkn",
