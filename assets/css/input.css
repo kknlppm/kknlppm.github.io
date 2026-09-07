@@ -28,6 +28,79 @@
    ────────────────────────────────────────────────────────────── */
 
 @layer base {
+    /* ── Token warna, dua tema ──
+       Nilainya tiga angka RGB supaya utilitas Tailwind bisa memberi alfa
+       (bg-tinta/25). Yang TERANG persis heksa yang dulu tertulis di
+       tailwind.config.js dan sudah diukur kontrasnya; komentarnya masih
+       ada di sana. Yang GELAP diukur ulang lewat uji/kontras-tema.mjs,
+       bukan diturunkan dengan rumus: latar biru-hitam sejuk yang sama
+       keluarganya dengan kertas terang, bata dinaikkan terangnya supaya
+       tetap 4,5:1 sebagai teks, dan tiap penanda status punya pasangan
+       "muda" gelapnya sendiri. */
+    :root {
+        color-scheme: light;
+        --w-kertas: 255 255 255;
+        --w-latar: 233 239 244;
+        --w-tinta: 11 27 43;
+        --w-tinta-redup: 74 93 112;
+        --w-tinta-samar: 93 113 134;
+        --w-garis: 207 218 228;
+        --w-garis-tipis: 227 234 241;
+        --w-garis-kendali: 110 130 153;
+        --w-bata: 156 82 72;
+        --w-bata-dalam: 94 47 41;
+        --w-bata-muda: 246 231 227;
+        --w-sah: 19 124 72;
+        --w-sah-muda: 223 243 232;
+        --w-belum: 158 92 26;
+        --w-belum-muda: 251 236 220;
+        --w-galat: 180 35 42;
+        --w-galat-muda: 251 228 229;
+        --w-bayang: 11 27 43;
+        --w-tirai: 11 27 43;
+        --a-tirai: .25;
+    }
+    [data-tema="gelap"] {
+        color-scheme: dark;
+        --w-kertas: 21 30 41;
+        --w-latar: 12 19 27;
+        --w-tinta: 230 237 243;
+        --w-tinta-redup: 169 182 196;
+        --w-tinta-samar: 140 154 170;
+        --w-garis: 42 54 68;
+        --w-garis-tipis: 31 41 52;
+        --w-garis-kendali: 94 114 136;
+        --w-bata: 212 144 127;
+        --w-bata-dalam: 224 167 151;
+        --w-bata-muda: 59 38 34;
+        --w-sah: 88 201 143;
+        --w-sah-muda: 15 46 30;
+        --w-belum: 227 167 91;
+        --w-belum-muda: 51 37 15;
+        --w-galat: 242 139 144;
+        --w-galat-muda: 63 26 29;
+        --w-bayang: 0 0 0;
+        --w-tirai: 0 0 0;
+        --a-tirai: .6;
+    }
+    /* Permukaan yang meniru KERTAS CETAK tidak ikut tema: pratinjau
+       sertifikat dan kotak tanda tangan (tinta hitam di atas transparan
+       hilang di latar gelap). Token terangnya dipasang ulang pada subtree
+       ini, jadi utilitas di dalamnya tetap membaca nilai terang. */
+    .kertas-cetak {
+        color-scheme: light;
+        --w-kertas: 255 255 255;
+        --w-latar: 233 239 244;
+        --w-tinta: 11 27 43;
+        --w-tinta-redup: 74 93 112;
+        --w-tinta-samar: 93 113 134;
+        --w-garis: 207 218 228;
+        --w-garis-tipis: 227 234 241;
+        --w-bata: 156 82 72;
+        --w-bayang: 11 27 43;
+        color: rgb(var(--w-tinta));
+    }
+
     /* Dua permukaan peramban yang tidak digambar siapa pun tapi tetap
        memikul desainnya. Tanpa keduanya, menyalin NIM menyorotnya biru OS
        dan placeholder memakai abu #9ca3af bawaan Tailwind. */
@@ -195,7 +268,8 @@
     body.sisi-terbuka .sisi { @apply translate-x-0 shadow-laci; }
 
     .sisi__tirai {
-        @apply fixed inset-0 z-30 bg-tinta/25 lg:hidden;
+        @apply fixed inset-0 z-30 lg:hidden;
+        background: rgb(var(--w-tirai) / var(--a-tirai));
     }
 
     /* Lambang kampus apa adanya — sama persis dengan .nav__logo di halaman
@@ -235,6 +309,23 @@
 
     .sisi__kaki { @apply shrink-0 border-t border-garis-tipis p-4; }
 
+    /* Sakelar tema: tiga keadaan (ikut sistem, terang, gelap), ikon saja
+       supaya tetap muat saat sidebar diciutkan jadi rel 60px. Yang aktif
+       diangkat sebagai permukaan, bukan sekadar diwarnai. */
+    .sisi__tema {
+        @apply flex gap-0.5 mb-3 p-0.5 rounded-lg border border-garis-tipis bg-latar;
+    }
+    .sisi__tema-tombol {
+        @apply flex-1 grid place-items-center h-8 rounded-md text-tinta-redup
+               transition-colors hover:text-bata hover:bg-bata-muda;
+    }
+    .sisi__tema-tombol svg { @apply w-4 h-4; }
+    .sisi__tema-tombol[aria-pressed="true"] { @apply bg-kertas text-tinta shadow-kartu; }
+    .sisi__tema-tombol:focus-visible {
+        outline: 2px solid theme("colors.bata.DEFAULT");
+        outline-offset: -2px;
+    }
+
     .sisi__keluar svg { @apply w-4 h-4 shrink-0; }
 
     .sisi__ciut {
@@ -263,6 +354,7 @@
         }
         body.sisi-ciut .sisi__bagian:first-child { @apply hidden; }
         body.sisi-ciut .sisi__kaki { @apply px-2; }
+        body.sisi-ciut .sisi__tema { @apply flex-col; }
         body.sisi-ciut .sisi__keluar { @apply px-0; }
         body.sisi-ciut .sisi__ciut svg { @apply rotate-180; }
     }
@@ -367,7 +459,8 @@
 
     /* ── laci formulir ── */
     .tirai {
-        @apply fixed inset-0 bg-tinta/25 z-40 opacity-0 transition-opacity duration-150;
+        @apply fixed inset-0 z-40 opacity-0 transition-opacity duration-150;
+        background: rgb(var(--w-tirai) / var(--a-tirai));
     }
     .tirai.terbuka { @apply opacity-100; }
 

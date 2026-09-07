@@ -354,6 +354,21 @@ async function buka(jalur) {
     await ctx.close();
 }
 
+// tema: pilihan bertahan lintas halaman, dan "sistem" menghapus simpanannya
+{
+    const { ctx, page } = await buka("/data-kkn/");
+    await page.click('.sisi__tema-tombol[data-tema="gelap"]'); await page.waitForTimeout(150);
+    const t1 = await page.evaluate(() => document.documentElement.dataset.tema + "/" + localStorage.getItem("kkn_tema"));
+    await page.goto(B + "/kelompok/", { waitUntil: "domcontentloaded" }); await page.waitForTimeout(400);
+    const t2 = await page.evaluate(() => document.documentElement.dataset.tema);
+    const aktif = await page.evaluate(() => (document.querySelector('.sisi__tema-tombol[aria-pressed="true"]') || {}).dataset?.tema);
+    await page.click('.sisi__tema-tombol[data-tema="sistem"]'); await page.waitForTimeout(150);
+    const t3 = await page.evaluate(() => localStorage.getItem("kkn_tema"));
+    lapor(t1 === "gelap/gelap" && t2 === "gelap" && aktif === "gelap" && t3 === null,
+        `tema bertahan lintas halaman (${t1} → ${t2}, aktif=${aktif}, sistem→${t3})`);
+    await ctx.close();
+}
+
 await browser.close();
 console.log(gagal ? `\n${gagal} GAGAL` : "\nsemua lulus");
 process.exit(gagal ? 1 : 0);

@@ -59,6 +59,11 @@ const IKON = {
     matkul:     ["M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"],
     sandi:      ["M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z", "M7 11V7a5 5 0 0 1 10 0v4"],
     keluar:     ["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", "M16 17l5-5-5-5", "M21 12H9"],
+    // tema tampilan
+    sistem:     ["M3 5h18v11H3z", "M8 21h8", "M12 16v5"],
+    terang:     ["M12 3v2", "M12 19v2", "M3 12h2", "M19 12h2", "M5.6 5.6l1.4 1.4", "M17 17l1.4 1.4",
+                 "M5.6 18.4l1.4-1.4", "M17 7l1.4-1.4", "M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8"],
+    gelap:      ["M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"],
     pengaturan: ["M4 21v-7", "M4 10V3", "M12 21v-9", "M12 8V3", "M20 21v-5", "M20 12V3",
                  "M1 14h6", "M9 8h6", "M17 16h6"],
 };
@@ -187,6 +192,35 @@ export function pasang(judul, keterangan) {
         ident.appendChild(el("div", "text-sm font-medium leading-tight truncate", u.name || ""));
         ident.appendChild(el("div", "eyebrow text-tinta-redup mb-3", u.role_name || ""));
         kaki.appendChild(ident);
+
+        // Sakelar tema. Logikanya di tema.js (dimuat di head supaya tidak
+        // berkedip); di sini hanya tombol dan penanda mana yang aktif.
+        const tema = el("div", "sisi__tema");
+        tema.setAttribute("role", "group");
+        tema.setAttribute("aria-label", "Tema tampilan");
+        [["sistem", "Ikut sistem"], ["terang", "Terang"], ["gelap", "Gelap"]].forEach(function (p) {
+            const b = el("button", "sisi__tema-tombol");
+            b.type = "button";
+            b.title = p[1];
+            b.setAttribute("aria-label", "Tema " + p[1].toLowerCase());
+            b.dataset.tema = p[0];
+            b.appendChild(gambarIkon(p[0]));
+            b.addEventListener("click", function () {
+                if (window.kknTema) window.kknTema.setel(p[0]);
+                tandaiTema();
+            });
+            tema.appendChild(b);
+        });
+        function tandaiTema() {
+            const aktif = window.kknTema ? window.kknTema.pilihan() : "sistem";
+            tema.querySelectorAll("button").forEach(function (b) {
+                b.setAttribute("aria-pressed", String(b.dataset.tema === aktif));
+            });
+        }
+        tandaiTema();
+        document.addEventListener("kkn:tema", tandaiTema);
+        kaki.appendChild(tema);
+
         // Ikon + label, bukan teks saja: saat sidebar diciutkan jadi rel
         // 60px, kata "Keluar" meluber keluar dari tombolnya.
         const keluar = el("button", "tombol-halus w-full sisi__keluar");

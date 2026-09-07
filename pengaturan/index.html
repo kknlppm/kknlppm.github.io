@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tema dipasang SEBELUM stylesheet supaya halaman gelap tidak berkedip putih. -->
+  <script src="/assets/js/tema.js"></script>
   <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
@@ -106,9 +108,9 @@
               <span class="text-sm font-medium">Tanda tangan Rektor</span>
               <span class="tanda is-kosong" data-peran="status">memuat…</span>
             </div>
-            <div class="h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
+            <div class="kertas-cetak h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
               <img data-peran="gambar" alt="" class="max-h-20 max-w-full object-contain" hidden>
-              <span data-peran="kosong" class="text-xs text-tinta-samar">belum ada</span>
+              <span data-peran="kosong" class="text-xs text-tinta-redup">belum ada</span>
             </div>
             <p class="text-xs text-tinta-redup mt-2 min-h-4" data-peran="keterangan"></p>
             <div class="flex flex-wrap items-center gap-3 mt-3">
@@ -123,9 +125,9 @@
               <span class="text-sm font-medium">Tanda tangan Ketua LPPM</span>
               <span class="tanda is-kosong" data-peran="status">memuat…</span>
             </div>
-            <div class="h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
+            <div class="kertas-cetak h-24 grid place-items-center rounded-lg bg-latar overflow-hidden">
               <img data-peran="gambar" alt="" class="max-h-20 max-w-full object-contain" hidden>
-              <span data-peran="kosong" class="text-xs text-tinta-samar">belum ada</span>
+              <span data-peran="kosong" class="text-xs text-tinta-redup">belum ada</span>
             </div>
             <p class="text-xs text-tinta-redup mt-2 min-h-4" data-peran="keterangan"></p>
             <div class="flex flex-wrap items-center gap-3 mt-3">
@@ -151,7 +153,8 @@
          jadi bagian sertifikat yang memuatnya digambar di sini apa adanya. -->
     <aside class="bg-kertas rounded-2xl shadow-kartu p-5 lg:sticky lg:top-5">
       <h2 class="eyebrow text-tinta-redup mb-3">Seperti tercetak</h2>
-      <div class="border border-garis rounded-xl p-4 text-center leading-snug select-none">
+      <!-- kertas-cetak: pratinjau ini meniru kertas, jadi tidak ikut tema gelap. -->
+      <div class="kertas-cetak bg-kertas border border-garis rounded-xl p-4 text-center leading-snug select-none">
         <div class="text-[11px] text-tinta-samar mb-2">Diberikan kepada</div>
         <div class="text-lg font-semibold mb-2">Nama Mahasiswa</div>
         <div class="text-[11px] text-tinta-samar">Sebagai</div>
