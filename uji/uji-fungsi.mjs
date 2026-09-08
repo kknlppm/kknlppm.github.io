@@ -145,6 +145,43 @@ async function buka(jalur) {
     await ctx.close();
 }
 
+// ---------- 2b. Pengguna: peran mahasiswa/dosen menampilkan tautan datanya ----------
+//
+// Sampai 8 September 2026 dropdown peran tidak memuat Mahasiswa dan Dosen,
+// dan tidak ada halaman lain yang membuat akun keduanya. Kini ada, dengan
+// medan tautan yang muncul HANYA untuk peran yang membutuhkannya.
+{
+    const { ctx, page, tulis, badan } = await buka("/data-induk/");
+    await page.locator("#segmenEntitas button", { hasText: "Pengguna" }).click();
+    await page.waitForTimeout(400);
+    const saring = await page.locator("#segmenSaring button").allTextContents();
+    lapor(saring.join(",") === "Staf,Dosen,Mahasiswa", `Pengguna punya saringan Staf/Dosen/Mahasiswa (${saring.join(",")})`);
+    await page.locator("#segmenSaring button", { hasText: "Dosen" }).click();
+    await page.waitForTimeout(400);
+    await page.click("#tombolTambah"); await page.waitForTimeout(300);
+    const opsi = await page.locator("#f_role option").allTextContents();
+    lapor(["Mahasiswa", "Dosen", "Admin berita"].every((t) => opsi.includes(t)),
+        `dropdown peran memuat Mahasiswa, Dosen, Admin berita (${opsi.filter(Boolean).join(", ")})`);
+    lapor(await page.locator("#f_nim").isHidden() && await page.locator("#f_ref_id").isHidden(),
+        "tanpa peran terpilih, medan NIM dan Dosen tersembunyi");
+    await page.selectOption("#f_role", "3"); await page.waitForTimeout(150);
+    lapor(await page.locator("#f_nim").isVisible() && await page.locator("#f_ref_id").isHidden(),
+        "peran Mahasiswa: medan NIM tampil, Dosen tersembunyi");
+    await page.selectOption("#f_role", "4"); await page.waitForTimeout(150);
+    lapor(await page.locator("#f_ref_id").isVisible() && await page.locator("#f_nim").isHidden(),
+        "peran Dosen: pilihan Dosen tampil, NIM tersembunyi");
+    const dosenOpsi = await page.locator("#f_ref_id option").count();
+    lapor(dosenOpsi >= 2, `pilihan Dosen terisi dari /api/lecturers (${dosenOpsi} opsi)`);
+    await page.selectOption("#f_ref_id", "d-1");
+    await page.fill("#f_uname", "dosen.uji");
+    await page.fill("#f_password", "sandi-uji-123");
+    await page.click("#tombolSimpan"); await page.waitForTimeout(400);
+    const kirim = badan[badan.length - 1] || {};
+    lapor(tulis.some((x) => x === "POST /api/users") && kirim.role === 4 && kirim.ref_id === "d-1",
+        `akun dosen terkirim dengan ref_id (${JSON.stringify({ role: kirim.role, ref_id: kirim.ref_id })})`);
+    await ctx.close();
+}
+
 // ---------- 3. Simpan dan hapus benar-benar sampai ke server ----------
 //
 // Kalau salah satu diam, datanya tampak tersimpan di layar padahal tidak.

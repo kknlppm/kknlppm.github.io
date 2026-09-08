@@ -37,9 +37,9 @@ const TAUTAN = [
     { url: "/sertifikat/",    label: "Sertifikat", ikon: "sertifikat", bagian: "kkn",    peran: [P.ADMIN, P.VALIDASI_LPPM] },
     { url: "/nilai-matkul/",  label: "Nilai matkul", ikon: "matkul",  bagian: "kkn",    peran: [P.ADMIN, P.DOSEN] },
     { url: "/data-induk/",    label: "Data induk", ikon: "induk",      bagian: "data",   peran: [P.ADMIN, P.ADMIN_FAKULTAS] },
-    { url: "/kelola-berita/", label: "Berita",     ikon: "berita",     bagian: "data",   peran: [P.ADMIN] },
+    { url: "/kelola-berita/", label: "Berita",     ikon: "berita",     bagian: "data",   peran: [P.ADMIN, P.ADMIN_BERITA] },
     { url: "/pengaturan/",    label: "Pengaturan", ikon: "pengaturan", bagian: "sistem", peran: [P.ADMIN] },
-    { url: "/akun/",          label: "Akun saya",  ikon: "sandi",      bagian: "akun",   peran: [P.ADMIN, P.PEMBAYARAN, P.MAHASISWA, P.DOSEN, P.VALIDASI_LPPM, P.ADMIN_FAKULTAS] },
+    { url: "/akun/",          label: "Akun saya",  ikon: "sandi",      bagian: "akun",   peran: [P.ADMIN, P.PEMBAYARAN, P.MAHASISWA, P.DOSEN, P.VALIDASI_LPPM, P.ADMIN_FAKULTAS, P.ADMIN_BERITA] },
 ];
 
 // Ikon garis 24×24 dari kumpulan Feather (MIT), disalin sebagai jalur — bukan

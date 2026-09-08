@@ -119,4 +119,7 @@ export const PERAN = {
     DOSEN: 4,
     VALIDASI_LPPM: 5,
     ADMIN_FAKULTAS: 6,
+    // Lahir di aplikasi baru (8 September 2026), bukan dari ulevel lama:
+    // hanya mengelola berita.
+    ADMIN_BERITA: 7,
 };

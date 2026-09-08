@@ -20,6 +20,7 @@
 
   <div class="flex flex-wrap items-center gap-3 mb-4">
     <div id="segmenEntitas" class="segmen" role="group" aria-label="Jenis data"></div>
+    <div id="segmenSaring" class="segmen" role="group" aria-label="Saringan" hidden></div>
     <div class="flex-1 min-w-[12rem]">
       <label for="cari" class="sr-only">Cari</label>
       <input id="cari" type="search" class="medan" spellcheck="false" placeholder="Cari…">
@@ -165,6 +166,12 @@ if (requireLogin()) {
         users: {
             label: "Pengguna", tunggal: "pengguna", jalur: backend.master.users,
             hanyaAdmin: true,
+            // Daftar bawaannya staf saja: 1.706 akun mahasiswa akan menenggelamkan
+            // sebelas akun yang biasanya dikelola. Dosen dan mahasiswa lewat
+            // saringan, dengan parameter role yang dibaca server.
+            saring: [
+                { label: "Staf", param: "" }, { label: "Dosen", param: "4" }, { label: "Mahasiswa", param: "3" },
+            ],
             kolom: [
                 { judul: "Nama pengguna", ambil: function (r) { return r.uname; }, kelas: "kode" },
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
@@ -172,19 +179,30 @@ if (requireLogin()) {
                 { judul: "Status", ambil: function (r) { return r.active ? "Aktif" : "Nonaktif"; }, kelas: "kode" },
             ],
             medan: [
-                { nama: "uname", label: "Nama pengguna", wajib: true, mono: true },
-                { nama: "name", label: "Nama lengkap", wajib: true },
                 { nama: "role", label: "Peran", tipe: "pilih", pilihan: [
                     { nilai: 1, teks: "Admin" }, { nilai: 2, teks: "Pembayaran" },
+                    { nilai: 3, teks: "Mahasiswa" }, { nilai: 4, teks: "Dosen" },
                     { nilai: 5, teks: "Validasi LPPM" }, { nilai: 6, teks: "Admin fakultas" },
-                ], petunjuk: "Akun mahasiswa dan dosen dibuat dari halaman datanya masing-masing." },
+                    { nilai: 7, teks: "Admin berita" },
+                ], petunjuk: "Admin berita hanya bisa mengelola berita. Akun mahasiswa dan dosen harus menunjuk data yang sudah ada." },
+                // Tautan ke data domain: tampil hanya untuk peran yang butuh.
+                // Tanpa tautan, akun mahasiswa/dosen bisa masuk tapi tidak
+                // melihat apa pun — server menolaknya.
+                { nama: "nim", label: "NIM mahasiswa", mono: true, jika: { medan: "role", nilai: ["3"] },
+                  petunjuk: "Datanya harus sudah ada di Mahasiswa. Nama pengguna dan nama lengkap boleh dikosongkan: mahasiswa masuk memakai NIM-nya." },
+                { nama: "ref_id", label: "Dosen", tipe: "pilih", jika: { medan: "role", nilai: ["4"] },
+                  sumber: backend.master.lecturers + "?limit=200", nilai: "id", teks: "name",
+                  petunjuk: "Datanya harus sudah ada di Dosen. Nama lengkap boleh dikosongkan." },
+                { nama: "uname", label: "Nama pengguna", mono: true },
+                { nama: "name", label: "Nama lengkap" },
                 { nama: "password", label: "Sandi", tipe: "password",
                   petunjuk: "Minimal 8 karakter. Kosongkan saat mengubah kalau sandinya tidak diganti." },
                 { nama: "active", label: "Akun aktif", tipe: "centang", bawaan: true },
             ],
             keluar: function (f) {
                 return { uname: f.uname, name: f.name, role: Number(f.role),
-                         active: !!f.active, password: f.password || "" };
+                         active: !!f.active, password: f.password || "",
+                         nim: f.nim || "", ref_id: f.ref_id || "" };
             },
         },
     };
@@ -199,6 +217,8 @@ if (requireLogin()) {
     const elPesan = document.getElementById("pesan");
     const ringkasan = document.getElementById("ringkasan");
     const segmen = document.getElementById("segmenEntitas");
+    const segmenSaring = document.getElementById("segmenSaring");
+    let saringAktif = "";   // nilai param role untuk entitas yang punya saringan
     const inpCari = document.getElementById("cari");
     const kakiHal = document.getElementById("kakiHalaman");
     const posisi = document.getElementById("posisiHalaman");
@@ -261,6 +281,7 @@ if (requireLogin()) {
         kosongkan(isi);
         const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman) });
         if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
+        if (ent().saring && saringAktif) p.set("role", saringAktif);
         const jenis = kini;   // dikunci: pengguna bisa berpindah tab sebelum jawabannya tiba
         getJSON(ent().jalur + "?" + p.toString(), function (hasil) {
             if (jenis !== kini) return;
@@ -349,7 +370,48 @@ if (requireLogin()) {
                 bungkus.appendChild(i);
             }
             if (m.petunjuk) bungkus.appendChild(el("p", "text-xs text-tinta-redup mt-1", m.petunjuk));
+            if (m.jika) bungkus.dataset.jika = m.nama;
             medanForm.appendChild(bungkus);
+        });
+        // Medan bersyarat: tampil hanya kalau medan pengendalinya bernilai
+        // salah satu yang disebut; dievaluasi ulang tiap pengendali berubah.
+        const bersyarat = ent().medan.filter(function (m) { return m.jika; });
+        function terapkanJika() {
+            bersyarat.forEach(function (m) {
+                const kendali = form.elements[m.jika.medan];
+                const bungkus = medanForm.querySelector('[data-jika="' + m.nama + '"]');
+                if (!kendali || !bungkus) return;
+                bungkus.hidden = !m.jika.nilai.includes(String(kendali.value));
+            });
+        }
+        bersyarat.forEach(function (m) {
+            const kendali = form.elements[m.jika.medan];
+            if (kendali && !kendali.dataset.jikaTerpasang) {
+                kendali.dataset.jikaTerpasang = "1";
+                kendali.addEventListener("change", terapkanJika);
+            }
+        });
+        terapkanJika();
+    }
+    function gambarSaring() {
+        kosongkan(segmenSaring);
+        const daftar = ent().saring;
+        segmenSaring.hidden = !daftar;
+        if (!daftar) { saringAktif = ""; return; }
+        daftar.forEach(function (sr) {
+            const b = el("button", "", sr.label);
+            b.type = "button";
+            b.dataset.nilai = sr.param;
+            b.setAttribute("aria-pressed", String(sr.param === saringAktif));
+            b.addEventListener("click", function () {
+                saringAktif = sr.param;
+                halaman = 1;
+                segmenSaring.querySelectorAll("button").forEach(function (x) {
+                    x.setAttribute("aria-pressed", String(x.dataset.nilai === saringAktif));
+                });
+                muat();
+            });
+            segmenSaring.appendChild(b);
         });
     }
 
@@ -406,11 +468,13 @@ if (requireLogin()) {
         b.addEventListener("click", function () {
             kini = k;
             halaman = 1;
+            saringAktif = "";
             inpCari.value = "";
             inpCari.placeholder = "Cari " + ENTITAS[k].tunggal + "…";
             segmen.querySelectorAll("button").forEach(function (x) {
                 x.setAttribute("aria-pressed", String(x.dataset.entitas === k));
             });
+            gambarSaring();
             muat();
         });
         segmen.appendChild(b);
@@ -423,6 +487,7 @@ if (requireLogin()) {
     });
 
     inpCari.placeholder = "Cari " + ent().tunggal + "…";
+    gambarSaring();
     muat();
 }
 </script>

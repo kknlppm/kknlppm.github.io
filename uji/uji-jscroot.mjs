@@ -727,12 +727,22 @@ const BERITA = [
         `admin melihat 4 label bagian (${admin.bagian.join(" · ")})`);
     lapor(mhs.bagian.length === 2,
         `mahasiswa melihat 2 label bagian (${mhs.bagian.join(" · ")})`);
+
+    // Admin berita: hanya Berita dan Akun saya. Kalau ia melihat Register
+    // atau Pengaturan, itu bukan sekadar menu yang salah — backend memang
+    // menolaknya, tapi menu yang menjanjikan lalu ditolak itu membingungkan.
+    const berita = await lihat(7, { width: 1440, height: 900 });
+    lapor(berita.ada && berita.label.join(",") === "Berita,Akun saya",
+        `admin berita melihat 2 tujuan: Berita dan Akun saya (${berita.label.join(", ")})`);
+    lapor(berita.bagian.length === 2,
+        `admin berita melihat 2 label bagian (${berita.bagian.join(" · ")})`);
 }
 
 // ---------- 19. Setiap peran bisa keluar ----------
 {
     for (const [nama, peran] of [["admin", 1], ["pembayaran", 2], ["mahasiswa", 3],
-                                 ["dosen", 4], ["validasi LPPM", 5], ["admin fakultas", 6]]) {
+                                 ["dosen", 4], ["validasi LPPM", 5], ["admin fakultas", 6],
+                                 ["admin berita", 7]]) {
         const ctx = await browser.newContext();
         const page = await ctx.newPage();
         await page.goto(B + "/404.html", { waitUntil: "domcontentloaded" });
@@ -755,7 +765,7 @@ const BERITA = [
 // ---------- 20. Tiap peran mendarat di pekerjaannya ----------
 {
     const tujuan = { 1: "/data-kkn/", 2: "/data-kkn/?bayar=0", 3: "/data-kkn/",
-                     4: "/penilaian/", 5: "/sertifikat/", 6: "/data-kkn/" };
+                     4: "/penilaian/", 5: "/sertifikat/", 6: "/data-kkn/", 7: "/kelola-berita/" };
     for (const [peran, harap] of Object.entries(tujuan)) {
         const ctx = await browser.newContext();
         const page = await ctx.newPage();

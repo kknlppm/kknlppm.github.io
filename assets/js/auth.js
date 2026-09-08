@@ -96,6 +96,8 @@ export function tujuanSetelahMasuk() {
         case PERAN.DOSEN: return "/penilaian/";
         case PERAN.VALIDASI_LPPM: return "/sertifikat/";
         case PERAN.MAHASISWA: return "/data-kkn/";
+        // Satu-satunya pekerjaannya; /data-kkn/ akan menolaknya dengan 403.
+        case PERAN.ADMIN_BERITA: return "/kelola-berita/";
         default: return "/data-kkn/";
     }
 }
