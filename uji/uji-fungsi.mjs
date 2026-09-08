@@ -182,6 +182,75 @@ async function buka(jalur) {
     await ctx.close();
 }
 
+// ---------- 2c. Akun lahir bersama datanya: formulir Mahasiswa dan Dosen ----------
+{
+    const { ctx, page, tulis, badan } = await buka("/data-induk/");
+    // Mahasiswa: kolom Akun dan medan sandi akun.
+    const kepala = await page.locator("#kepalaTabel th").allTextContents();
+    lapor(kepala.includes("Akun"), `daftar Mahasiswa punya kolom Akun (${kepala.join(", ")})`);
+    lapor(/belum ada/.test(await page.textContent("#isiTabel") || ""), "mahasiswa tanpa akun ditandai 'belum ada'");
+    await page.locator("#isiTabel button", { hasText: "Ubah" }).first().click(); await page.waitForTimeout(300);
+    lapor(await page.locator("#f_password").isVisible(), "formulir Mahasiswa punya medan Sandi akun");
+    await page.fill("#f_password", "sandi-baru-123");
+    await page.click("#tombolSimpan"); await page.waitForTimeout(400);
+    const kirimMhs = badan[badan.length - 1] || {};
+    lapor(kirimMhs.password === "sandi-baru-123" && kirimMhs.nim, `sandi akun mahasiswa ikut terkirim (nim=${kirimMhs.nim})`);
+    // Dosen: nama pengguna + sandi.
+    await page.locator("#segmenEntitas button", { hasText: "Dosen" }).click(); await page.waitForTimeout(400);
+    await page.locator("#isiTabel button", { hasText: "Ubah" }).first().click(); await page.waitForTimeout(300);
+    lapor(await page.locator("#f_uname").isVisible() && await page.locator("#f_password").isVisible(),
+        "formulir Dosen punya Nama pengguna akun dan Sandi akun");
+    await page.fill("#f_uname", "dosen.baru");
+    await page.fill("#f_password", "sandi-dosen-123");
+    await page.click("#tombolSimpan"); await page.waitForTimeout(400);
+    const kirimDsn = badan[badan.length - 1] || {};
+    lapor(tulis.some((x) => x.startsWith("POST /api/lecturers")) && kirimDsn.uname === "dosen.baru" && kirimDsn.password === "sandi-dosen-123",
+        `akun dosen ikut terkirim bersama datanya (uname=${kirimDsn.uname})`);
+    await ctx.close();
+}
+
+// ---------- 2d. Register: Daftarkan peserta ----------
+//
+// Sampai 8 September 2026 tidak ada jalan mendaftarkan peserta di aplikasi
+// baru — angkatan berikutnya tidak bisa dimasukkan. Tombolnya hanya untuk
+// admin dan admin fakultas; backend menegakkannya.
+{
+    const { ctx, page, tulis, badan } = await buka("/data-kkn/");
+    lapor(await page.locator("#tombolDaftar").isVisible(), "admin melihat tombol Daftarkan peserta");
+    await page.click("#tombolDaftar"); await page.waitForTimeout(500);
+    lapor(await page.locator("#laciDaftar").isVisible(), "laci pendaftaran terbuka");
+    const ta = await page.locator("#fTahunDaftar option").allTextContents();
+    lapor(ta.includes("2025-2026"), `tahun ajaran terisi dari segmen (${ta.join(", ")})`);
+    const kel = await page.locator("#fKelompokDaftar option").allTextContents();
+    lapor(kel.length >= 2 && /Kelompok 20/.test(kel[1]), `kelompok terisi dari /api/groups?tahun_ajaran (${kel[1] || "-"})`);
+    await page.fill("#fNimDaftar", "abc"); await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(200);
+    lapor(!tulis.some((x) => x === "POST /api/participations"), "NIM bukan angka ditahan di layar, tidak terkirim");
+    await page.fill("#fNimDaftar", "234060099");
+    await page.selectOption("#fKelompokDaftar", "g-1");
+    await page.fill("#fNamaDaftar", "Peserta Baru Uji");
+    await page.check("#fKetuaDaftar");
+    await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(500);
+    const kirim = badan[badan.length - 1] || {};
+    lapor(tulis.some((x) => x === "POST /api/participations") && kirim.nim === "234060099" && kirim.group_id === "g-1" && kirim.ketua === true,
+        `pendaftaran terkirim ke POST /api/participations (${JSON.stringify({ nim: kirim.nim, group_id: kirim.group_id, ketua: kirim.ketua })})`);
+    await ctx.close();
+}
+
+// ---------- 2e. Pembayaran TIDAK melihat tombol Daftarkan peserta ----------
+{
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    await page.goto(B + "/404.html", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+        localStorage.setItem("kkn_token", "token-uji-123");
+        localStorage.setItem("kkn_user", JSON.stringify({ id: "u-2", uname: "bayar", name: "Bayar", role: 2, role_name: "pembayaran" }));
+    });
+    await page.route("**/localhost:8090/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(jawab(route.request().url())) }));
+    await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" }); await page.waitForTimeout(300);
+    lapor(await page.locator("#tombolDaftar").isHidden(), "petugas pembayaran tidak melihat tombol Daftarkan peserta");
+    await ctx.close();
+}
+
 // ---------- 3. Simpan dan hapus benar-benar sampai ke server ----------
 //
 // Kalau salah satu diam, datanya tampak tersimpan di layar padahal tidak.

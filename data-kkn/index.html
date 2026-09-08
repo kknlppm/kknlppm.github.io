@@ -31,6 +31,9 @@
     </div>
 
     <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
+    <!-- Hanya admin dan admin fakultas; backend menegakkannya di
+         POST /api/participations. -->
+    <button id="tombolDaftar" class="tombol-utama" hidden>Daftarkan peserta</button>
   </div>
 
   <div id="pesan" hidden role="alert"></div>
@@ -97,6 +100,65 @@
   </form>
 </aside>
 
+<!-- Laci pendaftaran peserta: mahasiswa (yang ada atau baru) dimasukkan ke
+     kelompok. Meniru Register KKN aplikasi lama: akunnya lahir di langkah
+     yang sama, nama pengguna = NIM, sandi awal = NIM. -->
+<aside id="laciDaftar" class="laci" hidden aria-labelledby="judulLaciDaftar" role="dialog" aria-modal="true">
+  <form id="formDaftar" class="flex flex-col h-full" novalidate>
+    <div class="px-5 py-4 border-b border-garis">
+      <h2 id="judulLaciDaftar" class="judul-halaman text-lg">Daftarkan peserta</h2>
+      <p class="text-sm text-tinta-redup mt-0.5">Satu mahasiswa ke satu kelompok. Akunnya dibuat otomatis.</p>
+    </div>
+    <div class="flex-1 overflow-auto px-5 py-4 space-y-4">
+      <div id="pesanLaciDaftar" hidden role="alert"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="fTahunDaftar" class="block text-sm font-medium mb-1.5">Tahun ajaran</label>
+          <select id="fTahunDaftar" class="medan font-data"></select>
+        </div>
+        <div>
+          <label for="fKelompokDaftar" class="block text-sm font-medium mb-1.5">Kelompok</label>
+          <select id="fKelompokDaftar" name="group_id" class="medan" required></select>
+        </div>
+      </div>
+      <div>
+        <label for="fNimDaftar" class="block text-sm font-medium mb-1.5">NIM</label>
+        <input id="fNimDaftar" name="nim" class="medan font-data" required inputmode="numeric" placeholder="6 sampai 15 angka">
+        <p id="ketNimDaftar" class="text-xs text-tinta-redup mt-1">Kalau NIM-nya sudah ada di data mahasiswa, data itu yang dipakai dan nama di bawah boleh dikosongkan.</p>
+      </div>
+      <div>
+        <label for="fNamaDaftar" class="block text-sm font-medium mb-1.5">Nama lengkap</label>
+        <input id="fNamaDaftar" name="name" class="medan" placeholder="Wajib untuk mahasiswa baru">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="fProdiDaftar" class="block text-sm font-medium mb-1.5">Program studi</label>
+          <select id="fProdiDaftar" name="program_id" class="medan"><option value="">—</option></select>
+        </div>
+        <div>
+          <label for="fKelasDaftar" class="block text-sm font-medium mb-1.5">Kelas</label>
+          <input id="fKelasDaftar" name="kelas" class="medan">
+        </div>
+      </div>
+      <div>
+        <label for="fEmailDaftar" class="block text-sm font-medium mb-1.5">Email</label>
+        <input id="fEmailDaftar" name="email" type="email" class="medan">
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input id="fKetuaDaftar" name="ketua" type="checkbox" class="w-4 h-4 accent-bata"> Ketua kelompok
+      </label>
+      <p class="text-xs text-tinta-redup">
+        Akun mahasiswa dibuat dengan nama pengguna NIM dan sandi awal NIM.
+        Minta mahasiswa mengganti sandinya di Akun saya setelah masuk pertama kali.
+      </p>
+    </div>
+    <div class="px-5 py-4 border-t border-garis flex gap-2 justify-end">
+      <button type="button" id="tombolBatalDaftar" class="tombol-halus">Batal</button>
+      <button type="submit" id="tombolSimpanDaftar" class="tombol-utama">Daftarkan</button>
+    </div>
+  </form>
+</aside>
+
 <script type="module">
 import { getJSON, postJSON } from "/assets/js/jscroot/api.js";
 import { getQueryString } from "/assets/js/jscroot/url.js";
@@ -140,6 +202,94 @@ if (requireLogin()) {
 
     const laci = bolehBayar ? buatLaci("laci", "tirai", "tombolBatal") : null;
     let sedang = null;
+
+    // ── pendaftaran peserta ──
+    //
+    // Admin dan admin fakultas, seperti Register KKN aplikasi lama. Tirainya
+    // dipakai bersama laci pembayaran; hanya satu laci terbuka pada satu waktu.
+    const bolehDaftar = u.role === PERAN.ADMIN || u.role === PERAN.ADMIN_FAKULTAS;
+    const tombolDaftar = document.getElementById("tombolDaftar");
+    const laciDaftar = bolehDaftar ? buatLaci("laciDaftar", "tirai", "tombolBatalDaftar") : null;
+    if (bolehDaftar) {
+        tombolDaftar.hidden = false;
+        const formDaftar = document.getElementById("formDaftar");
+        const selTahun = document.getElementById("fTahunDaftar");
+        const selKelompok = document.getElementById("fKelompokDaftar");
+        const selProdi = document.getElementById("fProdiDaftar");
+        const pesanDaftar = document.getElementById("pesanLaciDaftar");
+
+        function muatKelompokDaftar() {
+            kosongkan(selKelompok);
+            selKelompok.appendChild(opsi("", "Pilih kelompok…"));
+            const ta = selTahun.value;
+            if (!ta) return;
+            getJSON(backend.kkn.groups + "?limit=200&tahun_ajaran=" + encodeURIComponent(ta), function (hasil) {
+                if (!hasil || hasil.status !== 200) return;
+                (((hasil.data || {}).data) || []).forEach(function (g) {
+                    const nomor = String(g.kelompok || "").replace(/^kelompok\s+/i, "");
+                    selKelompok.appendChild(opsi(g.id, "Kelompok " + nomor +
+                        (g.julukan ? " · " + g.julukan : "") + (g.lokasi ? " · " + g.lokasi : "")));
+                });
+            }, ...tokenHeader());
+        }
+        selTahun.addEventListener("change", muatKelompokDaftar);
+
+        function bukaDaftar() {
+            formDaftar.reset();
+            sembunyikan(pesanDaftar);
+            kosongkan(selTahun);
+            // Tahun yang sedang dilihat jadi bawaan; kalau "Semua", yang terbaru.
+            const daftarTA = [...segmen.querySelectorAll("button")].map(function (b) { return b.dataset.nilai; }).filter(Boolean);
+            daftarTA.forEach(function (ta) { selTahun.appendChild(opsi(ta, ta)); });
+            selTahun.value = tahun && daftarTA.includes(tahun) ? tahun : (daftarTA[0] || "");
+            muatKelompokDaftar();
+            if (selProdi.options.length <= 1) {
+                getJSON(backend.master.programs + "?limit=200", function (hasil) {
+                    if (!hasil || hasil.status !== 200) return;
+                    (((hasil.data || {}).data) || []).forEach(function (p) { selProdi.appendChild(opsi(p.id, p.prodi)); });
+                }, ...tokenHeader());
+            }
+            laciDaftar.buka();
+        }
+        tombolDaftar.addEventListener("click", bukaDaftar);
+
+        formDaftar.addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            sembunyikan(pesanDaftar);
+            const nim = document.getElementById("fNimDaftar").value.trim();
+            if (!/^[0-9]{6,15}$/.test(nim)) {
+                pesan(pesanDaftar, "NIM harus 6 sampai 15 angka.", "galat");
+                return;
+            }
+            if (!selKelompok.value) {
+                pesan(pesanDaftar, "Pilih kelompoknya dulu.", "galat");
+                return;
+            }
+            const tombol = document.getElementById("tombolSimpanDaftar");
+            tombol.disabled = true;
+            postJSON(backend.kkn.participations, {
+                group_id: selKelompok.value,
+                nim: nim,
+                name: document.getElementById("fNamaDaftar").value.trim(),
+                program_id: selProdi.value,
+                kelas: document.getElementById("fKelasDaftar").value.trim(),
+                email: document.getElementById("fEmailDaftar").value.trim(),
+                phone: "",
+                ketua: document.getElementById("fKetuaDaftar").checked,
+            }, function (hasil) {
+                tombol.disabled = false;
+                if (!sehat(hasil, pesanDaftar)) return;
+                const d = (hasil.data || {}).data || {};
+                const akun = d.akun || {};
+                laciDaftar.tutup();
+                pesan(elPesan, "Terdaftar" + (d.mahasiswa_baru ? ", mahasiswa baru dibuat" : "") +
+                    (akun.status === "dibuat" ? ". Akun dibuat: nama pengguna " + akun.uname + ", sandi awal NIM."
+                        : ". Akun " + (akun.uname || nim) + " sudah ada, sandinya tidak diubah."), "sukses");
+                halaman = 1;
+                muat();
+            }, ...tokenHeader());
+        });
+    }
 
     function barisPesan(teks) {
         const tr = el("tr");

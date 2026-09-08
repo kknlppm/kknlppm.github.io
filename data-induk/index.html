@@ -90,6 +90,7 @@ if (requireLogin()) {
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
                 { judul: "Kelas", ambil: function (r) { return r.kelas || "—"; }, kelas: "kode" },
                 { judul: "Email", ambil: function (r) { return r.email || "—"; }, kelas: "text-xs text-tinta-redup" },
+                { judul: "Akun", ambil: function (r) { return r.uname ? r.uname + (r.akun_aktif === false ? " (nonaktif)" : "") : "belum ada"; }, kelas: "kode" },
             ],
             medan: [
                 { nama: "nim", label: "NIM", wajib: true, mono: true,
@@ -101,10 +102,16 @@ if (requireLogin()) {
                 { nama: "email", label: "Email", tipe: "email" },
                 { nama: "phone", label: "Telepon" },
                 { nama: "domisili", label: "Domisili" },
+                // Akun lahir bersama datanya. Nama penggunanya selalu NIM
+                // (mahasiswa masuk memakai NIM); yang diatur di sini hanya
+                // sandinya.
+                { nama: "password", label: "Sandi akun", tipe: "password",
+                  petunjuk: "Nama pengguna akun mahasiswa adalah NIM-nya. Isi sandi untuk membuat akun atau menggantinya; kosongkan kalau tidak diubah. Peserta yang didaftarkan lewat Register otomatis mendapat akun dengan sandi awal NIM." },
             ],
             keluar: function (f) {
                 return { nim: f.nim, name: f.name, program_id: f.program_id,
-                         kelas: f.kelas, email: f.email, phone: f.phone, domisili: f.domisili };
+                         kelas: f.kelas, email: f.email, phone: f.phone, domisili: f.domisili,
+                         password: f.password || "" };
             },
         },
         programs: {
@@ -122,6 +129,7 @@ if (requireLogin()) {
         lecturers: {
             label: "Dosen", tunggal: "dosen", jalur: backend.master.lecturers,
             kolom: [
+                { judul: "Akun", ambil: function (r) { return r.uname ? r.uname + (r.akun_aktif === false ? " (nonaktif)" : "") : "belum ada"; }, kelas: "kode" },
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
                 { judul: "NIDN", ambil: function (r) { return r.nidn; }, kelas: "kode" },
                 { judul: "Email", ambil: function (r) { return r.email; }, kelas: "text-xs text-tinta-redup" },
@@ -133,6 +141,13 @@ if (requireLogin()) {
                 }, kelas: "kode" },
             ],
             medan: [
+                // Akun dosen: nama pengguna pilihan admin, sandi awal diketik
+                // admin. Diisi di sini, bukan di Pengguna — akun lahir bersama
+                // datanya.
+                { nama: "uname", label: "Nama pengguna akun", mono: true,
+                  petunjuk: "Kosong berarti belum punya akun. Isi bersama sandi untuk membuatnya." },
+                { nama: "password", label: "Sandi akun", tipe: "password",
+                  petunjuk: "Minimal 8 karakter. Kosongkan kalau tidak diganti." },
                 { nama: "name", label: "Nama lengkap", wajib: true },
                 { nama: "nidn", label: "NIDN", mono: true },
                 { nama: "email", label: "Email", tipe: "email" },
@@ -141,7 +156,8 @@ if (requireLogin()) {
             ],
             keluar: function (f) {
                 return { name: f.name, nidn: f.nidn, email: f.email,
-                         status_dpl: !!f.status_dpl, status_dpmk: !!f.status_dpmk };
+                         status_dpl: !!f.status_dpl, status_dpmk: !!f.status_dpmk,
+                         uname: f.uname || "", password: f.password || "" };
             },
         },
         courses: {
