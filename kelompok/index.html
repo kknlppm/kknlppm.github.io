@@ -19,7 +19,7 @@
 <main class="max-w-[1200px] mx-auto px-5 py-5">
 
   <div class="flex flex-wrap items-center gap-3 mb-4">
-    <div id="segmenTahun" class="segmen" role="group" aria-label="Tahun ajaran"></div>
+    <div id="segmenTahun" class="segmen" role="group" aria-label="Tahun akademik"></div>
     <div class="flex-1 min-w-[12rem]">
       <label for="cari" class="sr-only">Cari kelompok</label>
       <input id="cari" type="search" class="medan" spellcheck="false"
@@ -83,10 +83,9 @@
         </p>
       </div>
       <div>
-        <label for="fTahun" class="block text-sm font-medium mb-1.5">Tahun ajaran</label>
-        <input id="fTahun" name="tahun_ajaran" class="medan font-data" required
-               placeholder="2025-2026" pattern="\d{4}-\d{4}">
-        <p class="text-xs text-tinta-redup mt-1">Bentuknya 2025-2026.</p>
+        <label for="fTahun" class="block text-sm font-medium mb-1.5">Tahun akademik</label>
+        <select id="fTahun" name="tahun_ajaran" class="medan font-data" required></select>
+        <p class="text-xs text-tinta-redup mt-1">Hanya tahun yang sudah dibuka admin. Tahun akademik baru dibuka di Pengaturan › Tahun akademik.</p>
       </div>
       <div>
         <label for="fLokasi" class="block text-sm font-medium mb-1.5">Lokasi</label>
@@ -274,7 +273,7 @@ if (requireLogin()) {
         sunting = g || null;
         document.getElementById("judulLaci").textContent = g ? "Ubah kelompok" : "Tambah kelompok";
         form.kelompok.value = g ? String(g.kelompok || "").replace(/^kelompok\s+/i, "") : "";
-        form.tahun_ajaran.value = g ? (g.tahun_ajaran || "") : (tahun || "");
+        pilihTahunForm(g ? (g.tahun_ajaran || "") : (tahun || tahunAktif || daftarTahun[0] || ""));
         form.lokasi.value = g ? (g.lokasi || "") : "";
         form.lecturer_id.value = g ? (g.lecturer_id || "") : "";
         form.julukan.value = g ? (g.julukan || "") : "";
@@ -400,14 +399,40 @@ if (requireLogin()) {
         return b;
     }
 
+    // Tahun akademik dipilih dari daftar resmi yang hanya dibuka admin di
+    // Pengaturan — kelompok boleh dibuat admin fakultas, dan tahun yang
+    // diketik bebas pernah berarti satu salah ketik jadi tab di semua
+    // halaman. Bawaan formulir: tahun yang sedang dilihat, kalau tidak,
+    // tahun aktif.
+    const selTahunForm = document.getElementById("fTahun");
+    let daftarTahun = [], tahunAktif = "";
     function muatTahun() {
         segmen.appendChild(tombolTahun("", "Semua"));
         getJSON(backend.master.academicYears, function (hasil) {
             if (!hasil || hasil.status !== 200) return;   // opsional
-            ((hasil.data || {}).data || []).forEach(function (ta) {
+            daftarTahun = (hasil.data || {}).data || [];
+            daftarTahun.forEach(function (ta) {
                 segmen.appendChild(tombolTahun(ta, ta));
+                selTahunForm.appendChild(opsiTahun(ta));
             });
         }, ...tokenHeader());
+        getJSON(backend.master.academicYearAktif, function (hasil) {
+            if (!hasil || hasil.status !== 200) return;
+            tahunAktif = String(((hasil.data || {}).data || {}).tahun_ajaran || "");
+        }, ...tokenHeader());
+    }
+    function opsiTahun(ta) {
+        const o = el("option", null, ta);
+        o.value = ta;
+        return o;
+    }
+    function pilihTahunForm(ta) {
+        // Kelompok warisan bisa menunjuk tahun yang tidak ada di daftar;
+        // nilainya tetap ditampilkan, tidak diam-diam diganti.
+        if (ta && !daftarTahun.includes(ta) && ![...selTahunForm.options].some(function (o) { return o.value === ta; })) {
+            selTahunForm.appendChild(opsiTahun(ta));
+        }
+        selTahunForm.value = ta || "";
     }
 
     let jeda;

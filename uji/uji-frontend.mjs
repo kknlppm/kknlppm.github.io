@@ -49,7 +49,7 @@ async function masuk(uname) {
   const posisi2 = await page.textContent('#posisiHalaman');
   uji('tombol berikutnya bekerja', /Halaman 2 /.test(posisi2), posisi2.trim());
 
-  // Saringan tahun ajaran. Tahun ajarannya cuma lima, jadi ditampilkan
+  // Saringan tahun akademik. Tahun akademiknya cuma lima, jadi ditampilkan
   // sebagai segmen — bukan disembunyikan di dalam dropdown.
   await page.click('#segmenTahun button[data-nilai="2025-2026"]');
   await page.waitForTimeout(1500);

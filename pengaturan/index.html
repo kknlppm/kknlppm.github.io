@@ -63,8 +63,8 @@
         <h2 class="judul-halaman text-base mb-4">Periode</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div>
-            <label for="TA" class="block text-sm font-medium mb-1">Tahun akademik</label>
-            <input id="TA" name="TA" class="medan font-data" type="text" required placeholder="2025-2026">
+            <label for="TA" class="block text-sm font-medium mb-1">Tahun akademik aktif</label>
+            <select id="TA" name="TA" class="medan font-data" required></select>
           </div>
           <div>
             <label for="KKN_START" class="block text-sm font-medium mb-1">Mulai</label>
@@ -74,6 +74,28 @@
             <label for="KKN_END" class="block text-sm font-medium mb-1">Selesai</label>
             <input id="KKN_END" name="KKN_END" class="medan font-data" type="date">
           </div>
+        </div>
+      </section>
+
+      <!-- Daftar resmi tahun akademik. Hanya admin yang membukanya; kelompok
+           (yang juga boleh dibuat admin fakultas) memilih dari daftar ini.
+           Sebelum 8 September 2026 tahun "lahir" dari kelompok pertama yang
+           mengetiknya, dan satu salah ketik jadi tab di seluruh aplikasi. -->
+      <section class="bg-kertas rounded-2xl shadow-kartu p-5">
+        <h2 class="judul-halaman text-base mb-1">Tahun akademik</h2>
+        <p class="text-xs text-tinta-redup mb-4">
+          Kelompok hanya bisa dibuat di tahun yang ada di daftar ini. Tahun yang sudah
+          dipakai kelompok, dan tahun aktif, tidak bisa dihapus. Perubahan di sini
+          langsung tersimpan, tidak menunggu tombol Simpan pengaturan.
+        </p>
+        <ul id="daftarTahunAkademik" class="divide-y divide-garis rounded-xl border border-garis mb-4"></ul>
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="max-w-[12rem]">
+            <label for="fTahunBaru" class="block text-sm font-medium mb-1">Buka tahun baru</label>
+            <input id="fTahunBaru" class="medan font-data" type="text" placeholder="2026-2027"
+                   pattern="\d{4}-\d{4}" autocomplete="off" spellcheck="false">
+          </div>
+          <button id="tombolTambahTahun" type="button" class="tombol-halus">Tambahkan</button>
         </div>
       </section>
 
@@ -275,6 +297,16 @@ if (requireLogin()) {
                 const elemen = medan(k);
                 if (elemen) elemen.value = d[k] || "";
             });
+            // Tahun aktif warisan yang tidak ada di daftar tetap harus tampil
+            // di select-nya, tidak diam-diam diganti.
+            const ta = d.TA || "";
+            if (ta && ![...selTA.options].some(function (o) { return o.value === ta; })) {
+                const o = document.createElement("option");
+                o.value = ta; o.textContent = ta;
+                selTA.insertBefore(o, selTA.firstChild);
+            }
+            selTA.value = ta || selTA.value;
+            gambarTahun();
             const ttd = isi.ttd || {};
             TTD.forEach(function (n) {
                 tulisTtd(n, ttd[n] || {});
@@ -285,6 +317,120 @@ if (requireLogin()) {
     }
 
     form.addEventListener("input", pratinjau);
+
+    /* ── tahun akademik ── */
+    const selTA = medan("TA");
+    const daftarTahunEl = document.getElementById("daftarTahunAkademik");
+    const inpTahunBaru = document.getElementById("fTahunBaru");
+    const tombolTahun = document.getElementById("tombolTambahTahun");
+    let tahunDaftar = [];
+
+    function tahunSah(t) {
+        if (!/^\d{4}-\d{4}$/.test(t)) return false;
+        return parseInt(t.slice(5), 10) === parseInt(t.slice(0, 4), 10) + 1;
+    }
+
+    // Select tahun aktif dan daftarnya digambar dari satu sumber. Nilai
+    // select dipertahankan; tahun aktif yang tidak ada di daftar (warisan)
+    // tetap ditampilkan sebagai pilihan, tidak diam-diam diganti.
+    function gambarTahun() {
+        const nilai = selTA.value;
+        selTA.textContent = "";
+        const pilihan = tahunDaftar.slice();
+        if (nilai && !pilihan.includes(nilai)) pilihan.unshift(nilai);
+        pilihan.forEach(function (t) {
+            const o = document.createElement("option");
+            o.value = t; o.textContent = t;
+            selTA.appendChild(o);
+        });
+        selTA.value = nilai || pilihan[0] || "";
+
+        daftarTahunEl.textContent = "";
+        tahunDaftar.forEach(function (t) {
+            const li = document.createElement("li");
+            li.className = "flex items-center gap-3 px-3 py-2";
+            const nama = document.createElement("span");
+            nama.className = "font-data text-sm flex-1";
+            nama.textContent = t;
+            li.appendChild(nama);
+            if (t === selTA.value) {
+                const tanda = document.createElement("span");
+                tanda.className = "tanda is-sah";
+                tanda.textContent = "aktif";
+                li.appendChild(tanda);
+            } else {
+                const hapus = document.createElement("button");
+                hapus.type = "button";
+                hapus.className = "tautan-aksi tautan-aksi--bahaya text-xs";
+                hapus.textContent = "Hapus";
+                hapus.dataset.tahun = t;
+                hapus.addEventListener("click", function () { hapusTahun(t); });
+                li.appendChild(hapus);
+            }
+            daftarTahunEl.appendChild(li);
+        });
+        if (!tahunDaftar.length) {
+            const li = document.createElement("li");
+            li.className = "px-3 py-2 text-sm text-tinta-redup";
+            li.textContent = "Belum ada tahun akademik.";
+            daftarTahunEl.appendChild(li);
+        }
+    }
+
+    function terimaDaftar(hasil) {
+        const amplop = (hasil && typeof hasil.status === "number") ? (hasil.data || {}) : (hasil || {});
+        const kode = (hasil && typeof hasil.status === "number") ? hasil.status : (amplop.status === "ok" ? 200 : 0);
+        if (kode === 401) { bersihkanSesi(); redirect("/login/"); return null; }
+        if (kode !== 200 || amplop.status === "error") {
+            galat(amplop.message || "Gagal memuat daftar tahun akademik.");
+            return null;
+        }
+        return Array.isArray(amplop.data) ? amplop.data : [];
+    }
+
+    function muatTahun(lalu) {
+        getJSON(backend.master.academicYears, function (hasil) {
+            const daftar = terimaDaftar(hasil);
+            if (daftar) { tahunDaftar = daftar; gambarTahun(); }
+            if (lalu) lalu();
+        }, ...tokenHeader());
+    }
+
+    tombolTahun.addEventListener("click", function () {
+        bersih();
+        const t = inpTahunBaru.value.trim();
+        if (!tahunSah(t)) {
+            galat("Tahun akademik harus berbentuk 2026-2027, tahun kedua satu lebih dari yang pertama.");
+            return;
+        }
+        if (tahunDaftar.includes(t)) { galat("Tahun akademik " + t + " sudah ada."); return; }
+        tombolTahun.disabled = true;
+        postJSON(backend.master.academicYears, { tahun_ajaran: t }, function (hasil) {
+            tombolTahun.disabled = false;
+            const daftar = terimaDaftar(hasil);
+            if (!daftar) return;
+            tahunDaftar = daftar;
+            inpTahunBaru.value = "";
+            gambarTahun();
+            penanda.textContent = "Tahun akademik " + t + " dibuka";
+            setTimeout(function () { penanda.textContent = ""; }, 2500);
+        }, ...tokenHeader());
+    });
+
+    function hapusTahun(t) {
+        if (!window.confirm("Tutup tahun akademik " + t + "? Hanya bisa bila belum dipakai kelompok.")) return;
+        bersih();
+        deleteJSON(backend.master.academicYear(t), {}, function (hasil) {
+            const daftar = terimaDaftar(hasil);
+            if (!daftar) return;
+            tahunDaftar = daftar;
+            gambarTahun();
+            penanda.textContent = "Tahun akademik " + t + " ditutup";
+            setTimeout(function () { penanda.textContent = ""; }, 2500);
+        }, ...tokenHeader());
+    }
+
+    selTA.addEventListener("change", gambarTahun);
 
     /* ── tanda tangan ── */
     const TTD = ["rektor", "lppm"];
@@ -438,7 +584,9 @@ if (requireLogin()) {
         }, ...tokenHeader());
     });
 
-    muat();
+    // Daftar tahun dimuat dulu supaya select tahun aktif sudah punya pilihan
+    // saat nilai pengaturannya dipasang.
+    muatTahun(muat);
 }
 </script>
 </body>

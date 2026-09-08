@@ -18,10 +18,10 @@
 
 <main class="max-w-[1400px] mx-auto px-5 py-5">
 
-  <!-- Papan perintah. Tahun ajarannya cuma lima, jadi kelimanya ditampilkan
+  <!-- Papan perintah. Tahun akademiknya cuma lima, jadi kelimanya ditampilkan
        — menyembunyikannya di dropdown menyamarkan sesuatu yang kecil. -->
   <div class="flex flex-wrap items-center gap-3 mb-4">
-    <div id="segmenTahun" class="segmen" role="group" aria-label="Tahun ajaran"></div>
+    <div id="segmenTahun" class="segmen" role="group" aria-label="Tahun akademik"></div>
     <div id="segmenBayar" class="segmen" role="group" aria-label="Status pembayaran" hidden></div>
 
     <div class="flex-1 min-w-[14rem]">
@@ -113,7 +113,7 @@
       <div id="pesanLaciDaftar" hidden role="alert"></div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label for="fTahunDaftar" class="block text-sm font-medium mb-1.5">Tahun ajaran</label>
+          <label for="fTahunDaftar" class="block text-sm font-medium mb-1.5">Tahun akademik</label>
           <select id="fTahunDaftar" class="medan font-data"></select>
         </div>
         <div>
@@ -123,8 +123,8 @@
       </div>
       <div>
         <label for="fNimDaftar" class="block text-sm font-medium mb-1.5">NIM</label>
-        <input id="fNimDaftar" name="nim" class="medan font-data" required inputmode="numeric" placeholder="6 sampai 15 angka">
-        <p id="ketNimDaftar" class="text-xs text-tinta-redup mt-1">Kalau NIM-nya sudah ada di data mahasiswa, data itu yang dipakai dan nama di bawah boleh dikosongkan.</p>
+        <input id="fNimDaftar" name="nim" class="medan font-data" required autocomplete="off" spellcheck="false" placeholder="contoh A1A230001 atau 234060001">
+        <p id="ketNimDaftar" class="text-xs text-tinta-redup mt-1">6 sampai 20 huruf atau angka, tanpa spasi; huruf kecil disimpan sebagai huruf besar. Kalau NIM-nya sudah ada di data mahasiswa, data itu yang dipakai dan nama di bawah boleh dikosongkan.</p>
       </div>
       <div>
         <label for="fNamaDaftar" class="block text-sm font-medium mb-1.5">Nama lengkap</label>
@@ -234,14 +234,24 @@ if (requireLogin()) {
         }
         selTahun.addEventListener("change", muatKelompokDaftar);
 
+        // Tahun aktif (Pengaturan) jadi bawaan bila tidak ada tahun yang
+        // sedang dilihat — angkatan baru didaftarkan ke tahun berjalan.
+        let tahunAktif = "";
+        getJSON(backend.master.academicYearAktif, function (hasil) {
+            if (!hasil || hasil.status !== 200) return;
+            tahunAktif = String(((hasil.data || {}).data || {}).tahun_ajaran || "");
+        }, ...tokenHeader());
+
         function bukaDaftar() {
             formDaftar.reset();
             sembunyikan(pesanDaftar);
             kosongkan(selTahun);
-            // Tahun yang sedang dilihat jadi bawaan; kalau "Semua", yang terbaru.
+            // Tahun yang sedang dilihat jadi bawaan; kalau "Semua", tahun aktif;
+            // kalau itu pun tidak ada di daftar, yang terbaru.
             const daftarTA = [...segmen.querySelectorAll("button")].map(function (b) { return b.dataset.nilai; }).filter(Boolean);
             daftarTA.forEach(function (ta) { selTahun.appendChild(opsi(ta, ta)); });
-            selTahun.value = tahun && daftarTA.includes(tahun) ? tahun : (daftarTA[0] || "");
+            selTahun.value = tahun && daftarTA.includes(tahun) ? tahun
+                : (tahunAktif && daftarTA.includes(tahunAktif) ? tahunAktif : (daftarTA[0] || ""));
             muatKelompokDaftar();
             if (selProdi.options.length <= 1) {
                 getJSON(backend.master.programs + "?limit=200", function (hasil) {
@@ -256,9 +266,12 @@ if (requireLogin()) {
         formDaftar.addEventListener("submit", function (ev) {
             ev.preventDefault();
             sembunyikan(pesanDaftar);
-            const nim = document.getElementById("fNimDaftar").value.trim();
-            if (!/^[0-9]{6,15}$/.test(nim)) {
-                pesan(pesanDaftar, "NIM harus 6 sampai 15 angka.", "galat");
+            // NIM di sini berhuruf (A1A230001); spasi dan tab di ujung — yang
+            // dulu mengunci 32 akun warisan dari login — dibuang sebelum
+            // dikirim, dan huruf diseragamkan besar seperti di server.
+            const nim = document.getElementById("fNimDaftar").value.trim().toUpperCase();
+            if (!/^[A-Z0-9]{6,20}$/.test(nim)) {
+                pesan(pesanDaftar, "NIM harus 6 sampai 20 huruf atau angka, tanpa spasi.", "galat");
                 return;
             }
             if (!selKelompok.value) {

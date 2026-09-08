@@ -37,7 +37,8 @@ function jawab(url) {
     if (p.endsWith("/issue")) return { status: "ok", data: { no_sertifikat: "041/X" } };
     if (p === "/auth/me") return { status: "ok", data: { id: "u-1", uname: "admin", name: "Admin", role: 1, role_name: "Admin" } };
     if (p === "/api/settings") return { status: "ok", data: { pengaturan: { KOTA: "BANDUNG", JUDUL_KKN: "J" }, ttd: { rektor: { sumber: "bawaan" }, lppm: { sumber: "unggahan", oleh: "admin", updated_at: "2026-09-07T01:00:00Z", lebar: 300, tinggi: 208, ukuran: 43233 } } } };
-    if (p === "/api/academic-years") return { data: ["2025-2026"], meta: { total: 1, page: 1, total_pages: 1 } };
+    if (p === "/api/academic-years/aktif") return { status: "ok", data: { tahun_ajaran: "2025-2026" } };
+    if (p.startsWith("/api/academic-years")) return { status: "ok", data: ["2025-2026", "2024-2025"] };
     if (p === "/api/groups") return { data: [{ id: "g-1", kelompok: "20", lokasi: "Desa", nama_dosen: "Dosen", nidn: "04", tahun_ajaran: "2025-2026", jumlah_anggota: 6, julukan: "Bhakti Praja", lambang: "/assets/img/logo-unfari.png" }], meta: { total: 1, page: 1, total_pages: 1 } };
     if (p === "/api/participations") return { data: PESERTA, meta: { total: PESERTA.length, page: 1, total_pages: 1 } };
     if (p === "/api/students") return { data: [{ id: "s-1", nim: "21900001", name: "Mhs", kelas: "A", email: "a@b.c" }], meta: { total: 1, page: 1, total_pages: 1 } };
@@ -220,11 +221,23 @@ async function buka(jalur) {
     await page.click("#tombolDaftar"); await page.waitForTimeout(500);
     lapor(await page.locator("#laciDaftar").isVisible(), "laci pendaftaran terbuka");
     const ta = await page.locator("#fTahunDaftar option").allTextContents();
-    lapor(ta.includes("2025-2026"), `tahun ajaran terisi dari segmen (${ta.join(", ")})`);
+    lapor(ta.includes("2025-2026"), `tahun akademik terisi dari segmen (${ta.join(", ")})`);
     const kel = await page.locator("#fKelompokDaftar option").allTextContents();
     lapor(kel.length >= 2 && /Kelompok 20/.test(kel[1]), `kelompok terisi dari /api/groups?tahun_ajaran (${kel[1] || "-"})`);
-    await page.fill("#fNimDaftar", "abc"); await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(200);
-    lapor(!tulis.some((x) => x === "POST /api/participations"), "NIM bukan angka ditahan di layar, tidak terkirim");
+    // NIM di Al-Ghifari berhuruf (A1A230001) — yang ditolak di layar hanya
+    // yang terlalu pendek atau berspasi, bukan yang berhuruf.
+    await page.fill("#fNimDaftar", "ab1"); await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(200);
+    lapor(!tulis.some((x) => x === "POST /api/participations"), "NIM terlalu pendek ditahan di layar, tidak terkirim");
+    await page.fill("#fNimDaftar", "A1A 230001"); await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(200);
+    lapor(!tulis.some((x) => x === "POST /api/participations"), "NIM berspasi di tengah ditahan di layar");
+    await page.fill("#fNimDaftar", " a1a230099\t");
+    await page.selectOption("#fKelompokDaftar", "g-1");
+    await page.fill("#fNamaDaftar", "Peserta Berhuruf Uji");
+    await page.click("#tombolSimpanDaftar"); await page.waitForTimeout(500);
+    const kirimHuruf = badan[badan.length - 1] || {};
+    lapor(kirimHuruf.nim === "A1A230099", `NIM berhuruf dikirim bersih dan huruf besar (${JSON.stringify(kirimHuruf.nim)})`);
+    // Pendaftaran yang diterima menutup lacinya; buka lagi untuk kasus berikut.
+    if (!(await page.locator("#laciDaftar").isVisible())) { await page.click("#tombolDaftar"); await page.waitForTimeout(500); }
     await page.fill("#fNimDaftar", "234060099");
     await page.selectOption("#fKelompokDaftar", "g-1");
     await page.fill("#fNamaDaftar", "Peserta Baru Uji");
@@ -267,7 +280,12 @@ async function buka(jalur) {
         lapor(/Simpan kelompoknya dulu/.test(await page.textContent("#ketLambang") || ""),
             "kelompok baru: unggah lambang menunggu kelompoknya tersimpan");
         await page.fill("#fKelompok", "99");
-        await page.fill("#fTahun", "2025-2026");
+        // Tahun akademik dipilih dari daftar resmi, bukan diketik; bawaannya
+        // tahun aktif dari /api/academic-years/aktif.
+        const opsiTahun = await page.locator("#fTahun option").allTextContents();
+        lapor(opsiTahun.join(",") === "2025-2026,2024-2025", `tahun akademik di formulir Kelompok berupa pilihan dari daftar resmi (${opsiTahun.join(",")})`);
+        lapor(await page.inputValue("#fTahun") === "2025-2026", "bawaan tahun akademik = tahun aktif");
+        await page.selectOption("#fTahun", "2025-2026");
         await page.fill("#fJulukan", "Uji Julukan");
         await page.click("#tombolSimpan"); await page.waitForTimeout(400);
         lapor(tulis.some((x) => x === "POST /api/groups"), `kelompok Simpan → ${tulis[0] || "TIDAK MENGIRIM"}`);
@@ -314,10 +332,28 @@ async function buka(jalur) {
     }
     // pengaturan dan akun
     {
-        const { ctx, page, tulis } = await buka("/pengaturan/");
+        const { ctx, page, tulis, badan } = await buka("/pengaturan/");
         await page.fill("#KOTA", "BANDUNG");
         await page.click("#tombolSimpan"); await page.waitForTimeout(400);
         lapor(tulis.some((x) => x === "POST /api/settings"), `pengaturan Simpan → ${tulis[0] || "TIDAK MENGIRIM"}`);
+        // Tahun akademik: daftar resmi hanya admin. Select tahun aktif diisi
+        // dari daftar, tahun aktif tidak punya tombol Hapus, bentuk yang
+        // salah ditahan di layar, dan yang benar dikirim ke POST
+        // /api/academic-years; Hapus memanggil DELETE /api/academic-years/:tahun.
+        const opsiTA = await page.locator("#TA option").allTextContents();
+        lapor(opsiTA.includes("2025-2026") && opsiTA.includes("2024-2025"), `select tahun aktif diisi dari daftar resmi (${opsiTA.join(",")})`);
+        const baris = await page.locator("#daftarTahunAkademik li").allTextContents();
+        lapor(baris.length === 2 && /2025-2026\s*aktif/.test(baris[0]) && /2024-2025\s*Hapus/.test(baris[1]),
+            `daftar tahun: aktif ditandai, yang lain bisa dihapus (${baris.map((b) => b.replace(/\s+/g, " ").trim()).join(" | ")})`);
+        tulis.length = 0; badan.length = 0;
+        await page.fill("#fTahunBaru", "2026-2028"); await page.click("#tombolTambahTahun"); await page.waitForTimeout(200);
+        lapor(!tulis.length && /2026-2027/.test(await page.textContent("#pesan") || ""), "tahun tidak berurutan ditahan di layar dengan pesan bentuknya");
+        await page.fill("#fTahunBaru", "2026-2027"); await page.click("#tombolTambahTahun"); await page.waitForTimeout(400);
+        lapor(tulis[0] === "POST /api/academic-years" && badan[0] && badan[0].tahun_ajaran === "2026-2027",
+            `tahun baru dikirim ke POST /api/academic-years (${JSON.stringify(badan[0])})`);
+        tulis.length = 0;
+        await page.locator("#daftarTahunAkademik button", { hasText: "Hapus" }).first().click(); await page.waitForTimeout(400);
+        lapor(tulis[0] === "DELETE /api/academic-years/2024-2025", `Hapus memanggil DELETE /api/academic-years/:tahun (${tulis[0] || "TIDAK MENGIRIM"})`);
         await ctx.close();
     }
     {

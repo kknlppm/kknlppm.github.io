@@ -115,7 +115,7 @@ module.exports = {
             // untuk judul, normal untuk teks. Satu keluarga, dua watak.
             judul: ['"Archivo"', "system-ui", "sans-serif"],
             teks: ['"Archivo"', "system-ui", "sans-serif"],
-            // NIM, nomor sertifikat, tahun ajaran, dan nilai semuanya kode
+            // NIM, nomor sertifikat, tahun akademik, dan nilai semuanya kode
             // berformat tetap. Mono di sini fungsional, bukan gaya-gayaan.
             data: ['"Azeret Mono"', "ui-monospace", "monospace"],
         },

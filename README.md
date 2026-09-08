@@ -26,7 +26,7 @@ sedikit, dan pustaka bawaan membuat setiap aplikasi tampak sama.
 | | |
 |---|---|
 | Warna | `#1074BA` diambil dari batang biru di kaki sertifikat. Dasar halaman kertas dingin bersemu biru, bukan krem. |
-| Huruf | **Archivo** dipakai untuk dua peran lewat sumbu LEBARNYA — melebar untuk judul, normal untuk teks. **Azeret Mono** untuk NIM, nomor sertifikat, tahun ajaran, dan nilai: semuanya kode berformat tetap di dunia nyata. |
+| Huruf | **Archivo** dipakai untuk dua peran lewat sumbu LEBARNYA — melebar untuk judul, normal untuk teks. **Azeret Mono** untuk NIM, nomor sertifikat, tahun akademik, dan nilai: semuanya kode berformat tetap di dunia nyata. |
 | Tanda tangan | **Deret lima batang nilai.** Nilai KKN selalu terdiri tepat lima komponen H·S·L·QP·QL; tingginya sebanding dengan skor. |
 | Hiasan | Satu garis biru 3px di puncak halaman — kutipan dari kaki sertifikat. Tidak ada yang lain. |
 
@@ -98,7 +98,7 @@ Tidak boleh ada rahasia apa pun di sini.
 | `assets/js/beranda.js` | Perilaku halaman depan. Satu-satunya panggilan API-nya `GET /news`, publik |
 | `assets/img/` | Latar halaman depan: bentang bukit dan gurun dari Fora, dipakai apa adanya. Keluaran program, bukan foto — lihat `SUMBER.md` |
 | `login/` | Halaman masuk |
-| `data-kkn/` | Register peserta KKN — paginasi, saringan tahun ajaran, pencarian |
+| `data-kkn/` | Register peserta KKN — paginasi, saringan tahun akademik, pencarian, Daftarkan peserta |
 | `kelompok/` | Kelompok KKN — tambah, ubah, hapus; pembimbing hanya dari dosen DPL |
 | `penilaian/` | Penilaian lima aspek per kelompok, tersimpan saat pindah kotak |
 | `sertifikat/` | Menerbitkan sertifikat dan membuka PDF-nya |

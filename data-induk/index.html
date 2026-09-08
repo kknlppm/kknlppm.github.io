@@ -94,7 +94,7 @@ if (requireLogin()) {
             ],
             medan: [
                 { nama: "nim", label: "NIM", wajib: true, mono: true,
-                  petunjuk: "6 sampai 15 angka, tanpa spasi atau huruf." },
+                  petunjuk: "6 sampai 20 huruf atau angka, tanpa spasi — contoh A1A230001 atau 234060001. Huruf kecil disimpan sebagai huruf besar." },
                 { nama: "name", label: "Nama lengkap", wajib: true },
                 { nama: "program_id", label: "Program studi", tipe: "pilih",
                   sumber: backend.master.programs + "?limit=200", nilai: "id", teks: "prodi" },
@@ -129,10 +129,10 @@ if (requireLogin()) {
         lecturers: {
             label: "Dosen", tunggal: "dosen", jalur: backend.master.lecturers,
             kolom: [
-                { judul: "Akun", ambil: function (r) { return r.uname ? r.uname + (r.akun_aktif === false ? " (nonaktif)" : "") : "belum ada"; }, kelas: "kode" },
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
                 { judul: "NIDN", ambil: function (r) { return r.nidn; }, kelas: "kode" },
                 { judul: "Email", ambil: function (r) { return r.email; }, kelas: "text-xs text-tinta-redup" },
+                { judul: "Akun", ambil: function (r) { return r.uname ? r.uname + (r.akun_aktif === false ? " (nonaktif)" : "") : "belum ada"; }, kelas: "kode" },
                 { judul: "Peran", ambil: function (r) {
                     const p = [];
                     if (r.status_dpl) p.push("DPL");
@@ -141,6 +141,11 @@ if (requireLogin()) {
                 }, kelas: "kode" },
             ],
             medan: [
+                { nama: "name", label: "Nama lengkap", wajib: true },
+                { nama: "nidn", label: "NIDN", mono: true },
+                { nama: "email", label: "Email", tipe: "email" },
+                { nama: "status_dpl", label: "Pembimbing lapangan KKN (DPL)", tipe: "centang" },
+                { nama: "status_dpmk", label: "Pengampu mata kuliah", tipe: "centang" },
                 // Akun dosen: nama pengguna pilihan admin, sandi awal diketik
                 // admin. Diisi di sini, bukan di Pengguna — akun lahir bersama
                 // datanya.
@@ -148,11 +153,6 @@ if (requireLogin()) {
                   petunjuk: "Kosong berarti belum punya akun. Isi bersama sandi untuk membuatnya." },
                 { nama: "password", label: "Sandi akun", tipe: "password",
                   petunjuk: "Minimal 8 karakter. Kosongkan kalau tidak diganti." },
-                { nama: "name", label: "Nama lengkap", wajib: true },
-                { nama: "nidn", label: "NIDN", mono: true },
-                { nama: "email", label: "Email", tipe: "email" },
-                { nama: "status_dpl", label: "Pembimbing lapangan KKN (DPL)", tipe: "centang" },
-                { nama: "status_dpmk", label: "Pengampu mata kuliah", tipe: "centang" },
             ],
             keluar: function (f) {
                 return { name: f.name, nidn: f.nidn, email: f.email,

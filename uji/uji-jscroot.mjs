@@ -198,7 +198,7 @@ for (const jalur of terlindungi) {
 {
     const { ctx, page, galat } = await halamanBaru(false);
     const dipanggil = [];
-    // Lambang kelompok: dua tahun ajaran, dan satu julukan yang berisi markup —
+    // Lambang kelompok: dua tahun akademik, dan satu julukan yang berisi markup —
     // ia harus tampil sebagai TEKS, bukan jadi elemen.
     // Tahun pertama 18 kelompok — lebih dari dua baris, supaya tombol
     // "tampilkan semua" ikut teruji. Kelompok 2 berjulukan markup: ia harus
@@ -244,7 +244,7 @@ for (const jalur of terlindungi) {
     // ajaran (terbaru dulu), dan ubin hanya untuk tahun yang dipilih.
     lapor(await page.locator("#kelompok").isVisible(), "seksi kelompok tampil karena ada lambang");
     const tabTahun = await page.locator("#tabTahun button").allTextContents();
-    lapor(tabTahun.join(",") === "2025-2026,2024-2025", `tab tahun ajaran terbaru dulu (${tabTahun.join(",")})`);
+    lapor(tabTahun.join(",") === "2025-2026,2024-2025", `tab tahun akademik terbaru dulu (${tabTahun.join(",")})`);
     const ubin1 = await page.locator("#daftarLambang .lambang__ubin").count();
     lapor(ubin1 === 18, `tahun pertama menggambar 18 ubin (${ubin1})`);
     const tampak = await page.locator("#daftarLambang .lambang__ubin:visible").count();
@@ -561,7 +561,7 @@ const BERITA = [
 
 // ---------- 15. Tidak ada halaman yang menggulung mendatar di ponsel ----------
 //
-// Segmen tahun ajaran berisi "Semua" + lima tahun = 516px. Di layar 390px ia
+// Segmen tahun akademik berisi "Semua" + lima tahun = 516px. Di layar 390px ia
 // mendorong SELURUH halaman, bukan menggulung sendiri — dan itu tidak terlihat
 // sama sekali dari layar lebar.
 {

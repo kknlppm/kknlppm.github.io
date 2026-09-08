@@ -73,7 +73,7 @@ const tautanNav = p => p.$$eval('nav[aria-label="Bagian"] a', a => a.map(x => x.
   await page.waitForTimeout(400);
   uji('Escape menutup laci', await page.$eval('#laci', e => e.hidden));
 
-  // Tolak tahun ajaran yang salah bentuk.
+  // Tolak tahun akademik yang salah bentuk.
   await page.click('#tombolTambah');
   await page.waitForTimeout(300);
   await page.fill('#fKelompok', 'Uji Tahun Salah');
@@ -81,7 +81,7 @@ const tautanNav = p => p.$$eval('nav[aria-label="Bagian"] a', a => a.map(x => x.
   await page.click('#tombolSimpan');
   await page.waitForTimeout(900);
   const pl = await page.$eval('#pesanLaci', e => ({ tampil: !e.hidden, teks: e.textContent }));
-  uji('tahun ajaran salah bentuk ditolak', pl.tampil && /2025-2026/.test(pl.teks), pl.teks.slice(0, 40));
+  uji('tahun akademik salah bentuk ditolak', pl.tampil && /2025-2026/.test(pl.teks), pl.teks.slice(0, 40));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
 

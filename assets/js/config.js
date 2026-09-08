@@ -49,6 +49,8 @@ export const backend = {
         programs: asal + "/api/programs",
         program: (idnya) => asal + "/api/programs/" + idnya,
         academicYears: asal + "/api/academic-years",
+        academicYearAktif: asal + "/api/academic-years/aktif",
+        academicYear: (tahun) => asal + "/api/academic-years/" + encodeURIComponent(tahun),
         settings: asal + "/api/settings",
     },
 
