@@ -611,6 +611,96 @@ async function buka(jalur) {
     await ctx.close();
 }
 
+// ---------- 9. Impor dan ekspor XLSX ----------
+//
+// Impor dua langkah: Periksa mengirim berkas tanpa terapkan, laporannya
+// digambar per baris, Terapkan mengirim ulang dengan ?terapkan=1. Ekspor:
+// tombol Unduh XLSX meminta /api/export/... dengan header token dan saringan
+// yang sedang tampil.
+{
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    page.on("dialog", (d) => d.accept());
+    const diminta = [];
+    await page.goto(B + "/404.html", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+        localStorage.setItem("kkn_token", "token-uji-123");
+        localStorage.setItem("kkn_user", JSON.stringify({ id: "u-1", uname: "admin", name: "Admin", role: 1, role_name: "Admin" }));
+    });
+    await page.route("**/localhost:8090/**", (route) => {
+        const q = route.request(); const u = new URL(q.url()); const p = u.pathname;
+        diminta.push({ m: q.method(), p, cari: u.search, login: q.headers()["login"] });
+        if (p === "/api/participations/import") {
+            const terapkan = u.searchParams.get("terapkan") === "1";
+            return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "ok", data: {
+                tahun_ajaran: "2025-2026", terapkan, total: 3, siap: terapkan ? 0 : 2, sudah: 0, galat: 1, terdaftar: terapkan ? 2 : 0, gagal: 0,
+                baris: [
+                    { no: 2, nim: "A1A230099", nama: "Peserta Impor", kelompok: "20", status: terapkan ? "terdaftar" : "siap", pesan: terapkan ? "akun dibuat, sandi awal NIM" : "mahasiswa baru akan dibuat", mahasiswa_baru: true },
+                    { no: 3, nim: "21900001", nama: "Mhs", kelompok: "20", status: terapkan ? "terdaftar" : "siap", pesan: "", mahasiswa_baru: false },
+                    { no: 4, nim: "ABC", nama: "Salah", kelompok: "99", status: "galat", pesan: "NIM harus 6 sampai 20 huruf atau angka, tanpa spasi", mahasiswa_baru: false },
+                ] } }) });
+        }
+        if (p.startsWith("/api/export/") || p.endsWith("/import/template")) {
+            return route.fulfill({ status: 200, contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers: { "Content-Disposition": 'attachment; filename="uji.xlsx"' }, body: "PK" });
+        }
+        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(jawab(q.url())) });
+    });
+    await page.goto(B + "/pendaftaran/", { waitUntil: "networkidle" }); await page.waitForTimeout(500);
+    await page.click("#tombolImpor"); await page.waitForTimeout(300);
+    lapor(await page.locator("#laciImpor").isVisible(), "laci impor terbuka");
+    await page.click("#tombolPeriksaImpor"); await page.waitForTimeout(200);
+    lapor(/Pilih berkas/.test(await page.textContent("#pesanLaciImpor") || ""), "Periksa tanpa berkas ditahan di layar");
+    await page.setInputFiles("#fBerkasImpor", { name: "daftar.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("PK-uji") });
+    await page.click("#tombolPeriksaImpor"); await page.waitForTimeout(500);
+    const periksa = diminta.find((d) => d.p === "/api/participations/import" && !/terapkan=1/.test(d.cari));
+    lapor(!!periksa && periksa.m === "POST" && /tahun_ajaran=2025-2026/.test(periksa.cari) && periksa.login === "token-uji-123",
+        `Periksa mengirim POST /api/participations/import tanpa terapkan, ber-token (${periksa ? periksa.cari : "-"})`);
+    const baris = await page.locator("#isiLaporanImpor tr").count();
+    const statusTeks = await page.locator("#isiLaporanImpor .tanda").allTextContents();
+    lapor(baris === 3 && statusTeks.join(",") === "siap,siap,galat", `laporan per baris digambar (${baris} baris: ${statusTeks.join(",")})`);
+    lapor(/2 siap/.test(await page.textContent("#ringkasImpor") || "") && (await page.textContent("#tombolTerapkanImpor") || "").includes("2"),
+        "ringkasan menyebut 2 siap dan tombol Terapkan menyebut jumlahnya");
+    await page.click("#tombolTerapkanImpor"); await page.waitForTimeout(500);
+    const terapkan = diminta.find((d) => d.p === "/api/participations/import" && /terapkan=1/.test(d.cari));
+    lapor(!!terapkan, "Terapkan mengirim ulang dengan ?terapkan=1");
+    lapor(/2 terdaftar/.test(await page.textContent("#ringkasImpor") || "") && await page.locator("#tombolTerapkanImpor").isHidden(),
+        "sesudah diterapkan: ringkasan terdaftar, tombol Terapkan hilang");
+    await page.click("#tombolTemplat"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p.endsWith("/import/template") && d.login === "token-uji-123"), "Unduh templat meminta /import/template ber-token");
+    await page.click("#tombolBatalImpor"); await page.waitForTimeout(300);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    const ekspor = diminta.find((d) => d.p === "/api/export/participations");
+    lapor(!!ekspor && /tahun_ajaran=2025-2026/.test(ekspor.cari) && ekspor.login === "token-uji-123",
+        `Pendaftaran Unduh XLSX meminta /api/export/participations dengan tahun (${ekspor ? ekspor.cari : "-"})`);
+
+    // Pembayaran: saringan bayar ikut; Data induk: per entitas; Kelompok; Penilaian per kelompok.
+    diminta.length = 0;
+    await page.goto(B + "/pembayaran/", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p === "/api/export/participations" && /bayar=0/.test(d.cari)), "Pembayaran Unduh XLSX membawa bayar=0");
+    diminta.length = 0;
+    await page.goto(B + "/data-induk/?entitas=students", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p === "/api/export/students"), "Data induk › Mahasiswa mengunduh /api/export/students");
+    await page.locator("#segmenEntitas button", { hasText: "Dosen" }).click(); await page.waitForTimeout(300);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p === "/api/export/lecturers"), "Data induk › Dosen mengunduh /api/export/lecturers");
+    await page.locator("#segmenEntitas button", { hasText: "Program studi" }).click(); await page.waitForTimeout(300);
+    lapor(await page.locator("#tombolUnduh").isHidden(), "entitas tanpa ekspor menyembunyikan tombol Unduh");
+    diminta.length = 0;
+    await page.goto(B + "/kelompok/", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p === "/api/export/groups"), "Kelompok mengunduh /api/export/groups");
+    diminta.length = 0;
+    await page.goto(B + "/penilaian/", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    lapor(await page.locator("#tombolUnduh").isDisabled(), "Penilaian: Unduh mati sebelum kelompok dipilih");
+    await page.selectOption("#pilihKelompok", "g-1"); await page.waitForTimeout(400);
+    await page.click("#tombolUnduh"); await page.waitForTimeout(400);
+    lapor(diminta.some((d) => d.p === "/api/export/participations" && /group_id=g-1/.test(d.cari)), "Penilaian mengunduh nilai kelompok yang dipilih");
+    await ctx.close();
+}
+
 await browser.close();
 console.log(gagal ? `\n${gagal} GAGAL` : "\nsemua lulus");
 process.exit(gagal ? 1 : 0);

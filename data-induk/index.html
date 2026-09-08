@@ -26,6 +26,7 @@
       <input id="cari" type="search" class="medan" spellcheck="false" placeholder="Cari…">
     </div>
     <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
+    <button id="tombolUnduh" type="button" class="tombol-halus" hidden>Unduh XLSX</button>
     <button id="tombolTambah" class="tombol-utama">Tambah</button>
   </div>
 
@@ -73,6 +74,7 @@ import { buat as buatLaci } from "/assets/js/laci.js";
 import { getQueryString } from "/assets/js/jscroot/url.js";
 import { el, sel, opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 import { buatPeserta, muatTahunAkademik } from "/assets/js/peserta.js";
+import { pasangUnduh } from "/assets/js/unduh.js";
 
 if (requireLogin()) {
     pasang("Data induk");
@@ -87,12 +89,12 @@ if (requireLogin()) {
         // Penilaian, sertifikat di Sertifikat. Satu orang bisa punya beberapa
         // baris di sini (satu per tahun akademik); orangnya ada di tab
         // Mahasiswa, yang menaut ke sini lewat "Riwayat KKN".
-        peserta: { label: "Peserta", tunggal: "peserta", khusus: true, kolom: [], medan: [] },
+        peserta: { label: "Peserta", tunggal: "peserta", khusus: true, kolom: [], medan: [], ekspor: backend.xlsx.participations },
         // Mahasiswa: 1.706 baris, jauh lebih sering dicari daripada sembilan
         // prodi. Sampai 5 September 2026 entitas ini TIDAK ADA sama sekali —
         // koleksinya hanya bisa diisi migrasi.
         students: {
-            label: "Mahasiswa", tunggal: "mahasiswa", jalur: backend.master.students, riwayat: true,
+            label: "Mahasiswa", tunggal: "mahasiswa", jalur: backend.master.students, riwayat: true, ekspor: backend.xlsx.students,
             kolom: [
                 { judul: "NIM", ambil: function (r) { return r.nim; }, kelas: "kode whitespace-nowrap" },
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
@@ -135,7 +137,7 @@ if (requireLogin()) {
             keluar: function (f) { return { prodi: f.prodi, fakultas_id: Number(f.fakultas_id) || 0 }; },
         },
         lecturers: {
-            label: "Dosen", tunggal: "dosen", jalur: backend.master.lecturers,
+            label: "Dosen", tunggal: "dosen", jalur: backend.master.lecturers, ekspor: backend.xlsx.lecturers,
             kolom: [
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
                 { judul: "NIDN", ambil: function (r) { return r.nidn; }, kelas: "kode" },
@@ -322,10 +324,20 @@ if (requireLogin()) {
         return tr;
     }
 
+    // Ekspor XLSX mengikuti entitas dan saringan yang sedang tampil.
+    const tombolUnduh = document.getElementById("tombolUnduh");
+    pasangUnduh(tombolUnduh, function () {
+        const p = new URLSearchParams();
+        if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
+        if (ent().khusus && saringAktif) p.set("tahun_ajaran", saringAktif);
+        return ent().ekspor + "?" + p.toString();
+    }, function () { return kini + ".xlsx"; }, elPesan);
+
     function muat() {
         sembunyikan(elPesan);
         const khusus = !!ent().khusus;
         document.getElementById("tombolTambah").hidden = khusus;
+        tombolUnduh.hidden = !ent().ekspor;
         // Lebar kolom buku besar dipatok seperti di halaman prosesnya; tanpa
         // itu "Judul KKN" yang hampir selalu kosong mendorong Nilai keluar layar.
         tabel.classList.toggle("table-fixed", khusus);

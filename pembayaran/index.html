@@ -27,7 +27,8 @@
       <label for="cari" class="sr-only">Cari peserta</label>
       <input id="cari" type="search" class="medan" spellcheck="false" placeholder="NIM atau nama">
     </div>
-    <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
+    <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap"></output>
+    <button id="tombolUnduh" type="button" class="tombol-halus ml-auto">Unduh XLSX</button>
   </div>
 
   <div id="pesan" hidden role="alert"></div>
@@ -85,6 +86,7 @@ import { pasang } from "/assets/js/nav.js";
 import { buat as buatLaci } from "/assets/js/laci.js";
 import { opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 import { buatPeserta, pasangSegmen, muatTahunAkademik } from "/assets/js/peserta.js";
+import { pasangUnduh } from "/assets/js/unduh.js";
 
 if (requireLogin()) {
     pasang("Pembayaran KKN", "Status bayar peserta");
@@ -178,6 +180,14 @@ if (requireLogin()) {
                 mesin.gantiBaris(sedang);
             }, ...tokenHeader());
     });
+
+    pasangUnduh(document.getElementById("tombolUnduh"), function () {
+        const p = new URLSearchParams();
+        if (mesin.saring.tahun) p.set("tahun_ajaran", mesin.saring.tahun);
+        if (mesin.saring.bayar !== "") p.set("bayar", mesin.saring.bayar);
+        if (mesin.saring.q && mesin.saring.q.trim()) p.set("q", mesin.saring.q.trim());
+        return backend.xlsx.participations + "?" + p.toString();
+    }, function () { return "pembayaran-" + (mesin.saring.tahun || "semua") + ".xlsx"; }, elPesan);
 
     mesin.muat(1);
 }

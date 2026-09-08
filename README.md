@@ -98,7 +98,7 @@ Tidak boleh ada rahasia apa pun di sini.
 | `assets/js/beranda.js` | Perilaku halaman depan. Satu-satunya panggilan API-nya `GET /news`, publik |
 | `assets/img/` | Latar halaman depan: bentang bukit dan gurun dari Fora, dipakai apa adanya. Keluaran program, bukan foto — lihat `SUMBER.md` |
 | `login/` | Halaman masuk |
-| `pendaftaran/` | Pendaftaran peserta ke kelompok pada tahun akademik aktif; batalkan pendaftaran; akun lahir bersama (sandi awal NIM) |
+| `pendaftaran/` | Pendaftaran peserta ke kelompok pada tahun akademik aktif; batalkan pendaftaran; akun lahir bersama (sandi awal NIM); impor XLSX dua langkah dan unduh XLSX |
 | `pembayaran/` | Meja pembayaran — saringan status bayar (bawaan belum bayar), laci ubah status |
 | `saya/` | KKN saya (mahasiswa) — kartu tiap keikutsertaan: kelompok, bayar, nilai, sertifikat |
 | `data-kkn/` | Alamat Register lama — hanya mengalihkan menurut peran (buku besar ada di Data induk › Peserta) |
@@ -115,6 +115,8 @@ Tidak boleh ada rahasia apa pun di sini.
 | `assets/js/ui.js` | Pembuat elemen yang selalu memakai `textContent`, plus `sehat()` |
 | `assets/js/nav.js` | Kepala halaman dan navigasi yang mengikuti peran |
 | `assets/js/laci.js` | Laci formulir: fokus dipindah masuk, Escape menutup, Tab terjebak di dalam |
+| `assets/js/peserta.js` | Mesin tabel keikutsertaan bersama: Pendaftaran, Pembayaran, Data induk › Peserta |
+| `assets/js/unduh.js` | Unduhan ber-token (XLSX, PDF) lewat blob; tombol Unduh XLSX di enam daftar |
 
 **Halaman depan dan halaman baca berita berdiri di luar semua ini.** Keduanya
 gelap, memakai `beranda.css` sendiri, dan tidak memuat `app.css`. Keduanya

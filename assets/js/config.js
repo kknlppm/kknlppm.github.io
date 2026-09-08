@@ -90,6 +90,17 @@ export const backend = {
         unggahFoto: asal + "/api/news/image",
     },
 
+    // Impor pendaftaran dan ekspor XLSX. Ekspor mengikuti parameter saringan
+    // yang sama dengan daftarnya (tahun_ajaran, bayar, cert, group_id, q).
+    xlsx: {
+        importPeserta: asal + "/api/participations/import",
+        templatPeserta: asal + "/api/participations/import/template",
+        participations: asal + "/api/export/participations",
+        students: asal + "/api/export/students",
+        lecturers: asal + "/api/export/lecturers",
+        groups: asal + "/api/export/groups",
+    },
+
     // Sertifikat. `verify` sengaja tanpa autentikasi — siapa pun yang
     // memegang sertifikat harus bisa memeriksanya, itu gunanya QR di sana.
     certificate: {

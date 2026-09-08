@@ -26,6 +26,7 @@
              placeholder="Nama kelompok, lokasi, atau pembimbing">
     </div>
     <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
+    <button id="tombolUnduh" type="button" class="tombol-halus">Unduh XLSX</button>
     <button id="tombolTambah" class="tombol-utama">Tambah kelompok</button>
   </div>
 
@@ -137,6 +138,7 @@ import { getJSON, postJSON, deleteJSON, postFileWithHeader } from "/assets/js/js
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
+import { pasangUnduh } from "/assets/js/unduh.js";
 import { buat as buatLaci } from "/assets/js/laci.js";
 import { el, sel, opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 
@@ -440,6 +442,13 @@ if (requireLogin()) {
         clearTimeout(jeda);
         jeda = setTimeout(function () { halaman = 1; muat(); }, 350);
     });
+
+    pasangUnduh(document.getElementById("tombolUnduh"), function () {
+        const p = new URLSearchParams();
+        if (tahun) p.set("tahun_ajaran", tahun);
+        if (inpCari.value.trim()) p.set("q", inpCari.value.trim());
+        return backend.xlsx.groups + "?" + p.toString();
+    }, function () { return "kelompok-" + (tahun || "semua") + ".xlsx"; }, elPesan);
 
     muatTahun();
     muatDosen();

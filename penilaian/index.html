@@ -33,6 +33,7 @@
       </select>
     </div>
     <output id="ringkasKelompok" class="font-data text-xs text-tinta-redup pb-2.5"></output>
+    <button id="tombolUnduh" type="button" class="tombol-halus" disabled>Unduh XLSX</button>
   </div>
 
   <div id="pesan" hidden role="alert"></div>
@@ -83,6 +84,7 @@ import { getJSON, postJSON } from "/assets/js/jscroot/api.js";
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
+import { pasangUnduh } from "/assets/js/unduh.js";
 import { el, sel, opsi, deretNilai, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 
 if (requireLogin()) {
@@ -270,8 +272,18 @@ if (requireLogin()) {
         return tr;
     }
 
+    // Ekspor nilai kelompok yang sedang dibuka.
+    const tombolUnduh = document.getElementById("tombolUnduh");
+    pasangUnduh(tombolUnduh, function () {
+        return backend.xlsx.participations + "?group_id=" + encodeURIComponent(selKel.value);
+    }, function () {
+        const teks = (selKel.options[selKel.selectedIndex] || {}).textContent || "kelompok";
+        return "penilaian-" + teks.replace(/[^A-Za-z0-9-]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) + ".xlsx";
+    }, elPesan);
+
     function muatAnggota() {
         const idKel = selKel.value;
+        tombolUnduh.disabled = !idKel;
         if (!idKel) {
             wadah.hidden = true;
             kosong.hidden = false;

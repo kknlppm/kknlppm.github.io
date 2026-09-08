@@ -32,7 +32,11 @@
       <input id="cari" type="search" class="medan" spellcheck="false" placeholder="NIM atau nama">
     </div>
     <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap"></output>
-    <button id="tombolDaftar" class="tombol-utama ml-auto">Daftarkan peserta</button>
+    <div class="ml-auto flex flex-wrap items-center gap-2 basis-full sm:basis-auto">
+      <button id="tombolUnduh" type="button" class="tombol-halus">Unduh XLSX</button>
+      <button id="tombolImpor" type="button" class="tombol-halus">Impor XLSX</button>
+      <button id="tombolDaftar" class="tombol-utama">Daftarkan peserta</button>
+    </div>
   </div>
 
   <div id="pesan" hidden role="alert"></div>
@@ -57,6 +61,48 @@
      kelompok. Meniru Register KKN aplikasi lama: akunnya lahir di langkah
      yang sama, nama pengguna = NIM, sandi awal = NIM. -->
 <div id="tirai" class="tirai" hidden></div>
+
+<!-- Laci impor XLSX. Dua langkah, tidak pernah setengah jalan: berkas
+     diperiksa seluruhnya di server dan dilaporkan per baris, lalu admin
+     menekan Terapkan; hanya baris yang siap yang ditulis. Aturannya sama
+     dengan formulir Daftarkan peserta. -->
+<aside id="laciImpor" class="laci laci--lebar" hidden aria-labelledby="judulLaciImpor" role="dialog" aria-modal="true">
+  <form id="formImpor" class="flex flex-col h-full" novalidate>
+    <div class="px-5 py-4 border-b border-garis">
+      <h2 id="judulLaciImpor" class="judul-halaman text-lg">Impor pendaftaran dari XLSX</h2>
+      <p class="text-sm text-tinta-redup mt-0.5">Tahun akademik <span id="taImpor" class="font-data"></span>. Kelompok harus sudah ada di tahun itu.</p>
+    </div>
+    <div class="flex-1 overflow-auto px-5 py-4 space-y-4">
+      <div id="pesanLaciImpor" hidden role="alert"></div>
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-[14rem]">
+          <label for="fBerkasImpor" class="block text-sm font-medium mb-1.5">Berkas XLSX</label>
+          <input id="fBerkasImpor" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="medan !h-auto py-2">
+        </div>
+        <button id="tombolPeriksaImpor" type="button" class="tombol-utama">Periksa berkas</button>
+        <button id="tombolTemplat" type="button" class="tautan-aksi text-sm">Unduh templat</button>
+      </div>
+      <p class="text-xs text-tinta-redup">
+        Kolom: NIM, Nama, Program studi, Kelas, Email, Telepon, Kelompok (nomor), Ketua (Ya).
+        Templatnya memuat daftar kelompok dan program studi yang sah. Maksimal 2 MB, 2.000 baris.
+      </p>
+      <div id="laporanImpor" hidden>
+        <p id="ringkasImpor" class="text-sm font-medium mb-2"></p>
+        <div class="overflow-auto max-h-[50vh] rounded-xl border border-garis">
+          <table class="register text-xs">
+            <thead><tr><th class="w-12">Baris</th><th>NIM</th><th>Nama</th><th class="w-20">Kelompok</th><th class="w-24">Status</th><th>Keterangan</th></tr></thead>
+            <tbody id="isiLaporanImpor"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="px-5 py-4 border-t border-garis flex gap-2 justify-end">
+      <button type="button" id="tombolBatalImpor" class="tombol-halus">Tutup</button>
+      <button type="button" id="tombolTerapkanImpor" class="tombol-utama" hidden>Terapkan</button>
+    </div>
+  </form>
+</aside>
+
 <aside id="laciDaftar" class="laci" hidden aria-labelledby="judulLaciDaftar" role="dialog" aria-modal="true">
   <form id="formDaftar" class="flex flex-col h-full" novalidate>
     <div class="px-5 py-4 border-b border-garis">
@@ -115,11 +161,13 @@
 
 <script type="module">
 import { getJSON, postJSON, deleteJSON } from "/assets/js/jscroot/api.js";
-import { backend } from "/assets/js/config.js";
-import { requireLogin, tokenHeader } from "/assets/js/auth.js";
+import { backend, tokenKey } from "/assets/js/config.js";
+import { requireLogin, tokenHeader, getToken, clear as bersihkanSesi } from "/assets/js/auth.js";
+import { redirect } from "/assets/js/jscroot/url.js";
+import { pasangUnduh, unduhDenganToken } from "/assets/js/unduh.js";
 import { pasang } from "/assets/js/nav.js";
 import { buat as buatLaci } from "/assets/js/laci.js";
-import { el, opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
+import { el, sel, opsi, tanda, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 import { buatPeserta, pasangSegmen, muatTahunAkademik, tahunAkademikAktif, nomorKelompok } from "/assets/js/peserta.js";
 
 if (requireLogin()) {
@@ -207,6 +255,110 @@ if (requireLogin()) {
             pilihTahun(awal);
         });
     });
+
+    // ── ekspor: mengikuti saringan yang sedang tampil ──
+    pasangUnduh(document.getElementById("tombolUnduh"), function () {
+        const p = new URLSearchParams();
+        if (mesin.saring.tahun) p.set("tahun_ajaran", mesin.saring.tahun);
+        if (mesin.saring.group_id) p.set("group_id", mesin.saring.group_id);
+        if (mesin.saring.q && mesin.saring.q.trim()) p.set("q", mesin.saring.q.trim());
+        return backend.xlsx.participations + "?" + p.toString();
+    }, function () { return "peserta-" + (mesin.saring.tahun || "semua") + ".xlsx"; }, elPesan);
+
+    // ── impor XLSX ──
+    const laciImpor = buatLaci("laciImpor", "tirai", "tombolBatalImpor");
+    const pesanImpor = document.getElementById("pesanLaciImpor");
+    const berkasImpor = document.getElementById("fBerkasImpor");
+    const laporan = document.getElementById("laporanImpor");
+    const ringkasImpor = document.getElementById("ringkasImpor");
+    const isiLaporan = document.getElementById("isiLaporanImpor");
+    const tombolPeriksa = document.getElementById("tombolPeriksaImpor");
+    const tombolTerapkan = document.getElementById("tombolTerapkanImpor");
+    let siapDiterapkan = 0;
+
+    document.getElementById("tombolImpor").addEventListener("click", function () {
+        document.getElementById("taImpor").textContent = mesin.saring.tahun || "aktif";
+        sembunyikan(pesanImpor);
+        laporan.hidden = true;
+        tombolTerapkan.hidden = true;
+        berkasImpor.value = "";
+        laciImpor.buka();
+    });
+
+    document.getElementById("tombolTemplat").addEventListener("click", async function () {
+        sembunyikan(pesanImpor);
+        try {
+            const ta = mesin.saring.tahun;
+            await unduhDenganToken(backend.xlsx.templatPeserta + (ta ? "?tahun_ajaran=" + encodeURIComponent(ta) : ""),
+                "templat-pendaftaran-" + (ta || "aktif") + ".xlsx");
+        } catch (e) { pesan(pesanImpor, e.message || "Gagal mengunduh templat.", "galat"); }
+    });
+
+    const LABEL = { siap: ["siap", "sah"], sudah: ["sudah terdaftar", "belum"], galat: ["galat", "kosong"],
+                    terdaftar: ["terdaftar", "sah"], gagal: ["gagal", "kosong"] };
+
+    function gambarLaporan(d) {
+        kosongkan(isiLaporan);
+        (d.baris || []).forEach(function (b) {
+            const tr = el("tr");
+            tr.appendChild(sel(b.no, "kode"));
+            tr.appendChild(sel(b.nim, "kode whitespace-nowrap"));
+            tr.appendChild(sel(b.nama + (b.mahasiswa_baru ? " (baru)" : ""), ""));
+            tr.appendChild(sel(b.kelompok, "kode"));
+            const l = LABEL[b.status] || [b.status, "kosong"];
+            tr.appendChild(tanda(l[0], l[1]));
+            tr.appendChild(sel(b.pesan, "text-tinta-redup"));
+            isiLaporan.appendChild(tr);
+        });
+        laporan.hidden = false;
+        if (d.terapkan) {
+            ringkasImpor.textContent = d.terdaftar + " terdaftar" + (d.gagal ? ", " + d.gagal + " gagal" : "") +
+                (d.sudah ? ", " + d.sudah + " sudah terdaftar sebelumnya" : "") + (d.galat ? ", " + d.galat + " galat" : "") +
+                " dari " + d.total + " baris.";
+            tombolTerapkan.hidden = true;
+            siapDiterapkan = 0;
+            mesin.muat(1);
+        } else {
+            siapDiterapkan = d.siap || 0;
+            ringkasImpor.textContent = d.total + " baris: " + d.siap + " siap" +
+                (d.sudah ? ", " + d.sudah + " sudah terdaftar (dilewati)" : "") +
+                (d.galat ? ", " + d.galat + " galat (dilewati)" : "") + ".";
+            tombolTerapkan.hidden = !siapDiterapkan;
+            tombolTerapkan.textContent = "Terapkan " + siapDiterapkan + " baris siap";
+        }
+    }
+
+    async function kirimImpor(terapkan) {
+        sembunyikan(pesanImpor);
+        const f = berkasImpor.files && berkasImpor.files[0];
+        if (!f) { pesan(pesanImpor, "Pilih berkas XLSX-nya dulu.", "galat"); return; }
+        if (f.size > 2 * 1024 * 1024) { pesan(pesanImpor, "Berkasnya lebih dari 2 MB.", "galat"); return; }
+        tombolPeriksa.disabled = true; tombolTerapkan.disabled = true;
+        try {
+            const fd = new FormData();
+            fd.append("berkas", f);
+            const p = new URLSearchParams();
+            if (mesin.saring.tahun) p.set("tahun_ajaran", mesin.saring.tahun);
+            if (terapkan) p.set("terapkan", "1");
+            const res = await fetch(backend.xlsx.importPeserta + "?" + p.toString(),
+                { method: "POST", headers: { [tokenKey]: getToken() }, body: fd });
+            if (res.status === 401) { bersihkanSesi(); redirect("/login/"); return; }
+            const j = await res.json().catch(function () { return {}; });
+            if (!res.ok || j.status !== "ok") { pesan(pesanImpor, j.message || ("Gagal (HTTP " + res.status + ")."), "galat"); return; }
+            gambarLaporan(j.data || {});
+        } catch (e) {
+            pesan(pesanImpor, "Tidak ada jawaban dari server. Periksa sambungan.", "galat");
+        } finally {
+            tombolPeriksa.disabled = false; tombolTerapkan.disabled = false;
+        }
+    }
+    tombolPeriksa.addEventListener("click", function () { kirimImpor(false); });
+    tombolTerapkan.addEventListener("click", function () {
+        if (!siapDiterapkan) return;
+        if (!window.confirm("Daftarkan " + siapDiterapkan + " peserta ke tahun akademik " + (mesin.saring.tahun || "aktif") + "? Akun mahasiswa baru dibuat dengan sandi awal NIM.")) return;
+        kirimImpor(true);
+    });
+    berkasImpor.addEventListener("change", function () { laporan.hidden = true; tombolTerapkan.hidden = true; siapDiterapkan = 0; });
 
     // ── laci Daftarkan peserta ──
     const laciDaftar = buatLaci("laciDaftar", "tirai", "tombolBatalDaftar");
