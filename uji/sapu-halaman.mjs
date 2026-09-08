@@ -21,7 +21,7 @@ await page.fill("#uname", process.env.KKN_UNAME); await page.fill("#password", p
 await page.click("#tombolMasuk");
 await page.waitForURL(u => !/\/login\/?$/.test(new URL(u).pathname), { timeout:20000 });
 
-const HAL = ["data-kkn","data-induk","kelompok","penilaian","nilai-matkul","sertifikat","kelola-berita","pengaturan","akun","berita"];
+const HAL = ["pendaftaran","pembayaran","saya","data-induk","kelompok","penilaian","nilai-matkul","sertifikat","kelola-berita","pengaturan","akun","berita"];
 let buruk = 0;
 for (const h of HAL) {
   const galat = [], apiGagal = [];

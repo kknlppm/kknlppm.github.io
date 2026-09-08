@@ -1,7 +1,7 @@
 // Memotret halaman admin terhadap backend PRODUKSI, berkas frontend LOKAL.
 // Untuk menilai tampilan dengan mata, bukan menebak dari kode.
 //
-//   KKN_UNAME=… KKN_SANDI=… [HAL=data-kkn,penilaian] [KELUAR=/tmp/potret] node potret.mjs
+//   KKN_UNAME=… KKN_SANDI=… [HAL=pendaftaran,penilaian] [KELUAR=/tmp/potret] node potret.mjs
 import { chromium } from "playwright";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
@@ -25,7 +25,7 @@ await page.fill("#uname", process.env.KKN_UNAME);
 await page.fill("#password", process.env.KKN_SANDI);
 await page.click("#tombolMasuk");
 await page.waitForURL(u => !/\/login\/?$/.test(new URL(u).pathname), { timeout:20000 });
-const HAL = (process.env.HAL || "data-kkn,data-induk,sertifikat,kelompok,penilaian,kelola-berita,pengaturan,akun").split(",");
+const HAL = (process.env.HAL || "pendaftaran,pembayaran,saya,data-induk,sertifikat,kelompok,penilaian,kelola-berita,pengaturan,akun").split(",");
 for (const h of HAL) {
   await page.goto(ASAL+"/"+h+"/");
   await page.waitForTimeout(3500);

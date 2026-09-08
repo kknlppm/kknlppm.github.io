@@ -98,11 +98,14 @@ Tidak boleh ada rahasia apa pun di sini.
 | `assets/js/beranda.js` | Perilaku halaman depan. Satu-satunya panggilan API-nya `GET /news`, publik |
 | `assets/img/` | Latar halaman depan: bentang bukit dan gurun dari Fora, dipakai apa adanya. Keluaran program, bukan foto — lihat `SUMBER.md` |
 | `login/` | Halaman masuk |
-| `data-kkn/` | Register peserta KKN — paginasi, saringan tahun akademik, pencarian, Daftarkan peserta |
+| `pendaftaran/` | Pendaftaran peserta ke kelompok pada tahun akademik aktif; batalkan pendaftaran; akun lahir bersama (sandi awal NIM) |
+| `pembayaran/` | Meja pembayaran — saringan status bayar (bawaan belum bayar), laci ubah status |
+| `saya/` | KKN saya (mahasiswa) — kartu tiap keikutsertaan: kelompok, bayar, nilai, sertifikat |
+| `data-kkn/` | Alamat Register lama — hanya mengalihkan menurut peran (buku besar ada di Data induk › Peserta) |
 | `kelompok/` | Kelompok KKN — tambah, ubah, hapus; pembimbing hanya dari dosen DPL |
 | `penilaian/` | Penilaian lima aspek per kelompok, tersimpan saat pindah kotak |
 | `sertifikat/` | Menerbitkan sertifikat dan membuka PDF-nya |
-| `data-induk/` | Program studi, dosen, mata kuliah, pengguna |
+| `data-induk/` | Buku besar peserta (baca-saja), mahasiswa, program studi, dosen, mata kuliah, pengguna |
 | `verifikasi/` | Verifikasi publik, tanpa login. **Sengaja tidak ditautkan dari mana pun** — halaman ini tidak punya medan isian token, jadi ia hanya berarti kalau dibuka lewat pindai QR |
 | `berita/` | **Halaman baca satu berita — GELAP, publik.** `/berita/?slug=…`; bentuk `/berita/<slug>` dialihkan `404.html` |
 | `kelola-berita/` | Menulis dan menerbitkan berita. **Admin saja**, dan itu ditegakkan backend |

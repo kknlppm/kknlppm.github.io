@@ -20,7 +20,7 @@ await page.waitForURL(u => !/\/login\/?$/.test(new URL(u).pathname), {timeout:20
 let gagal = 0;
 for (const w of [1024, 1180, 1280, 1366, 1440]) {
   await page.setViewportSize({ width: w, height: 800 });
-  await page.goto(ASAL+"/data-kkn/");
+  await page.goto(ASAL+"/data-induk/?entitas=peserta");
   await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 1, null, {timeout:25000});
   const m = await page.evaluate(() => {
     const th = [...document.querySelectorAll("thead th")];

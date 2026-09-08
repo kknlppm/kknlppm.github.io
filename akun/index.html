@@ -30,6 +30,38 @@
     </p>
   </section>
 
+  <!-- Kontak milik sendiri — pengganti "Profil Mahasiswa" aplikasi lama.
+       Hanya tampil untuk akun yang tertaut ke data mahasiswa atau dosen.
+       Nama sengaja tidak ada: ia tercetak di sertifikat, urusan admin. -->
+  <section id="bagianKontak" class="bg-kertas rounded-2xl shadow-kartu p-5 mb-5" hidden>
+    <h2 class="judul-halaman text-base mb-1">Kontak</h2>
+    <p class="text-xs text-tinta-redup mb-4">
+      Dipakai LPPM untuk menghubungi Anda. Nama tidak diubah di sini.
+    </p>
+    <form id="formKontak" class="grid gap-4 sm:grid-cols-2" novalidate>
+      <div>
+        <label for="kEmail" class="block text-sm font-medium mb-1.5">Email</label>
+        <input id="kEmail" name="email" type="email" class="medan" autocomplete="email">
+      </div>
+      <div data-mhs>
+        <label for="kPhone" class="block text-sm font-medium mb-1.5">Telepon</label>
+        <input id="kPhone" name="phone" class="medan" autocomplete="tel">
+      </div>
+      <div data-mhs>
+        <label for="kKelas" class="block text-sm font-medium mb-1.5">Kelas</label>
+        <input id="kKelas" name="kelas" class="medan">
+      </div>
+      <div data-mhs>
+        <label for="kDomisili" class="block text-sm font-medium mb-1.5">Domisili</label>
+        <input id="kDomisili" name="domisili" class="medan">
+      </div>
+      <div class="sm:col-span-2 flex items-center gap-3">
+        <button id="tombolKontak" type="submit" class="tombol-utama">Simpan kontak</button>
+        <output id="penandaKontak" class="text-sm text-tinta-redup" aria-live="polite"></output>
+      </div>
+    </form>
+  </section>
+
   <section class="bg-kertas rounded-2xl shadow-kartu p-5">
     <h2 class="judul-halaman text-base mb-1">Ganti sandi</h2>
     <p class="text-xs text-tinta-redup mb-4">
@@ -68,10 +100,10 @@ import { getValue } from "/assets/js/jscroot/element.js";
 import { backend } from "/assets/js/config.js";
 import { requireLogin, tokenHeader } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
-import { el, pesan, sembunyikan, sehat } from "/assets/js/ui.js";
+import { el, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
 
 if (requireLogin()) {
-    pasang("Akun saya", "Identitas dan sandi");
+    pasang("Akun saya", "Identitas, kontak, dan sandi");
 
     // ── identitas ──
     // Dibaca dari /auth/me, bukan dari localStorage: yang di localStorage
@@ -90,6 +122,43 @@ if (requireLogin()) {
         dl.appendChild(dd);
     }
 
+    const elPesan = document.getElementById("pesan");
+    const bagianKontak = document.getElementById("bagianKontak");
+    const formKontak = document.getElementById("formKontak");
+    const penandaKontak = document.getElementById("penandaKontak");
+    const tombolKontak = document.getElementById("tombolKontak");
+
+    function isiKontak(p) {
+        bagianKontak.hidden = false;
+        const mhs = p.jenis === "mahasiswa";
+        bagianKontak.querySelectorAll("[data-mhs]").forEach(function (b) { b.hidden = !mhs; });
+        document.getElementById("kEmail").value = p.email || "";
+        document.getElementById("kPhone").value = p.phone || "";
+        document.getElementById("kKelas").value = p.kelas || "";
+        document.getElementById("kDomisili").value = p.domisili || "";
+    }
+
+    formKontak.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        sembunyikan(elPesan);
+        tombolKontak.disabled = true;
+        penandaKontak.textContent = "Menyimpan…";
+        postJSON(backend.auth.profil, {
+            email: document.getElementById("kEmail").value.trim(),
+            phone: document.getElementById("kPhone").value.trim(),
+            kelas: document.getElementById("kKelas").value.trim(),
+            domisili: document.getElementById("kDomisili").value.trim(),
+        }, function (hasil) {
+            tombolKontak.disabled = false;
+            penandaKontak.textContent = "";
+            if (!sehat(hasil, elPesan)) return;
+            pesan(elPesan, "Kontak diperbarui.", "sah");
+            muatIdentitas();
+        }, ...tokenHeader());
+    });
+
+    function muatIdentitas() {
+    kosongkan(dl);
     getJSON(backend.auth.me, function (hasil) {
         if (!sehat(hasil, elPesan)) return;
         const d = (hasil.data || {}).data || {};
@@ -114,11 +183,13 @@ if (requireLogin()) {
             if (p.status_dpmk) peran.push("Pengampu mata kuliah");
             pasangBaris("Penugasan", peran.join(" · "));
         }
+        if (p && (p.jenis === "mahasiswa" || p.jenis === "dosen")) isiKontak(p);
         if (!dl.children.length) pasangBaris("Nama", "(tidak diketahui)");
     }, ...tokenHeader());
+    }
+    muatIdentitas();
 
     const form = document.getElementById("formSandi");
-    const elPesan = document.getElementById("pesan");
     const penanda = document.getElementById("penanda");
     const tombol = document.getElementById("tombolSimpan");
 

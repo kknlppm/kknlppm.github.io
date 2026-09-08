@@ -128,7 +128,7 @@ cek("kelompok: dua sisa terjangkau di halaman 2", barisSisa === 2, barisSisa + "
 // mendorong Nilai dan Sertifikat keluar layar di 1440px. Lebar kolom sekarang
 // dipatok; uji ini yang menjaga supaya tidak kembali.
 await page.setViewportSize({ width: 1440, height: 900 });
-await page.goto(ASAL + "/data-kkn/");
+await page.goto(ASAL + "/data-induk/?entitas=peserta");
 await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 1, null, { timeout: 25000 });
 const tabel = await page.evaluate(() => {
     const t = document.querySelector("table");

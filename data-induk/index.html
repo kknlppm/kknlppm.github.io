@@ -70,7 +70,9 @@ import { backend, PERAN } from "/assets/js/config.js";
 import { requireLogin, tokenHeader, getUser } from "/assets/js/auth.js";
 import { pasang } from "/assets/js/nav.js";
 import { buat as buatLaci } from "/assets/js/laci.js";
+import { getQueryString } from "/assets/js/jscroot/url.js";
 import { el, sel, opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
+import { buatPeserta, muatTahunAkademik } from "/assets/js/peserta.js";
 
 if (requireLogin()) {
     pasang("Data induk");
@@ -80,11 +82,17 @@ if (requireLogin()) {
     // Keempat jenis data digambarkan sebagai data, bukan sebagai empat
     // salinan kode. Yang berbeda hanya kolom dan medan formulirnya.
     const ENTITAS = {
-        // Mahasiswa ditaruh paling depan: 1.706 baris, jauh lebih sering
-        // dicari daripada sembilan prodi. Sampai 5 September 2026 entitas ini
-        // TIDAK ADA sama sekali — koleksinya hanya bisa diisi migrasi.
+        // Buku besar keikutsertaan — BACA-SAJA. Tindakannya ada di menunya:
+        // mendaftarkan di Pendaftaran, bayar di Pembayaran, nilai di
+        // Penilaian, sertifikat di Sertifikat. Satu orang bisa punya beberapa
+        // baris di sini (satu per tahun akademik); orangnya ada di tab
+        // Mahasiswa, yang menaut ke sini lewat "Riwayat KKN".
+        peserta: { label: "Peserta", tunggal: "peserta", khusus: true, kolom: [], medan: [] },
+        // Mahasiswa: 1.706 baris, jauh lebih sering dicari daripada sembilan
+        // prodi. Sampai 5 September 2026 entitas ini TIDAK ADA sama sekali —
+        // koleksinya hanya bisa diisi migrasi.
         students: {
-            label: "Mahasiswa", tunggal: "mahasiswa", jalur: backend.master.students,
+            label: "Mahasiswa", tunggal: "mahasiswa", jalur: backend.master.students, riwayat: true,
             kolom: [
                 { judul: "NIM", ambil: function (r) { return r.nim; }, kelas: "kode whitespace-nowrap" },
                 { judul: "Nama", ambil: function (r) { return r.name; }, kelas: "font-medium" },
@@ -106,7 +114,7 @@ if (requireLogin()) {
                 // (mahasiswa masuk memakai NIM); yang diatur di sini hanya
                 // sandinya.
                 { nama: "password", label: "Sandi akun", tipe: "password",
-                  petunjuk: "Nama pengguna akun mahasiswa adalah NIM-nya. Isi sandi untuk membuat akun atau menggantinya; kosongkan kalau tidak diubah. Peserta yang didaftarkan lewat Register otomatis mendapat akun dengan sandi awal NIM." },
+                  petunjuk: "Nama pengguna akun mahasiswa adalah NIM-nya. Isi sandi untuk membuat akun atau menggantinya; kosongkan kalau tidak diubah. Peserta yang didaftarkan lewat Pendaftaran otomatis mendapat akun dengan sandi awal NIM." },
             ],
             keluar: function (f) {
                 return { nim: f.nim, name: f.name, program_id: f.program_id,
@@ -241,6 +249,13 @@ if (requireLogin()) {
     const btnPrev = document.getElementById("sebelumnya");
     const btnNext = document.getElementById("berikutnya");
 
+    // ?entitas=peserta&nim=… : tautan "Riwayat KKN" dari tab Mahasiswa, dan
+    // pengalihan dari alamat Register lama. getQueryString() jscroot
+    // mengembalikan Proxy; kuncinya dibaca sebagai properti.
+    const qs = getQueryString();
+    if (typeof qs.entitas === "string" && urutan.includes(qs.entitas)) kini = qs.entitas;
+    if (typeof qs.nim === "string" && qs.nim) inpCari.value = qs.nim;
+
     // Server memplafon `limit` di 200, jadi meminta lebih tidak menambah apa
     // pun. Dulu halaman ini meminta 200 tanpa kontrol halaman: ringkasannya
     // menulis "1706 mahasiswa" sementara tabelnya berhenti di baris ke-200,
@@ -249,6 +264,16 @@ if (requireLogin()) {
     const SEHALAMAN = 200;
 
     let totalHalaman = 1;
+
+    // Tab Peserta memakai mesin tabel bersama (peserta.js): kolom yang sama
+    // dengan Pendaftaran dan Pembayaran, tanpa tindakan.
+    const tabel = document.querySelector("table.register");
+    const mesinPeserta = buatPeserta({
+        kepala: kepala, isi: isi, pesan: elPesan, ringkasan: ringkasan,
+        kolom: ["nim", "nama", "prodi", "kelompok", "ta", "judul", "bayar", "komponen", "nilai", "sertifikat"],
+        saring: { limit: SEHALAMAN },
+        padaMeta: function (meta) { gambarKaki(meta); },
+    });
 
     function gambarKaki(meta) {
         totalHalaman = meta.total_pages || 1;
@@ -279,6 +304,12 @@ if (requireLogin()) {
         const tr = el("tr");
         ent().kolom.forEach(function (k) { tr.appendChild(sel(k.ambil(r), k.kelas)); });
         const td = el("td", "text-right whitespace-nowrap");
+        if (ent().riwayat && r.nim) {
+            // Orang ↔ keikutsertaan: terlihat, bukan ditebak.
+            const riwayat = el("a", "tautan-aksi mr-3", "Riwayat KKN");
+            riwayat.href = "/data-induk/?entitas=peserta&nim=" + encodeURIComponent(r.nim);
+            td.appendChild(riwayat);
+        }
         const ubah = el("button", "tautan-aksi", "Ubah");
         ubah.type = "button";
         ubah.addEventListener("click", function () { bukaForm(r); });
@@ -293,6 +324,18 @@ if (requireLogin()) {
 
     function muat() {
         sembunyikan(elPesan);
+        const khusus = !!ent().khusus;
+        document.getElementById("tombolTambah").hidden = khusus;
+        // Lebar kolom buku besar dipatok seperti di halaman prosesnya; tanpa
+        // itu "Judul KKN" yang hampir selalu kosong mendorong Nilai keluar layar.
+        tabel.classList.toggle("table-fixed", khusus);
+        tabel.classList.toggle("min-w-[60rem]", khusus);
+        if (khusus) {
+            mesinPeserta.saring.q = inpCari.value.trim();
+            mesinPeserta.saring.tahun = saringAktif;
+            mesinPeserta.muat(halaman);
+            return;
+        }
         gambarKepala();
         kosongkan(isi);
         const p = new URLSearchParams({ limit: String(SEHALAMAN), page: String(halaman) });
@@ -413,7 +456,20 @@ if (requireLogin()) {
         kosongkan(segmenSaring);
         const daftar = ent().saring;
         segmenSaring.hidden = !daftar;
-        if (!daftar) { saringAktif = ""; return; }
+        if (!daftar) {
+            saringAktif = "";
+            if (ent().khusus) {
+                // Saringan tahun akademik untuk tab Peserta, dimuat sekali
+                // dari daftar resmi; digambar begitu tiba.
+                const jenis = kini;
+                muatTahunAkademik(function (tahun) {
+                    ENTITAS.peserta.saring = [{ label: "Semua", param: "" }].concat(
+                        tahun.map(function (t) { return { label: t, param: t }; }));
+                    if (kini === jenis) gambarSaring();
+                });
+            }
+            return;
+        }
         daftar.forEach(function (sr) {
             const b = el("button", "", sr.label);
             b.type = "button";

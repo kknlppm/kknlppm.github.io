@@ -89,7 +89,7 @@ async function buka(jalur) {
 // ---------- 1. Setiap kendali bereaksi tanpa melempar ----------
 {
     let ditekan = 0;
-    for (const jalur of ["/data-kkn/", "/kelompok/", "/penilaian/", "/sertifikat/",
+    for (const jalur of ["/pendaftaran/", "/pembayaran/", "/saya/", "/kelompok/", "/penilaian/", "/sertifikat/",
                          "/data-induk/", "/kelola-berita/", "/pengaturan/",
                          "/nilai-matkul/", "/akun/"]) {
         const { ctx, page, galat } = await buka(jalur);
@@ -125,13 +125,19 @@ async function buka(jalur) {
 // Inilah yang lolos sebelumnya. Untuk entitas berpilihan tetap (Pengguna),
 // lemparan terjadi serentak dan laci.buka() tidak pernah dijalankan.
 {
-    const { ctx, page, galat } = await buka("/data-induk/");
+    const { ctx, page, galat } = await buka("/data-induk/?entitas=students");
     const seg = await page.$$("#segmenEntitas button");
-    lapor(seg.length === 5, `Data induk punya 5 entitas (${seg.length})`);
+    lapor(seg.length === 6, `Data induk punya 6 entitas (${seg.length})`);
     for (let i = 0; i < seg.length; i++) {
         const nama = (await seg[i].textContent()).trim();
         await seg[i].click();
         await page.waitForTimeout(400);
+        if (nama === "Peserta") {
+            // Buku besar baca-saja: tidak ada Tambah, tidak ada Ubah.
+            lapor(await page.locator("#tombolTambah").isHidden() && (await page.locator("#isiTabel button").count()) === 0,
+                "Peserta: baca-saja, tanpa Tambah maupun Ubah");
+            continue;
+        }
         const ubah = page.locator("#isiTabel button", { hasText: "Ubah" }).first();
         if (!(await ubah.count())) { lapor(false, `${nama}: tidak ada baris untuk diubah`); continue; }
         await ubah.click();
@@ -141,7 +147,7 @@ async function buka(jalur) {
         lapor(buka2 && medan > 0, `${nama}: laci Ubah terbuka dengan ${medan} medan`);
         if (buka2) { await page.click("#tombolBatal"); await page.waitForTimeout(200); }
     }
-    lapor(galat.length === 0, "Data induk: tanpa galat di kelima entitas" +
+    lapor(galat.length === 0, "Data induk: tanpa galat di keenam entitas" +
         (galat.length ? "\n    " + galat[0] : ""));
     await ctx.close();
 }
@@ -152,7 +158,7 @@ async function buka(jalur) {
 // dan tidak ada halaman lain yang membuat akun keduanya. Kini ada, dengan
 // medan tautan yang muncul HANYA untuk peran yang membutuhkannya.
 {
-    const { ctx, page, tulis, badan } = await buka("/data-induk/");
+    const { ctx, page, tulis, badan } = await buka("/data-induk/?entitas=students");
     await page.locator("#segmenEntitas button", { hasText: "Pengguna" }).click();
     await page.waitForTimeout(400);
     const saring = await page.locator("#segmenSaring button").allTextContents();
@@ -185,7 +191,7 @@ async function buka(jalur) {
 
 // ---------- 2c. Akun lahir bersama datanya: formulir Mahasiswa dan Dosen ----------
 {
-    const { ctx, page, tulis, badan } = await buka("/data-induk/");
+    const { ctx, page, tulis, badan } = await buka("/data-induk/?entitas=students");
     // Mahasiswa: kolom Akun dan medan sandi akun.
     const kepala = await page.locator("#kepalaTabel th").allTextContents();
     lapor(kepala.includes("Akun"), `daftar Mahasiswa punya kolom Akun (${kepala.join(", ")})`);
@@ -216,7 +222,7 @@ async function buka(jalur) {
 // baru — angkatan berikutnya tidak bisa dimasukkan. Tombolnya hanya untuk
 // admin dan admin fakultas; backend menegakkannya.
 {
-    const { ctx, page, tulis, badan } = await buka("/data-kkn/");
+    const { ctx, page, tulis, badan } = await buka("/pendaftaran/");
     lapor(await page.locator("#tombolDaftar").isVisible(), "admin melihat tombol Daftarkan peserta");
     await page.click("#tombolDaftar"); await page.waitForTimeout(500);
     lapor(await page.locator("#laciDaftar").isVisible(), "laci pendaftaran terbuka");
@@ -259,8 +265,12 @@ async function buka(jalur) {
         localStorage.setItem("kkn_user", JSON.stringify({ id: "u-2", uname: "bayar", name: "Bayar", role: 2, role_name: "pembayaran" }));
     });
     await page.route("**/localhost:8090/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(jawab(route.request().url())) }));
-    await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" }); await page.waitForTimeout(300);
-    lapor(await page.locator("#tombolDaftar").isHidden(), "petugas pembayaran tidak melihat tombol Daftarkan peserta");
+    await page.goto(B + "/pembayaran/", { waitUntil: "networkidle" }); await page.waitForTimeout(300);
+    lapor(await page.locator("#segmenBayar button").count() === 4 && await page.locator("#tombolDaftar").count() === 0,
+        "petugas pembayaran mendapat meja pembayaran, tanpa tombol Daftarkan peserta");
+    const labelSisi = await page.locator(".sisi__label").allTextContents();
+    lapor(!labelSisi.includes("Pendaftaran") && labelSisi.includes("Pembayaran"),
+        `sidebar pembayaran: Pembayaran ada, Pendaftaran tidak (${labelSisi.filter(Boolean).join(", ")})`);
     await ctx.close();
 }
 
@@ -307,13 +317,15 @@ async function buka(jalur) {
         lapor(tulis.some((x) => x.startsWith("DELETE /api/groups/")), `kelompok Hapus → ${tulis[0] || "TIDAK MENGIRIM"}`);
         await ctx.close();
     }
-    // data induk, kelima entitas
+    // data induk, kelima entitas yang bisa ditulis (Peserta baca-saja dilewati)
     {
-        const { ctx, page, tulis } = await buka("/data-induk/");
-        const harap = ["/api/students", "/api/programs", "/api/lecturers", "/api/courses", "/api/users"];
+        const { ctx, page, tulis } = await buka("/data-induk/?entitas=students");
+        const harap = { Mahasiswa: "/api/students", "Program studi": "/api/programs", Dosen: "/api/lecturers",
+                        "Mata kuliah": "/api/courses", Pengguna: "/api/users" };
         const seg = await page.$$("#segmenEntitas button");
         for (let i = 0; i < seg.length; i++) {
             const nama = (await seg[i].textContent()).trim();
+            if (!harap[nama]) continue;
             await seg[i].click(); await page.waitForTimeout(350);
             tulis.length = 0;
             await page.click("#tombolTambah"); await page.waitForTimeout(300);
@@ -323,7 +335,7 @@ async function buka(jalur) {
                     : t === "password" ? "ujilokal123" : "Uji").catch(() => {});
             }
             await page.click("#tombolSimpan"); await page.waitForTimeout(400);
-            lapor(tulis.some((x) => x.includes(harap[i])), `data induk ${nama} Simpan → ${tulis[0] || "TIDAK MENGIRIM"}`);
+            lapor(tulis.some((x) => x.includes(harap[nama])), `data induk ${nama} Simpan → ${tulis[0] || "TIDAK MENGIRIM"}`);
             const b2 = await page.$("#tombolBatal");
             if (b2 && await page.locator("#laci").isVisible().catch(() => false)) await b2.click().catch(() => {});
             await page.waitForTimeout(200);
@@ -518,7 +530,7 @@ async function buka(jalur) {
 
 // tema: pilihan bertahan lintas halaman, dan "sistem" menghapus simpanannya
 {
-    const { ctx, page } = await buka("/data-kkn/");
+    const { ctx, page } = await buka("/pendaftaran/");
     await page.click('.sisi__tema-tombol[data-tema="gelap"]'); await page.waitForTimeout(150);
     const t1 = await page.evaluate(() => document.documentElement.dataset.tema + "/" + localStorage.getItem("kkn_tema"));
     await page.goto(B + "/kelompok/", { waitUntil: "domcontentloaded" }); await page.waitForTimeout(400);
@@ -528,6 +540,74 @@ async function buka(jalur) {
     const t3 = await page.evaluate(() => localStorage.getItem("kkn_tema"));
     lapor(t1 === "gelap/gelap" && t2 === "gelap" && aktif === "gelap" && t3 === null,
         `tema bertahan lintas halaman (${t1} → ${t2}, aktif=${aktif}, sistem→${t3})`);
+    await ctx.close();
+}
+
+// ---------- 8. Menu mengikuti pekerjaan (8 September 2026) ----------
+//
+// Register dibubarkan: Pendaftaran mendaftarkan dan membatalkan, Pembayaran
+// mengubah status bayar, Data induk › Peserta adalah buku besar baca-saja,
+// KKN saya milik mahasiswa, dan Akun saya bisa mengubah kontak sendiri.
+{
+    // Data induk › Peserta: baca-saja, tersaring NIM dari tautan Riwayat KKN.
+    const { ctx, page } = await buka("/data-induk/?entitas=peserta&nim=21900001");
+    lapor(await page.locator("#tombolTambah").isHidden(), "tab Peserta tidak punya tombol Tambah");
+    const kepala = await page.locator("#kepalaTabel th").allTextContents();
+    lapor(kepala[0] === "NIM" && kepala.includes("Sertifikat") && !kepala.includes("Tindakan"),
+        `tab Peserta memuat kolom buku besar tanpa Tindakan (${kepala.join(", ")})`);
+    lapor(await page.locator("#isiTabel button").count() === 0, "tab Peserta tanpa tombol Ubah/Hapus");
+    lapor(await page.inputValue("#cari") === "21900001", "?nim= mengisi kotak cari");
+    const saring = await page.locator("#segmenSaring button").allTextContents();
+    lapor(saring[0] === "Semua" && saring.includes("2025-2026"), `saringan tahun akademik terpasang (${saring.join(", ")})`);
+    await page.locator("#segmenEntitas button", { hasText: "Mahasiswa" }).click(); await page.waitForTimeout(400);
+    const riwayat = await page.locator("#isiTabel a", { hasText: "Riwayat KKN" }).first().getAttribute("href");
+    lapor(riwayat === "/data-induk/?entitas=peserta&nim=21900001", `tab Mahasiswa menaut ke riwayat KKN (${riwayat})`);
+    lapor(await page.locator("#tombolTambah").isVisible(), "tab Mahasiswa mengembalikan tombol Tambah");
+    await ctx.close();
+}
+{
+    // Pendaftaran: Batalkan memanggil DELETE /api/participations/:id.
+    const { ctx, page, tulis } = await buka("/pendaftaran/");
+    const kepala = await page.locator("#kepalaTabel th").allTextContents();
+    lapor(kepala.includes("Tindakan"), `Pendaftaran punya kolom Tindakan (${kepala.join(", ")})`);
+    await page.locator("#isiTabel button", { hasText: "Batalkan" }).first().click(); await page.waitForTimeout(400);
+    lapor(tulis[0] === "DELETE /api/participations/p-0", `Batalkan → ${tulis[0] || "TIDAK MENGIRIM"}`);
+    await ctx.close();
+}
+{
+    // KKN saya sebagai mahasiswa: satu kartu per keikutsertaan, sertifikat
+    // yang terbit punya tombol lihat.
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    const tulis = [], badan = [];
+    await page.goto(B + "/404.html", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+        localStorage.setItem("kkn_token", "token-uji-123");
+        localStorage.setItem("kkn_user", JSON.stringify({ id: "u-3", uname: "21900000", name: "Nama 0", role: 3, role_name: "mahasiswa" }));
+    });
+    await page.route("**/localhost:8090/**", (route) => {
+        const q = route.request();
+        const p = new URL(q.url()).pathname;
+        if (q.method() !== "GET") {
+            tulis.push(q.method() + " " + p);
+            const b = q.postData(); if (b && b.startsWith("{")) { try { badan.push(JSON.parse(b)); } catch (e) {} }
+        }
+        if (p === "/auth/me") return route.fulfill({ status: 200, contentType: "application/json",
+            body: JSON.stringify({ status: "ok", data: { id: "u-3", uname: "21900000", name: "Nama 0", role: 3, role_name: "mahasiswa",
+                profil: { jenis: "mahasiswa", nim: "21900000", email: "a@b.c", phone: "08", kelas: "A", domisili: "Bandung" } } }) });
+        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(jawab(q.url())) });
+    });
+    await page.goto(B + "/saya/", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    lapor(await page.locator("#daftarKkn .kartu-kkn").count() === PESERTA.length, `KKN saya menggambar ${PESERTA.length} kartu keikutsertaan`);
+    lapor(await page.locator("#daftarKkn a", { hasText: "Lihat sertifikat" }).count() === 3, "sertifikat yang terbit punya tombol lihat");
+    lapor(await page.locator("#kosong").isHidden(), "keadaan kosong tersembunyi saat ada kartu");
+    lapor(/21900000/.test(await page.textContent("#identitas") || ""), "identitas memuat NIM");
+    // Akun saya: kontak bisa diubah sendiri → POST /auth/profil.
+    await page.goto(B + "/akun/", { waitUntil: "networkidle" }); await page.waitForTimeout(400);
+    lapor(await page.locator("#bagianKontak").isVisible() && await page.inputValue("#kEmail") === "a@b.c", "Akun saya menampilkan kontak yang tersimpan");
+    await page.fill("#kEmail", "baru@b.c"); await page.click("#tombolKontak"); await page.waitForTimeout(400);
+    lapor(tulis.includes("POST /auth/profil") && badan.some((b) => b.email === "baru@b.c" && b.kelas === "A"),
+        `kontak dikirim ke POST /auth/profil (${JSON.stringify(badan[0] || {})})`);
     await ctx.close();
 }
 

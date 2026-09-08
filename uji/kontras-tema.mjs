@@ -38,7 +38,7 @@ const SASARAN = {
         ["label.text-sm", "label medan"], [".medan", "isi medan", "teks"], [".medan", "batas medan", "batas"],
         [".tombol-utama", "tombol masuk"], ["a.text-bata", "tautan verifikasi"], ["p.text-xs.text-tinta-redup", "catatan kaki"],
     ],
-    "/data-kkn/": [
+    "/data-induk/?entitas=peserta": [
         [".sisi__tautan", "tautan sidebar"], ['.sisi__tautan[aria-current="page"]', "sidebar aktif"], [".sisi__bagian", "judul bagian sidebar"],
         [".sisi__tema-tombol", "sakelar tema"], ['.sisi__tema-tombol[aria-pressed="true"]', "sakelar tema aktif"],
         [".kepala .judul-halaman", "judul halaman"], [".kepala .eyebrow", "eyebrow halaman"],

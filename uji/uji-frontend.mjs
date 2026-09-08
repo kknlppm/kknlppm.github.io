@@ -28,14 +28,14 @@ async function masuk(uname) {
 // ── admin ──
 {
   const { ctx, page, galat } = await masuk('uji.admin');
-  uji('login admin -> /data-kkn/', page.url().includes('/data-kkn'), page.url().replace(FE, ''));
+  uji('login admin -> /pendaftaran/', page.url().includes('/pendaftaran'), page.url().replace(FE, ''));
   await page.waitForTimeout(1500);
 
   const ringkas = await page.textContent('#ringkasan');
   uji('ringkasan menampilkan 1.778 peserta', /1\.778/.test(ringkas), ringkas);
   // Judul halaman harus menyebut sistemnya, bukan sekadar "Dashboard".
-  uji('judul halaman menyebut Register KKN',
-      (await page.textContent('h1, .judul-halaman')).includes('Register KKN'));
+  uji('judul halaman menyebut Kuliah Kerja Nyata',
+      (await page.textContent('h1, .judul-halaman')).includes('Kuliah Kerja'));
 
   const baris = await page.locator('#isiTabel tr').count();
   uji('tabel terisi 50 baris', baris === 50, String(baris));
@@ -105,7 +105,7 @@ async function masuk(uname) {
 {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
-  await page.goto(FE + '/data-kkn/', { waitUntil: 'networkidle' });
+  await page.goto(FE + '/pendaftaran/', { waitUntil: 'networkidle' });
   uji('tanpa sesi dilempar ke /login/', page.url().includes('/login'), page.url().replace(FE, ''));
   await ctx.close();
 }

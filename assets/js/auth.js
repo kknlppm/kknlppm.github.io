@@ -82,23 +82,22 @@ export function requireGuest() {
 // dua hal berbeda tidak boleh memakai kata yang sama di repo yang sama.
 // Tiap peran mendarat di PEKERJAANNYA, bukan di daftar peserta.
 //
-// Sampai 5 September 2026 semua orang dikirim ke /data-kkn/. Dosen hanya
-// punya dua tab dan pekerjaannya di Penilaian; validasi LPPM juga dua tab dan
-// pekerjaannya di Sertifikat — keduanya mendarat satu klik meleset setiap
-// kali masuk. Petugas pembayaran dikirim ke "/data-kkn/?bayar=1", dan `bayar`
-// tidak pernah dibaca halaman itu: ia mendarat di daftar 1.706 orang tanpa
-// penyaring apa pun.
+// Sampai 5 September 2026 semua orang dikirim ke /data-kkn/ ("Register").
+// Sejak 8 September 2026 halaman itu sendiri sudah tidak ada: tabelnya
+// ditumpangi tiga pekerjaan untuk enam peran. Kini tiap peran punya
+// halamannya sendiri — Pendaftaran, Pembayaran (mendarat di "belum bayar"),
+// KKN saya — dan /data-kkn/ hanya mengalihkan.
 export function tujuanSetelahMasuk() {
     const u = getUser() || {};
     switch (u.role) {
-        // ?bayar=0 = "belum bayar", persis pekerjaan yang menunggunya.
-        case PERAN.PEMBAYARAN: return "/data-kkn/?bayar=0";
+        case PERAN.PEMBAYARAN: return "/pembayaran/";
         case PERAN.DOSEN: return "/penilaian/";
         case PERAN.VALIDASI_LPPM: return "/sertifikat/";
-        case PERAN.MAHASISWA: return "/data-kkn/";
-        // Satu-satunya pekerjaannya; /data-kkn/ akan menolaknya dengan 403.
+        case PERAN.MAHASISWA: return "/saya/";
+        // Satu-satunya pekerjaannya; halaman KKN lain menolaknya dengan 403.
         case PERAN.ADMIN_BERITA: return "/kelola-berita/";
-        default: return "/data-kkn/";
+        // Admin dan admin fakultas: pekerjaan pertama tiap angkatan.
+        default: return "/pendaftaran/";
     }
 }
 

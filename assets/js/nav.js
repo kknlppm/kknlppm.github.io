@@ -16,8 +16,11 @@ import { getUser, logout } from "./auth.js";
 import { PERAN as P } from "./config.js";
 import { el } from "./ui.js";
 
-// Urutannya mengikuti alur kerja: daftar orang dulu, lalu menilai, lalu
-// menerbitkan. Data induk paling belakang karena paling jarang disentuh.
+// Urutannya mengikuti alur kerja tiap angkatan: mendaftarkan, membentuk
+// kelompok, membayar, menilai, menerbitkan. Menu MENGIKUTI PEKERJAAN orangnya,
+// bukan bentuk halamannya — "Register" (satu tabel untuk enam peran) dibubarkan
+// 8 September 2026 karena pemilik: "Register untuk pendaftaran, Data induk
+// menampung semua data". Buku besarnya kini Data induk › Peserta.
 // Bagian sidebar. STATIS — bukan menu bersarang yang bisa dibuka-tutup.
 //
 // Menu bersarang menambah keadaan buka/tutup, penyorotan induk-aktif, dan
@@ -31,11 +34,13 @@ const TAUTAN = [
     // URUTANNYA MENGIKAT: label bagian digambar saat bagiannya berganti,
     // jadi tujuan sebagian yang sama harus berdampingan. Menyisipkan satu
     // baris di tempat yang salah membuat satu judul bagian muncul dua kali.
-    { url: "/data-kkn/",      label: "Register",   ikon: "register",   bagian: "kkn",    peran: [P.ADMIN, P.PEMBAYARAN, P.MAHASISWA, P.DOSEN, P.VALIDASI_LPPM, P.ADMIN_FAKULTAS] },
+    { url: "/pendaftaran/",   label: "Pendaftaran", ikon: "pendaftaran", bagian: "kkn", peran: [P.ADMIN, P.ADMIN_FAKULTAS] },
     { url: "/kelompok/",      label: "Kelompok",   ikon: "kelompok",   bagian: "kkn",    peran: [P.ADMIN, P.ADMIN_FAKULTAS] },
+    { url: "/pembayaran/",    label: "Pembayaran", ikon: "pembayaran", bagian: "kkn",    peran: [P.ADMIN, P.PEMBAYARAN] },
     { url: "/penilaian/",     label: "Penilaian",  ikon: "penilaian",  bagian: "kkn",    peran: [P.ADMIN, P.DOSEN] },
     { url: "/sertifikat/",    label: "Sertifikat", ikon: "sertifikat", bagian: "kkn",    peran: [P.ADMIN, P.VALIDASI_LPPM] },
     { url: "/nilai-matkul/",  label: "Nilai matkul", ikon: "matkul",  bagian: "kkn",    peran: [P.ADMIN, P.DOSEN] },
+    { url: "/saya/",          label: "KKN saya",   ikon: "saya",       bagian: "kkn",    peran: [P.MAHASISWA] },
     { url: "/data-induk/",    label: "Data induk", ikon: "induk",      bagian: "data",   peran: [P.ADMIN, P.ADMIN_FAKULTAS] },
     { url: "/kelola-berita/", label: "Berita",     ikon: "berita",     bagian: "data",   peran: [P.ADMIN, P.ADMIN_BERITA] },
     { url: "/pengaturan/",    label: "Pengaturan", ikon: "pengaturan", bagian: "sistem", peran: [P.ADMIN] },
@@ -46,7 +51,9 @@ const TAUTAN = [
 // dimuat sebagai pustaka. Tujuh ikon tidak sepadan dengan satu ketergantungan,
 // dan tanpa ikon sidebar tidak bisa diciutkan jadi kolom sempit.
 const IKON = {
-    register:   ["M8 6h13", "M8 12h13", "M8 18h13", "M3 6h.01", "M3 12h.01", "M3 18h.01"],
+    pendaftaran: ["M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M8.5 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z", "M20 8v6", "M23 11h-6"],
+    pembayaran: ["M2 5h20a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "M1 10h22"],
+    saya:       ["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"],
     kelompok:   ["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z",
                  "M23 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"],
     penilaian:  ["M9 11l3 3L22 4", "M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"],

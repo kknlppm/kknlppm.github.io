@@ -91,7 +91,7 @@ async function halamanBaru(sesi) {
 }
 
 // ---------- 1. Semua halaman memuat tanpa galat ----------
-const HALAMAN = ["/", "/login/", "/data-kkn/", "/data-induk/", "/kelompok/",
+const HALAMAN = ["/", "/login/", "/pendaftaran/", "/pembayaran/", "/saya/", "/data-induk/", "/kelompok/",
                  "/penilaian/", "/sertifikat/", "/pengaturan/", "/verifikasi/"];
 
 const header = {};   // jalur -> header yang terkirim
@@ -109,7 +109,7 @@ for (const jalur of HALAMAN) {
 }
 
 // ---------- 2. Header token jscroot benar-benar terkirim ----------
-const terlindungi = ["/data-kkn/", "/kelompok/", "/penilaian/", "/sertifikat/", "/pengaturan/", "/data-induk/"];
+const terlindungi = ["/pendaftaran/", "/pembayaran/", "/saya/", "/kelompok/", "/penilaian/", "/sertifikat/", "/pengaturan/", "/data-induk/"];
 for (const jalur of terlindungi) {
     const h = header[jalur];
     lapor(h && h["login"] === "token-uji-123",
@@ -150,7 +150,7 @@ for (const jalur of terlindungi) {
                 body: JSON.stringify(amplop([], {})) });
         }
     });
-    await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+    await page.goto(B + "/pendaftaran/", { waitUntil: "networkidle" });
     const img = await page.locator("#isiTabel img").count();
     const xss = await page.evaluate(() => window.__XSS === 1);
     const tampak = await page.textContent("#isiTabel");
@@ -172,10 +172,10 @@ for (const jalur of terlindungi) {
     await page.fill("#uname", "admin");
     await page.fill("#password", "rahasia");
     await page.click("#tombolMasuk");
-    await page.waitForURL("**/data-kkn/**", { timeout: 5000 }).catch(() => {});
+    await page.waitForURL("**/pendaftaran/**", { timeout: 5000 }).catch(() => {});
     const tersimpan = await page.evaluate(() => localStorage.getItem("kkn_token"));
     lapor(tersimpan === "token-baru", `masuk menyimpan token (${tersimpan})`);
-    lapor(page.url().includes("/data-kkn/"), `masuk mengalihkan ke halaman peran (${page.url()})`);
+    lapor(page.url().includes("/pendaftaran/"), `masuk mengalihkan ke halaman peran (${page.url()})`);
     lapor(galat.length === 0, "alur masuk tanpa galat" + (galat.length ? "\n    " + galat.join("\n    ") : ""));
     await ctx.close();
 }
@@ -186,7 +186,7 @@ for (const jalur of terlindungi) {
     await page.route("**/localhost:8090/**", (r) => r.fulfill({ status: 401,
         contentType: "application/json",
         body: JSON.stringify({ status: "error", message: "token kedaluwarsa" }) }));
-    await page.goto(B + "/data-kkn/", { waitUntil: "commit" }).catch(() => {});
+    await page.goto(B + "/pendaftaran/", { waitUntil: "commit" }).catch(() => {});
     await page.waitForURL("**/login/**", { timeout: 8000 }).catch(() => {});
     const sisa = await page.evaluate(() => localStorage.getItem("kkn_token"));
     lapor(page.url().includes("/login/"), `401 mengalihkan ke /login/ (${page.url()})`);
@@ -577,7 +577,7 @@ const BERITA = [
         body: JSON.stringify({ data: ["2025-2026", "2024-2025", "2023-2024", "2022-2023", "2021-2022"],
                                meta: { total: 0, page: 1, total_pages: 1 } }) }));
 
-    for (const jalur of ["/data-kkn/", "/kelompok/", "/penilaian/", "/sertifikat/",
+    for (const jalur of ["/pendaftaran/", "/pembayaran/", "/saya/", "/kelompok/", "/penilaian/", "/sertifikat/",
                          "/data-induk/", "/pengaturan/", "/kelola-berita/", "/login/"]) {
         // /login/ dilihat tanpa sesi — dengan sesi ia mengalihkan.
         if (jalur === "/login/") await page.evaluate(() => localStorage.clear());
@@ -607,7 +607,7 @@ const BERITA = [
         body: JSON.stringify({ data: [{ id: "p-1", nim: "21900000", name: "Rizki Ramadhan",
             kelompok: "20", tahun_ajaran: "2025-2026", nilai: 82, huruf: "A", has_cert: true }],
             meta: { total: 1, page: 1, total_pages: 1 } }) }));
-    await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+    await page.goto(B + "/pendaftaran/", { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
 
     const hasil = await page.evaluate(() => {
@@ -641,7 +641,7 @@ const BERITA = [
         await page.route("**/localhost:8090/**", (route) => route.fulfill({
             status: 200, contentType: "application/json",
             body: JSON.stringify({ data: ["2025-2026"], meta: { total: 0, page: 1, total_pages: 1 } }) }));
-        await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+        await page.goto(B + "/pendaftaran/", { waitUntil: "networkidle" });
         await page.waitForTimeout(300);
         const r = await page.evaluate(() => {
             const t = (s) => { const e = document.querySelector(s);
@@ -674,7 +674,7 @@ const BERITA = [
         await page.route("**/localhost:8090/**", (route) => route.fulfill({
             status: 200, contentType: "application/json",
             body: JSON.stringify({ data: [], meta: { total: 0, page: 1, total_pages: 1 } }) }));
-        await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+        await page.goto(B + "/akun/", { waitUntil: "networkidle" });
         await page.waitForTimeout(250);
         const r = await page.evaluate(() => {
             const sisi = document.querySelector(".sisi");
@@ -698,28 +698,35 @@ const BERITA = [
     };
 
     const admin = await lihat(1, { width: 390, height: 844 });
-    lapor(admin.ada && admin.label.length === 9,
-        `admin melihat 9 tujuan di sidebar (${admin.label.length})`);
+    lapor(admin.ada && admin.label.length === 10,
+        `admin melihat 10 tujuan di sidebar (${admin.label.length})`);
     lapor(admin.muatSemua,
-        "kesembilannya muat tanpa digulung di layar 390px — ini yang gagal pada baris tab lama");
+        "kesepuluhnya muat tanpa digulung di layar 390px — ini yang gagal pada baris tab lama");
     lapor(admin.h1 === 1, `judul halaman adalah <h1> (${admin.h1})`);
 
     // Uji negatif yang menentukan: penyaringan peran masih hidup. Tanpa ini,
     // sidebar yang menampilkan SEMUANYA ke semua orang juga lulus uji di atas.
     const dosen = await lihat(4, { width: 1440, height: 900 });
-    const dosenBoleh = ["Register", "Penilaian", "Nilai matkul", "Akun saya"];
+    const dosenBoleh = ["Penilaian", "Nilai matkul", "Akun saya"];
     lapor(dosen.ada && dosen.label.length === dosenBoleh.length &&
           dosenBoleh.every((x) => dosen.label.includes(x)),
         `dosen hanya melihat tujuannya sendiri (${dosen.label.join(", ")})`);
     lapor(!dosen.label.includes("Sertifikat") && !dosen.label.includes("Pengaturan") &&
-          !dosen.label.includes("Data induk"),
-        "dosen TIDAK melihat Sertifikat, Pengaturan, atau Data induk");
+          !dosen.label.includes("Data induk") && !dosen.label.includes("Pendaftaran") && !dosen.label.includes("Pembayaran"),
+        "dosen TIDAK melihat Sertifikat, Pengaturan, Data induk, Pendaftaran, atau Pembayaran");
 
     // Mahasiswa: dua tujuan sejak Ganti sandi ada. Sebelumnya satu, dan
     // karena itu ia tidak punya sidebar — dan tidak punya cara keluar.
     const mhs = await lihat(3, { width: 1440, height: 900 });
-    lapor(mhs.ada && mhs.label.length === 2 && mhs.label.includes("Akun saya"),
-        `mahasiswa melihat 2 tujuan termasuk Akun saya (${mhs.label.join(", ")})`);
+    lapor(mhs.ada && mhs.label.join(",") === "KKN saya,Akun saya",
+        `mahasiswa melihat 2 tujuan: KKN saya dan Akun saya (${mhs.label.join(", ")})`);
+    // Pembayaran: mejanya sendiri, bukan buku besar semua orang.
+    const bayar = await lihat(2, { width: 1440, height: 900 });
+    lapor(bayar.ada && bayar.label.join(",") === "Pembayaran,Akun saya",
+        `petugas pembayaran melihat 2 tujuan: Pembayaran dan Akun saya (${bayar.label.join(", ")})`);
+    const fakultas = await lihat(6, { width: 1440, height: 900 });
+    lapor(fakultas.ada && fakultas.label.join(",") === "Pendaftaran,Kelompok,Data induk,Akun saya",
+        `admin fakultas melihat Pendaftaran, Kelompok, Data induk, Akun saya (${fakultas.label.join(", ")})`);
 
     // Label bagian STATIS: ia menandai, bukan menavigasi. Kalau ia jadi
     // tautan atau tombol, sidebar berubah jadi menu bersarang tanpa disengaja.
@@ -753,7 +760,7 @@ const BERITA = [
         await page.route("**/localhost:8090/**", (route) => route.fulfill({
             status: 200, contentType: "application/json",
             body: JSON.stringify({ data: [], meta: { total: 0, page: 1, total_pages: 1 } }) }));
-        await page.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+        await page.goto(B + "/akun/", { waitUntil: "networkidle" });
         await page.waitForTimeout(200);
         const n = await page.evaluate(() =>
             [...document.querySelectorAll("button")].filter(b => b.textContent.trim() === "Keluar").length);
@@ -764,8 +771,8 @@ const BERITA = [
 
 // ---------- 20. Tiap peran mendarat di pekerjaannya ----------
 {
-    const tujuan = { 1: "/data-kkn/", 2: "/data-kkn/?bayar=0", 3: "/data-kkn/",
-                     4: "/penilaian/", 5: "/sertifikat/", 6: "/data-kkn/", 7: "/kelola-berita/" };
+    const tujuan = { 1: "/pendaftaran/", 2: "/pembayaran/", 3: "/saya/",
+                     4: "/penilaian/", 5: "/sertifikat/", 6: "/pendaftaran/", 7: "/kelola-berita/" };
     for (const [peran, harap] of Object.entries(tujuan)) {
         const ctx = await browser.newContext();
         const page = await ctx.newPage();
@@ -806,19 +813,44 @@ const BERITA = [
         route.fulfill({ status: 200, contentType: "application/json",
             body: JSON.stringify({ data: [], meta: { total: 0, page: 1, total_pages: 1 } }) });
     });
-    await page.goto(B + "/data-kkn/?bayar=0", { waitUntil: "networkidle" });
+    await page.goto(B + "/pembayaran/?bayar=2", { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
-    lapor(diminta.some((u) => /[?&]bayar=0/.test(u)),
-        "?bayar=0 diteruskan ke server, bukan ditelan");
-    const aktif = await page.$eval('#segmenBayar button[aria-pressed="true"]', (e) => e.textContent);
-    lapor(aktif === "Belum bayar", `tombol saringan yang aktif ikut benar (${aktif})`);
-    // Uji negatif: nilai yang bukan 0/1/2 tidak boleh diteruskan.
+    lapor(diminta.some((u) => /[?&]bayar=2/.test(u)),
+        "?bayar=2 diteruskan ke server, bukan ditelan");
+    let aktif = await page.$eval('#segmenBayar button[aria-pressed="true"]', (e) => e.textContent);
+    lapor(aktif === "Lunas", `tombol saringan yang aktif ikut benar (${aktif})`);
+    // Tanpa parameter: meja pembayaran mendarat di "belum bayar".
     diminta.length = 0;
-    await page.goto(B + "/data-kkn/?bayar=sembarang", { waitUntil: "networkidle" });
+    await page.goto(B + "/pembayaran/", { waitUntil: "networkidle" });
     await page.waitForTimeout(300);
-    lapor(!diminta.some((u) => /[?&]bayar=/.test(u)),
-        "nilai bayar yang tidak dikenali diabaikan, bukan diteruskan");
+    aktif = await page.$eval('#segmenBayar button[aria-pressed="true"]', (e) => e.textContent);
+    lapor(diminta.some((u) => /[?&]bayar=0/.test(u)) && aktif === "Belum bayar",
+        `tanpa parameter, Pembayaran mendarat di belum bayar (${aktif})`);
+    // Uji negatif: nilai yang bukan 0/1/2 tidak boleh diteruskan — jatuh ke bawaan.
+    diminta.length = 0;
+    await page.goto(B + "/pembayaran/?bayar=sembarang", { waitUntil: "networkidle" });
+    await page.waitForTimeout(300);
+    lapor(!diminta.some((u) => /[?&]bayar=sembarang/.test(u)) && diminta.some((u) => /[?&]bayar=0/.test(u)),
+        "nilai bayar yang tidak dikenali diabaikan, jatuh ke belum bayar");
     await ctx.close();
+
+    // Alamat Register lama mengalihkan menurut peran, bukan mati.
+    for (const [peran, harap] of [[1, "/data-induk/?entitas=peserta"], [2, "/pembayaran/"], [3, "/saya/"]]) {
+        const c2 = await browser.newContext();
+        const p2 = await c2.newPage();
+        await p2.goto(B + "/404.html", { waitUntil: "domcontentloaded" });
+        await p2.evaluate((r) => {
+            localStorage.setItem("kkn_token", "token-uji-123");
+            localStorage.setItem("kkn_user", JSON.stringify({ name: "Uji", role: r, role_name: "x" }));
+        }, peran);
+        await p2.route("**/localhost:8090/**", (route) => route.fulfill({ status: 200, contentType: "application/json",
+            body: JSON.stringify({ data: [], meta: { total: 0, page: 1, total_pages: 1 } }) }));
+        await p2.goto(B + "/data-kkn/", { waitUntil: "networkidle" });
+        await p2.waitForTimeout(300);
+        const dapat = p2.url().replace(B, "");
+        lapor(dapat === harap, `/data-kkn/ mengalihkan peran ${peran} ke ${harap} (${dapat})`);
+        await c2.close();
+    }
 }
 
 // ---------- 22. Atribut `hidden` menang atas kelas display ----------

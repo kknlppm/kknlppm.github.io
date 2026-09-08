@@ -21,7 +21,7 @@ await page.waitForURL(u => !/\/login\/?$/.test(new URL(u).pathname), {timeout:20
 let gagal = 0;
 for (const [w,h] of [[1024,760],[820,900],[1440,700]]) {
   await page.setViewportSize({ width: w, height: h });
-  for (const hal of ["data-kkn","sertifikat","data-induk"]) {
+  for (const hal of ["pendaftaran","sertifikat","data-induk"]) {
     await page.goto(ASAL+"/"+hal+"/");
     await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 1, null, {timeout:25000});
     await page.waitForTimeout(500);

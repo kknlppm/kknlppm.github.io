@@ -72,7 +72,7 @@ async function masuk(ctx) {
   await p.keyboard.type('ujilokal123');
   await p.keyboard.press('Enter');
   await p.waitForTimeout(1800);
-  uji('masuk sepenuhnya lewat papan ketik', p.url().includes('/data-kkn'), p.url().replace(FE, ''));
+  uji('masuk sepenuhnya lewat papan ketik', p.url().includes('/pendaftaran'), p.url().replace(FE, ''));
   await ctx.close();
 }
 

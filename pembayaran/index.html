@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/img/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <title>Pembayaran KKN — LPPM Universitas Al-Ghifari</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tema dipasang SEBELUM stylesheet supaya halaman gelap tidak berkedip putih. -->
+  <script src="/assets/js/tema.js"></script>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<main class="max-w-[1400px] mx-auto px-5 py-5">
+
+  <!-- Meja pembayaran, seperti "Pembayaran KKN" aplikasi lama. Mendarat di
+       "belum bayar": itulah daftar pekerjaan yang menunggu petugasnya. -->
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <div id="segmenBayar" class="segmen" role="group" aria-label="Status pembayaran"></div>
+    <div id="segmenTahun" class="segmen" role="group" aria-label="Tahun akademik"></div>
+    <div class="flex-1 min-w-[14rem]">
+      <label for="cari" class="sr-only">Cari peserta</label>
+      <input id="cari" type="search" class="medan" spellcheck="false" placeholder="NIM atau nama">
+    </div>
+    <output id="ringkasan" class="font-data text-xs text-tinta-redup whitespace-nowrap basis-full sm:basis-auto"></output>
+  </div>
+
+  <div id="pesan" hidden role="alert"></div>
+
+  <div class="bg-kertas rounded-2xl shadow-kartu overflow-hidden">
+    <div class="overflow-auto max-h-[calc(100vh-15rem)]">
+      <table class="register table-fixed min-w-[44rem] lg:min-w-[52rem]">
+        <thead><tr id="kepalaTabel"></tr></thead>
+        <tbody id="isiTabel"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <nav class="flex items-center justify-between gap-3 mt-4" aria-label="Halaman">
+    <button id="sebelumnya" class="tombol-halus" disabled aria-label="Sebelumnya"><span aria-hidden="true">←</span><span class="hidden sm:inline">Sebelumnya</span></button>
+    <span id="posisiHalaman" class="font-data text-xs text-tinta-redup whitespace-nowrap"></span>
+    <button id="berikutnya" class="tombol-halus" disabled aria-label="Berikutnya"><span class="hidden sm:inline">Berikutnya</span><span aria-hidden="true">→</span></button>
+  </nav>
+</main>
+
+<!-- Laci status bayar. Backend menegakkan izinnya: SaveParticipation membatasi
+     peran pembayaran hanya boleh menyentuh status_bayar. -->
+<div id="tirai" class="tirai" hidden></div>
+<aside id="laci" class="laci" hidden aria-labelledby="judulLaci" role="dialog" aria-modal="true">
+  <form id="formBayar" class="flex flex-col h-full" novalidate>
+    <div class="px-5 py-4 border-b border-garis">
+      <h2 id="judulLaci" class="judul-halaman text-lg">Status pembayaran</h2>
+      <p id="siapa" class="text-sm text-tinta-redup mt-0.5"></p>
+    </div>
+    <div class="flex-1 overflow-auto px-5 py-4 space-y-4">
+      <div id="pesanLaci" hidden role="alert"></div>
+      <div>
+        <label for="fBayar" class="block text-sm font-medium mb-1.5">Status</label>
+        <select id="fBayar" name="status_bayar" class="medan"></select>
+      </div>
+      <div>
+        <label for="fKet" class="block text-sm font-medium mb-1.5">Catatan</label>
+        <textarea id="fKet" name="ket" class="medan" rows="3"
+                  placeholder="Wajib diisi kalau pembayarannya sebagian."></textarea>
+      </div>
+    </div>
+    <div class="px-5 py-4 border-t border-garis flex gap-2 justify-end">
+      <button type="button" id="tombolBatal" class="tombol-halus">Batal</button>
+      <button type="submit" id="tombolSimpan" class="tombol-utama">Simpan</button>
+    </div>
+  </form>
+</aside>
+
+<script type="module">
+import { postJSON } from "/assets/js/jscroot/api.js";
+import { getQueryString } from "/assets/js/jscroot/url.js";
+import { backend, BAYAR } from "/assets/js/config.js";
+import { requireLogin, tokenHeader } from "/assets/js/auth.js";
+import { pasang } from "/assets/js/nav.js";
+import { buat as buatLaci } from "/assets/js/laci.js";
+import { opsi, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
+import { buatPeserta, pasangSegmen, muatTahunAkademik } from "/assets/js/peserta.js";
+
+if (requireLogin()) {
+    pasang("Pembayaran KKN", "Status bayar peserta");
+
+    const elPesan = document.getElementById("pesan");
+    const inpCari = document.getElementById("cari");
+    const laci = buatLaci("laci", "tirai", "tombolBatal");
+    let sedang = null;
+
+    // ?bayar=0|1|2 dari luar (tautan); tanpa itu, "belum bayar". Nilai lain
+    // diabaikan, bukan diteruskan ke server.
+    // getQueryString() jscroot TIDAK menerima argumen: ia mengembalikan Proxy
+    // yang diindeks, jadi getQueryString("bayar") diam-diam salah.
+    const dariUrl = getQueryString().bayar;
+    const bayarAwal = (dariUrl === "0" || dariUrl === "1" || dariUrl === "2") ? dariUrl : "0";
+
+    const mesin = buatPeserta({
+        kepala: document.getElementById("kepalaTabel"),
+        isi: document.getElementById("isiTabel"),
+        pesan: elPesan,
+        ringkasan: document.getElementById("ringkasan"),
+        posisi: document.getElementById("posisiHalaman"),
+        sebelumnya: document.getElementById("sebelumnya"),
+        berikutnya: document.getElementById("berikutnya"),
+        kolom: ["nim", "nama", "prodi", "kelompok", "ta", "bayar"],
+        saring: { bayar: bayarAwal },
+        aksi: { bayar: bukaBayar },
+    });
+
+    pasangSegmen(document.getElementById("segmenBayar"),
+        [{ nilai: "", teks: "Semua bayar" }].concat(BAYAR.map(function (b) { return { nilai: String(b.nilai), teks: b.teks }; })),
+        bayarAwal, function (nilai) { mesin.saring.bayar = nilai; mesin.muat(1); });
+
+    muatTahunAkademik(function (daftar) {
+        pasangSegmen(document.getElementById("segmenTahun"),
+            [{ nilai: "", teks: "Semua" }].concat(daftar.map(function (t) { return { nilai: t, teks: t }; })),
+            "", function (nilai) { mesin.saring.tahun = nilai; mesin.muat(1); });
+    });
+
+    let jeda;
+    inpCari.addEventListener("input", function () {
+        clearTimeout(jeda);
+        jeda = setTimeout(function () { mesin.saring.q = inpCari.value; mesin.muat(1); }, 350);
+    });
+
+    function bukaBayar(r) {
+        sedang = r;
+        document.getElementById("siapa").textContent = r.nim + " · " + r.name;
+        const selBayar = document.getElementById("fBayar");
+        kosongkan(selBayar);
+        BAYAR.forEach(function (b) { selBayar.appendChild(opsi(b.nilai, b.teks)); });
+        selBayar.value = String(r.status_bayar || 0);
+        document.getElementById("fKet").value = r.ket || "";
+        sembunyikan(document.getElementById("pesanLaci"));
+        laci.buka();
+    }
+
+    document.getElementById("formBayar").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        if (!sedang) return;
+        const elPesanLaci = document.getElementById("pesanLaci");
+        const status = Number(document.getElementById("fBayar").value);
+        const ket = document.getElementById("fKet").value.trim();
+        // Pembayaran sebagian tanpa catatan tidak bisa ditelusuri nanti:
+        // tidak ada yang tahu berapa yang sudah masuk.
+        if (status === 1 && !ket) {
+            pesan(elPesanLaci, "Pembayaran sebagian wajib disertai catatan.", "galat");
+            return;
+        }
+        const tombol = document.getElementById("tombolSimpan");
+        tombol.disabled = true;
+        postJSON(backend.kkn.participation(encodeURIComponent(sedang.id)),
+            { status_bayar: status, ketua: !!sedang.ketua, ket: ket },
+            function (hasil) {
+                tombol.disabled = false;
+                if (!sehat(hasil, elPesanLaci)) return;
+                sedang.status_bayar = status;
+                sedang.ket = ket;
+                laci.tutup();
+                // Diperbarui DI TEMPAT, bukan dengan memuat ulang daftar —
+                // memuat ulang membuang posisi gulung petugasnya.
+                if (mesin.saring.bayar !== "" && mesin.saring.bayar !== String(status)) {
+                    // Barisnya tidak lagi cocok dengan saringan yang aktif —
+                    // ia memang harus pergi, dan hitungannya ikut turun.
+                    mesin.hapusBaris(sedang);
+                    pesan(elPesan, sedang.name + " ditandai " +
+                        (BAYAR.find(function (x) { return x.nilai === status; }) || BAYAR[0]).teks.toLowerCase() +
+                        " dan keluar dari saringan ini.", "sah");
+                    return;
+                }
+                mesin.gantiBaris(sedang);
+            }, ...tokenHeader());
+    });
+
+    mesin.muat(1);
+}
+</script>
+</body>
+</html>

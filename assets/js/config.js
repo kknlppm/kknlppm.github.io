@@ -34,6 +34,9 @@ export const backend = {
         logout: asal + "/auth/logout",
         me: asal + "/auth/me",
         sandi: asal + "/auth/password",
+        // Kontak milik sendiri (mahasiswa: email, telepon, domisili, kelas;
+        // dosen: email). Nama tidak — itu tercetak di sertifikat, urusan admin.
+        profil: asal + "/auth/profil",
     },
 
     // Data induk — hanya admin.

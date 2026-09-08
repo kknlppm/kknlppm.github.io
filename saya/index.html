@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/img/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <title>KKN saya — LPPM Universitas Al-Ghifari</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tema dipasang SEBELUM stylesheet supaya halaman gelap tidak berkedip putih. -->
+  <script src="/assets/js/tema.js"></script>
+  <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<main class="max-w-3xl mx-auto px-5 py-5">
+  <div id="pesan" hidden role="alert"></div>
+
+  <!-- Identitas dulu: halaman ini menjawab "ini data saya?" sebelum
+       "bagaimana hasil saya?". Kontak diubah di Akun saya. -->
+  <section class="bg-kertas rounded-2xl shadow-kartu p-5 mb-5">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+      <h2 class="judul-halaman text-base">Identitas</h2>
+      <a href="/akun/" class="tautan-aksi text-xs">Ubah kontak atau sandi</a>
+    </div>
+    <dl id="identitas" class="grid sm:grid-cols-[auto_1fr] gap-x-8 gap-y-2 text-sm"></dl>
+  </section>
+
+  <!-- Satu kartu per keikutsertaan, terbaru dulu. Orang yang sama bisa ikut
+       KKN lebih dari sekali; tiap kali punya kelompok, bayar, nilai, dan
+       sertifikatnya sendiri. Meniru "Hasil Penilaian" aplikasi lama. -->
+  <div id="daftarKkn" class="grid gap-5" aria-live="polite"></div>
+
+  <p id="kosong" class="bg-kertas rounded-2xl shadow-kartu px-8 py-14 text-center text-tinta-redup text-sm" hidden>
+    Anda belum terdaftar sebagai peserta KKN. Hubungi admin fakultas untuk mendaftar.
+  </p>
+</main>
+
+<script type="module">
+import { getJSON } from "/assets/js/jscroot/api.js";
+import { backend, BAYAR, tokenKey } from "/assets/js/config.js";
+import { requireLogin, tokenHeader, getToken } from "/assets/js/auth.js";
+import { pasang } from "/assets/js/nav.js";
+import { el, deretNilai, pesan, sembunyikan, kosongkan, sehat } from "/assets/js/ui.js";
+import { nomorKelompok } from "/assets/js/peserta.js";
+
+if (requireLogin()) {
+    pasang("KKN saya", "Keikutsertaan, pembayaran, nilai, dan sertifikat");
+
+    const elPesan = document.getElementById("pesan");
+    const dl = document.getElementById("identitas");
+    const daftar = document.getElementById("daftarKkn");
+    const kosong = document.getElementById("kosong");
+
+    function pasangBaris(kunci, nilai) {
+        if (nilai == null || nilai === "") return;
+        dl.appendChild(el("dt", "eyebrow text-tinta-redup", kunci));
+        dl.appendChild(el("dd", "mb-1 break-words min-w-0", String(nilai)));
+    }
+
+    getJSON(backend.auth.me, function (hasil) {
+        if (!sehat(hasil, elPesan)) return;
+        const d = (hasil.data || {}).data || {};
+        const p = d.profil || {};
+        pasangBaris("Nama", d.name);
+        pasangBaris("NIM", p.nim || d.uname);
+        pasangBaris("Kelas", p.kelas);
+        pasangBaris("Email", p.email);
+        pasangBaris("Telepon", p.phone);
+        pasangBaris("Domisili", p.domisili);
+    }, ...tokenHeader());
+
+    function pasangan(kunci, simpul) {
+        const wadah = el("div", "min-w-0");
+        wadah.appendChild(el("div", "eyebrow text-tinta-redup mb-1", kunci));
+        if (typeof simpul === "string" || simpul == null) {
+            wadah.appendChild(el("div", "text-sm break-words" + (simpul ? "" : " text-tinta-samar"), simpul || "—"));
+        } else {
+            wadah.appendChild(simpul);
+        }
+        return wadah;
+    }
+
+    // Berkas PDF butuh header token, dan tautan biasa tidak membawanya:
+    // diambil sebagai blob lalu dibuka di tab baru — orang ingin MELIHAT
+    // sertifikatnya dulu sebelum menyimpannya. Ditulis tangan, bukan lewat
+    // pembantu berkas jscroot (lihat catatan di sertifikat/index.html).
+    function tombolSertifikat(r) {
+        const a = el("a", "tombol-halus !h-9 inline-flex items-center", "Lihat sertifikat");
+        a.href = backend.certificate.pdf(encodeURIComponent(r.id));
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.addEventListener("click", async function (e) {
+            e.preventDefault();
+            try {
+                const res = await fetch(a.href, { headers: { [tokenKey]: getToken() } });
+                if (!res.ok) throw new Error("Gagal mengambil sertifikat.");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank", "noopener");
+                setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+            } catch (err) {
+                pesan(elPesan, err.message || "Gagal membuka sertifikat.", "galat");
+            }
+        });
+        return a;
+    }
+
+    function kartu(r) {
+        const s = el("section", "bg-kertas rounded-2xl shadow-kartu p-5 kartu-kkn");
+        const kepala = el("div", "flex flex-wrap items-baseline justify-between gap-2 mb-4");
+        const judul = el("h2", "judul-halaman text-base");
+        judul.appendChild(el("span", "font-data", r.tahun_ajaran || "—"));
+        judul.appendChild(el("span", "text-tinta-redup font-normal", " · Kelompok " + (nomorKelompok(r.kelompok) || "—")));
+        kepala.appendChild(judul);
+        if (r.ketua) kepala.appendChild(el("span", "tanda is-belum", "ketua kelompok"));
+        s.appendChild(kepala);
+
+        const kisi = el("div", "grid sm:grid-cols-2 gap-x-8 gap-y-4");
+        kisi.appendChild(pasangan("Lokasi", r.lokasi));
+        kisi.appendChild(pasangan("Dosen pembimbing", r.nama_dosen));
+        kisi.appendChild(pasangan("Judul KKN", r.judul_kkn));
+
+        const b = BAYAR.find(function (x) { return x.nilai === (r.status_bayar || 0); }) || BAYAR[0];
+        const bayar = el("div", "flex items-center gap-2 flex-wrap");
+        bayar.appendChild(el("span", "tanda is-" + b.tanda, b.teks));
+        if (r.ket) bayar.appendChild(el("span", "text-xs text-tinta-redup", r.ket));
+        kisi.appendChild(pasangan("Pembayaran", bayar));
+
+        // Lima komponen digambar sebagai batang (deretNilai memberi <td>;
+        // isinya yang dipakai), angkanya ditulis di sebelahnya supaya tidak
+        // ada yang harus menebak dari tinggi batang.
+        const nilai = el("div", "flex items-center gap-3 flex-wrap");
+        const deret = deretNilai(r).firstChild;
+        nilai.appendChild(deret);
+        if (r.nilai > 0) {
+            nilai.appendChild(el("span", "font-data text-lg tabular-nums", r.nilai));
+            nilai.appendChild(el("span", "huruf-mutu text-bata", r.huruf || ""));
+        } else {
+            nilai.appendChild(el("span", "text-xs text-tinta-redup", "belum dinilai"));
+        }
+        const rincian = el("div", "font-data text-xs text-tinta-redup basis-full");
+        rincian.textContent = "H " + (r.nilai_h || 0) + " · S " + (r.nilai_s || 0) + " · L " + (r.nilai_l || 0) +
+            " · QP " + (r.nilai_qp || 0) + " · QL " + (r.nilai_ql || 0);
+        nilai.appendChild(rincian);
+        kisi.appendChild(pasangan("Nilai KKN", nilai));
+
+        const sert = el("div", "flex items-center gap-3 flex-wrap");
+        if (r.has_cert) sert.appendChild(tombolSertifikat(r));
+        else sert.appendChild(el("span", "tanda is-kosong", "belum terbit"));
+        kisi.appendChild(pasangan("Sertifikat", sert));
+
+        s.appendChild(kisi);
+        return s;
+    }
+
+    // Backend sudah membatasi daftar ini ke pemilik token (ListParticipations,
+    // peran mahasiswa) — id-nya diambil dari dokumen pengguna, bukan dari URL.
+    getJSON(backend.kkn.participations + "?limit=50", function (hasil) {
+        if (!sehat(hasil, elPesan)) return;
+        const baris = ((hasil.data || {}).data) || [];
+        kosongkan(daftar);
+        kosong.hidden = baris.length > 0;
+        baris.forEach(function (r) { daftar.appendChild(kartu(r)); });
+    }, ...tokenHeader());
+}
+</script>
+</body>
+</html>
