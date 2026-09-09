@@ -1,6 +1,6 @@
 // Uji terhadap backend PRODUKSI dengan berkas frontend LOKAL.
 //
-// Berkasnya disajikan di https://kknlppm.github.io lewat page.route, bukan di
+// Berkasnya disajikan di https://kknlppm.unfari.ac.id lewat page.route, bukan di
 // localhost: FRONTEND_ORIGIN hanya mengizinkan origin itu, jadi memuat dari
 // localhost membuat setiap panggilan API kandas di CORS — bukan karena
 // kodenya salah.
@@ -12,7 +12,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const AKAR = path.resolve(import.meta.dirname, "..");
-const ASAL = "https://kknlppm.github.io";
+const ASAL = "https://kknlppm.unfari.ac.id";
 const UNAME = process.env.KKN_UNAME, SANDI = process.env.KKN_SANDI;
 if (!UNAME || !SANDI) { console.error("Perlu KKN_UNAME dan KKN_SANDI."); process.exit(2); }
 
@@ -68,7 +68,7 @@ await page.waitForURL((u) => !/\/login\/?$/.test(new URL(u).pathname), { timeout
 cek("masuk sebagai admin", !/\/login\/?$/.test(new URL(page.url()).pathname), page.url().replace(ASAL, ""));
 
 // ── data induk: 1.706 mahasiswa, dulu berhenti di 200 ──
-await page.goto(ASAL + "/data-induk/");
+await page.goto(ASAL + "/data-induk/?entitas=students");
 await page.waitForFunction(() => document.querySelectorAll("#isiTabel tr").length > 1, null, { timeout: 25000 });
 cek("data-induk halaman 1 penuh 200 baris", (await page.locator("#isiTabel tr").count()) === 200);
 cek("ringkasan menyebut total sebenarnya", /^1\.\d{3} mahasiswa$/.test((await page.locator("#ringkasan").textContent()).trim()),

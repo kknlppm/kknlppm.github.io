@@ -9,7 +9,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const AKAR = path.resolve(import.meta.dirname, "..");
-const ASAL = "https://kknlppm.github.io";
+const ASAL = "https://kknlppm.unfari.ac.id";
 const API = "https://asia-southeast2-kkn-unfari.cloudfunctions.net";
 const TIPE = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png",
     ".svg": "image/svg+xml", ".ico": "image/x-icon", ".jpg": "image/jpeg", ".webp": "image/webp", ".avif": "image/avif" };

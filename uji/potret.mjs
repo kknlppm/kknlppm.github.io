@@ -6,7 +6,7 @@ import { chromium } from "playwright";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 const AKAR = path.resolve(import.meta.dirname, "..");
-const ASAL = "https://kknlppm.github.io";
+const ASAL = "https://kknlppm.unfari.ac.id";
 const KELUAR = process.env.KELUAR || "/tmp/potret";
 const TIPE = { ".html":"text/html",".js":"text/javascript",".css":"text/css",".json":"application/json",
   ".png":"image/png",".svg":"image/svg+xml",".jpg":"image/jpeg",".ico":"image/x-icon",".webp":"image/webp" };
