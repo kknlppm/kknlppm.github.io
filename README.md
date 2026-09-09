@@ -87,7 +87,7 @@ Di subpath, seluruh path absolut di situs ini (`/assets/…`, `/login/`) patah.
 Yang rahasia ada di `kkn-gocroot` — repo terpisah yang tetap privat.
 Tidak boleh ada rahasia apa pun di sini.
 
-`CNAME` sengaja belum dipasang; lihat `CATATAN-CNAME.md`.
+`CNAME` berisi `kknlppm.unfari.ac.id` sejak 9 September 2026; riwayat pemindahannya di `CATATAN-CNAME.md`.
 
 ## Susunan
 

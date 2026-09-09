@@ -1,3 +1,14 @@
+# CNAME terpasang sejak 9 September 2026
+
+`kknlppm.unfari.ac.id` kini menunjuk ke GitHub Pages (A 185.199.108-111.153,
+diganti pemilik di Zone Editor cPanel daxa pada 9 September 2026) dan berkas
+`CNAME` berisi nama itu. Aplikasi lama di Hostinger (46.202.138.194) sudah
+dalam pemeliharaan sejak 7 September dan tidak lagi dituju DNS.
+
+Catatan di bawah adalah keadaan SEBELUM pindah, disimpan sebagai riwayat.
+
+---
+
 # CNAME sengaja belum dipasang
 
 `kknlppm.unfari.ac.id` **masih melayani aplikasi KKN yang lama dan hidup**

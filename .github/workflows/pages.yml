@@ -3,8 +3,8 @@
 # AKTIF sejak 4 September 2026, TAPI ke alamat bawaan GitHub — bukan ke
 # kknlppm.unfari.ac.id.
 #
-# Domain itu masih melayani aplikasi KKN lama yang hidup, jadi CNAME sengaja
-# belum dipasang; lihat CATATAN-CNAME.md untuk urutan pemindahannya.
+# CNAME terpasang sejak 9 September 2026 (kknlppm.unfari.ac.id); lihat
+# CATATAN-CNAME.md untuk riwayat pemindahannya.
 #
 # assets/js/config.js sudah memuat alamat GCF yang sebenarnya.
 
